@@ -19,8 +19,12 @@
 
 BINARY = DAP
 OPENCM3_DIR = ../libopencm3
-LDSCRIPT=stm32f042x6.ld
+LDSCRIPT = stm32f042x6.ld
+
 DFU_UTIL = dfu-util
+
+SRCS := $(wildcard *.c)
+OBJS += $(SRCS:.c=.o)
 
 .DEFAULT_GOAL := $(BINARY).bin
 
@@ -30,3 +34,5 @@ DFU_UTIL = dfu-util
 dfuse-flash: $(BINARY).dfuse-flash
 
 include libopencm3.target.mk
+
+OBJS := $(sort $(OBJS))
