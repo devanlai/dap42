@@ -1,0 +1,12 @@
+# ignore GNU global files
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+
+# ignore build artifacts
+*.d
+*.o
+*.bin
+*.elf
+*.axf
