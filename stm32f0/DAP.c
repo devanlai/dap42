@@ -20,12 +20,22 @@
  */
 
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/crs.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/usb/usbd.h>
+#include <libopencm3/usb/hid.h>
+#include <libopencm3/stm32/st_usbfs.h>
+
+#include "usb_conf.h"
+
+void led_num(uint8_t x);
 
 /* Set STM32 to 48 MHz. */
 static void clock_setup(void)
 {
 	rcc_clock_setup_in_hsi48_out_48mhz();
+    crs_autotrim_usb_enable();
+    rcc_set_usbclk_source(HSI48);
 }
 
 static void gpio_setup(void)
@@ -61,40 +71,42 @@ static void button_setup(void)
     gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
+void led_num(uint8_t x) {
+    if (x & 0x4) {
+        gpio_clear(GPIOA, GPIO0);
+    } else {
+        gpio_set(GPIOA, GPIO0);
+    }
+    if (x & 0x2) {
+        gpio_clear(GPIOA, GPIO1);
+    } else {
+        gpio_set(GPIOA, GPIO1);
+    }
+    if (x & 0x1) {
+        gpio_clear(GPIOA, GPIO4);
+    } else {
+        gpio_set(GPIOA, GPIO4);
+    }
+}
+
 int main(void)
 {
-    int i;
-
     clock_setup();
     button_setup();
     gpio_setup();
 
-
-    gpio_set(GPIOA, GPIO0 | GPIO1 | GPIO4);
-
-	int delay;
+    led_num(1);
+    usbd_device* usbd_dev = hid_setup();
     while (1) {
-	  if (gpio_get(GPIOB, GPIO8)) {
-            delay = 1200000;
-		} else {
-            delay = 600000;
-		}
-		
-        gpio_toggle(GPIOA, GPIO0);
-        for (i = 0; i < delay; i++) {
-            __asm__("nop");
+        usbd_poll(usbd_dev);
+        /*
+        if (gpio_get(GPIOB, GPIO8))
+        {
+            gpio_clear(GPIOA, GPIO0);
+        } else {
+            gpio_set(GPIOA, GPIO0);
         }
-		gpio_toggle(GPIOA, GPIO0);
-        gpio_toggle(GPIOA, GPIO1);
-        for (i = 0; i < delay; i++) {
-            __asm__("nop");
-        }
-		gpio_toggle(GPIOA, GPIO1);
-        gpio_toggle(GPIOA, GPIO4);
-        for (i = 0; i < delay; i++) {
-            __asm__("nop");
-        }
-		gpio_toggle(GPIOA, GPIO4);
+        */
     }
 
     return 0;
