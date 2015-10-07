@@ -22,6 +22,8 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/crs.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/desig.h>
+
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/hid.h>
 #include <libopencm3/stm32/st_usbfs.h>
@@ -95,6 +97,12 @@ int main(void)
     button_setup();
     gpio_setup();
 
+    {
+        char serial[USB_SERIAL_NUM_LENGTH+1];
+        desig_get_unique_id_as_string(serial, USB_SERIAL_NUM_LENGTH+1);
+        set_usb_serial_number(serial);
+    }
+    
     led_num(1);
     usbd_device* usbd_dev = hid_setup();
     while (1) {

@@ -24,6 +24,8 @@
 #include <libopencm3/stm32/st_usbfs.h>
 #include <libopencm3/stm32/syscfg.h>
 
+#include <string.h>
+
 extern void led_num(uint8_t x);
 
 const struct usb_device_descriptor dev = {
@@ -36,7 +38,7 @@ const struct usb_device_descriptor dev = {
 	.bMaxPacketSize0 = 64,
 	.idVendor = 0x1209,
 	.idProduct = 0x0001,
-	.bcdDevice = 0x0200,
+	.bcdDevice = 0x0100,
 	.iManufacturer = 1,
 	.iProduct = 2,
 	.iSerialNumber = 3,
@@ -44,44 +46,24 @@ const struct usb_device_descriptor dev = {
 };
 
 static const uint8_t hid_report_descriptor[] = {
-	0x05, 0x01, /* USAGE_PAGE (Generic Desktop)         */
-	0x09, 0x02, /* USAGE (Mouse)                        */
-	0xa1, 0x01, /* COLLECTION (Application)             */
-	0x09, 0x01, /*   USAGE (Pointer)                    */
-	0xa1, 0x00, /*   COLLECTION (Physical)              */
-	0x05, 0x09, /*     USAGE_PAGE (Button)              */
-	0x19, 0x01, /*     USAGE_MINIMUM (Button 1)         */
-	0x29, 0x03, /*     USAGE_MAXIMUM (Button 3)         */
-	0x15, 0x00, /*     LOGICAL_MINIMUM (0)              */
-	0x25, 0x01, /*     LOGICAL_MAXIMUM (1)              */
-	0x95, 0x03, /*     REPORT_COUNT (3)                 */
-	0x75, 0x01, /*     REPORT_SIZE (1)                  */
-	0x81, 0x02, /*     INPUT (Data,Var,Abs)             */
-	0x95, 0x01, /*     REPORT_COUNT (1)                 */
-	0x75, 0x05, /*     REPORT_SIZE (5)                  */
-	0x81, 0x01, /*     INPUT (Cnst,Ary,Abs)             */
-	0x05, 0x01, /*     USAGE_PAGE (Generic Desktop)     */
-	0x09, 0x30, /*     USAGE (X)                        */
-	0x09, 0x31, /*     USAGE (Y)                        */
-	0x09, 0x38, /*     USAGE (Wheel)                    */
-	0x15, 0x81, /*     LOGICAL_MINIMUM (-127)           */
-	0x25, 0x7f, /*     LOGICAL_MAXIMUM (127)            */
-	0x75, 0x08, /*     REPORT_SIZE (8)                  */
-	0x95, 0x03, /*     REPORT_COUNT (3)                 */
-	0x81, 0x06, /*     INPUT (Data,Var,Rel)             */
-	0xc0,       /*   END_COLLECTION                     */
-	0x09, 0x3c, /*   USAGE (Motion Wakeup)              */
-	0x05, 0xff, /*   USAGE_PAGE (Vendor Defined Page 1) */
-	0x09, 0x01, /*   USAGE (Vendor Usage 1)             */
-	0x15, 0x00, /*   LOGICAL_MINIMUM (0)                */
-	0x25, 0x01, /*   LOGICAL_MAXIMUM (1)                */
-	0x75, 0x01, /*   REPORT_SIZE (1)                    */
-	0x95, 0x02, /*   REPORT_COUNT (2)                   */
-	0xb1, 0x22, /*   FEATURE (Data,Var,Abs,NPrf)        */
-	0x75, 0x06, /*   REPORT_SIZE (6)                    */
-	0x95, 0x01, /*   REPORT_COUNT (1)                   */
-	0xb1, 0x01, /*   FEATURE (Cnst,Ary,Abs)             */
-	0xc0        /* END_COLLECTION                       */
+    0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+    0x09, 0x01,        // Usage (0x01)
+    0xA1, 0x01,        // Collection (Application)
+    0x15, 0x00,        //   Logical Minimum (0)
+    0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x40,        //   Report Count (64)
+    0x09, 0x01,        //   Usage (0x01)
+    0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x95, 0x40,        //   Report Count (64)
+    0x09, 0x01,        //   Usage (0x01)
+    0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+    0x95, 0x01,        //   Report Count (1)
+    0x09, 0x01,        //   Usage (0x01)
+    0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+    0xC0,              // End Collection
+
+    // 33 bytes
 };
 
 static const struct {
@@ -94,7 +76,7 @@ static const struct {
 	.hid_descriptor = {
 		.bLength = sizeof(hid_function),
 		.bDescriptorType = USB_DT_HID,
-		.bcdHID = 0x0100,
+		.bcdHID = 0x0111,
 		.bCountryCode = 0,
 		.bNumDescriptors = 1,
 	},
@@ -111,7 +93,7 @@ const struct usb_endpoint_descriptor hid_endpoints[] = {
 	.bEndpointAddress = 0x81,
 	.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
 	.wMaxPacketSize = 64,
-	.bInterval = 20,
+	.bInterval = 1,
 },
 {
 	.bLength = USB_DT_ENDPOINT_SIZE,
@@ -119,7 +101,7 @@ const struct usb_endpoint_descriptor hid_endpoints[] = {
 	.bEndpointAddress = 0x01,
 	.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
 	.wMaxPacketSize = 64,
-	.bInterval = 20,
+	.bInterval = 1,
 },
 };
 
@@ -158,14 +140,26 @@ const struct usb_config_descriptor config = {
 	.interface = ifaces,
 };
 
+static char serial_number[USB_SERIAL_NUM_LENGTH+1] = "000000000000000000000000";
+
 static const char *usb_strings[] = {
 	"Devanarchy",
 	"DAP42 CMSIS-DAP",
-	"0",
+	serial_number,
 };
 
 /* Buffer to be used for control requests. */
 uint8_t usbd_control_buffer[128];
+
+void set_usb_serial_number(const char* serial)
+{
+	serial_number[0] = '\0';
+	if (serial)
+	{
+		strncpy(serial_number, serial, USB_SERIAL_NUM_LENGTH);
+		serial_number[USB_SERIAL_NUM_LENGTH] = '\0';
+	}
+}
 
 static int hid_control_request(usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf, uint16_t *len,
 			int (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req))
