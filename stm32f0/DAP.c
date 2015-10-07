@@ -88,6 +88,19 @@ void led_num(uint8_t x) {
     }
 }
 
+static uint16_t echo_len;
+static char echo[64];
+
+static void on_receive_report(char* data, uint16_t len) {
+    echo_len = len;
+    memcpy(echo, data, echo_len);
+}
+
+static void on_send_report(char* data, uint16_t* len) {
+    *len = echo_len;
+    memcpy(data, echo, echo_len);
+}
+
 int main(void) {
     clock_setup();
     button_setup();
@@ -100,7 +113,7 @@ int main(void) {
     }
 
     led_num(1);
-    usbd_device* usbd_dev = hid_setup();
+    usbd_device* usbd_dev = hid_setup(&on_receive_report, &on_send_report);
     while (1) {
         usbd_poll(usbd_dev);
     }

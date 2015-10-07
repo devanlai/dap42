@@ -192,18 +192,31 @@ static int hid_control_request(usbd_device *usbd_dev, struct usb_setup_data *req
 
     return status;
 }
+
+/* User callbacks */
+static ReceiveReportFunction receiveCallback = NULL;
+static SendReportFunction sendCallback = NULL;
+
 /* Handle sending a report to the host */
 static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
-    led_num(7);
-    const char* resp = "hello world";
-    usbd_ep_write_packet(usbd_dev, ep, resp, strlen(resp)+1);
+    if (sendCallback != NULL) {
+        char buf[64];
+        uint16_t len = 0;
+        sendCallback(buf, &len);
+        if (len > 0) {
+            usbd_ep_write_packet(usbd_dev, ep, buf, len);
+        }
+    }
+
 }
 
 /* Receive data from the host */
 static void hid_interrupt_out(usbd_device *usbd_dev, uint8_t ep) {
     char buf[64];
     uint16_t len = usbd_ep_read_packet(usbd_dev, ep, buf, sizeof(buf));
-    
+    if (len > 0 && (receiveCallback != NULL)) {
+        receiveCallback(buf, len);
+    }
 }
 
 static void hid_set_config(usbd_device *usbd_dev, uint16_t wValue) {
@@ -215,22 +228,19 @@ static void hid_set_config(usbd_device *usbd_dev, uint16_t wValue) {
     usbd_ep_setup(usbd_dev, 0x81, USB_ENDPOINT_ATTR_INTERRUPT, 64,
                   &hid_interrupt_in);
 
-    led_num(2);
-
     usbd_register_control_callback(
         usbd_dev,
         USB_REQ_TYPE_STANDARD | USB_REQ_TYPE_INTERFACE,
         USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
         hid_control_request);
-    /* Prime hid interrupt in ep? */
-    hid_interrupt_in(usbd_dev, 0x81);
-    // Clear the LED
-    led_num(0);
+    /* Prime hid interrupt in ep */
+    usbd_ep_write_packet(usbd_dev, 0x81, NULL, 0);
 }
 
-usbd_device* usbd_dev;
-
-usbd_device* hid_setup(void) {
+usbd_device* hid_setup(ReceiveReportFunction recv_cb, SendReportFunction send_cb) {
+    receiveCallback = recv_cb;
+    sendCallback = send_cb;
+    
     /* TODO: properly reset USB so that we re-enumerate correctly when from the
        USB DFU bootloader */
     rcc_periph_reset_pulse(RST_USB);
@@ -243,8 +253,9 @@ usbd_device* hid_setup(void) {
     gpio_set_af(GPIOA, GPIO_AF2, GPIO11 | GPIO12);
     SYSCFG_CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
 
-    usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config, usb_strings, 3,
-                         usbd_control_buffer, sizeof(usbd_control_buffer));
+    usbd_device* usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config,
+                                      usb_strings, 3,
+                                      usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, hid_set_config);
     
     return usbd_dev;
