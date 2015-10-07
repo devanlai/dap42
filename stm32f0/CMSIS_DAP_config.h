@@ -235,41 +235,38 @@ static __inline void PIN_nRESET_OUT (uint32_t bit) {
 	{
 	  GPIOB_BSRR = PIN_nRESET;
 	} else {
-		GPIOB_BRR = PIN_nRESET;
+	  GPIOB_BRR = PIN_nRESET;
 	}
 }
 
 static __inline void LED_CONNECTED_OUT (uint32_t bit) {
   if (bit & 0x1) {
-    GPIOA_MODER &= ~( (0x3 << (PIN_LED_CON_BITPOS << 1)) );
-    GPIOA_MODER |=  ( (0x1 << (PIN_LED_CON_BITPOS << 1)) );
+    GPIOA_BRR = PIN_LED_CON;
   } else {
-    GPIOA_MODER &= ~( (0x3 << (PIN_LED_CON_BITPOS << 1)) );
+    GPIOA_BSRR = PIN_LED_CON;
   }
 }
 
 static __inline void LED_RUNNING_OUT (uint32_t bit) {
   if (bit & 0x1) {
-    GPIOA_MODER &= ~( (0x3 << (PIN_LED_RUN_BITPOS << 1)) );
-    GPIOA_MODER |=  ( (0x1 << (PIN_LED_RUN_BITPOS << 1)) );
+    GPIOA_BRR = PIN_LED_RUN;
   } else {
-    GPIOA_MODER &= ~( (0x3 << (PIN_LED_RUN_BITPOS << 1)) );
+    GPIOA_BSRR = PIN_LED_RUN;
   }
 }
 
 static __inline void LED_ACTIVITY_OUT (uint32_t bit) {
   if (bit & 0x1) {
-    GPIOA_MODER &= ~( (0x3 << (PIN_LED_ACT_BITPOS << 1)) );
-    GPIOA_MODER |=  ( (0x1 << (PIN_LED_ACT_BITPOS << 1)) );
+    GPIOA_BRR = PIN_LED_ACT;
   } else {
-    GPIOA_MODER &= ~( (0x3 << (PIN_LED_ACT_BITPOS << 1)) );
+    GPIOA_BSRR = PIN_LED_ACT;
   }
 }
 
 static __inline void DAP_SETUP (void) {
-	GPIOA_MODER &= ~( (0x3 << (PIN_LED_RUN_BITPOS << 1)) );
-	GPIOA_MODER &= ~( (0x3 << (PIN_LED_CON_BITPOS << 1)) );
-	GPIOA_BRR = (PIN_LED_RUN | PIN_LED_CON);
+    LED_ACTIVITY_OUT(0);
+    LED_RUNNING_OUT(0);
+    LED_CONNECTED_OUT(0);
 }
 
 static __inline uint32_t RESET_TARGET (void) { return 0; }

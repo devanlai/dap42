@@ -92,21 +92,7 @@ void led_num(uint8_t x) {
     }
 }
 
-static uint16_t echo_len;
-static uint8_t echo[64];
-
-static void echo_on_receive_report(uint8_t* data, uint16_t len) {
-    echo_len = len;
-    memcpy(echo, data, echo_len);
-}
-
-static void echo_on_send_report(uint8_t* data, uint16_t* len) {
-    *len = echo_len;
-    memcpy((void*)data, (const void*)echo, echo_len);
-}
-
 static uint8_t request_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
-static uint16_t request_lengths[DAP_PACKET_QUEUE_SIZE];
 
 static uint8_t response_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
 static uint16_t response_lengths[DAP_PACKET_QUEUE_SIZE];
@@ -120,7 +106,6 @@ static uint32_t usb_timer = 0;
 static void on_receive_report(uint8_t* data, uint16_t len) {
     usb_timer = 1000;
     memcpy((void*)request_buffers[inbox_tail], (const void*)data, len);
-    request_lengths[inbox_tail] = len;
     inbox_tail = (inbox_tail + 1) % DAP_PACKET_QUEUE_SIZE;
     
 }
@@ -132,9 +117,7 @@ static void on_send_report(uint8_t* data, uint16_t* len) {
         *len = response_lengths[outbox_head];
 
         outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
-    }
-    else
-    {
+    } else {
         *len = 0;
     }
 }
