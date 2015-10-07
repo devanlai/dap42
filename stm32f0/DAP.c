@@ -33,17 +33,15 @@
 void led_num(uint8_t x);
 
 /* Set STM32 to 48 MHz. */
-static void clock_setup(void)
-{
-	rcc_clock_setup_in_hsi48_out_48mhz();
+static void clock_setup(void) {
+    rcc_clock_setup_in_hsi48_out_48mhz();
     crs_autotrim_usb_enable();
     rcc_set_usbclk_source(HSI48);
 }
 
-static void gpio_setup(void)
-{
+static void gpio_setup(void) {
     /*
-	  Button on PB8
+      Button on PB8
       LED0, 1, 2 on PA0, PA1, PA4
       TX, RX (MCU-side) on PA2, PA3
       TGT_RST on PB1
@@ -51,7 +49,7 @@ static void gpio_setup(void)
       TGT_SWO on PA7
     */
 
-	/* Enable GPIOA and GPIOB clocks. */
+    /* Enable GPIOA and GPIOB clocks. */
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOB);
 
@@ -64,8 +62,7 @@ static void gpio_setup(void)
                     GPIO0 | GPIO1 | GPIO4);
 }
 
-static void button_setup(void)
-{
+static void button_setup(void) {
     /* Enable GPIOB clock. */
     rcc_periph_clock_enable(RCC_GPIOB);
 
@@ -91,8 +88,7 @@ void led_num(uint8_t x) {
     }
 }
 
-int main(void)
-{
+int main(void) {
     clock_setup();
     button_setup();
     gpio_setup();
@@ -102,7 +98,7 @@ int main(void)
         desig_get_unique_id_as_string(serial, USB_SERIAL_NUM_LENGTH+1);
         set_usb_serial_number(serial);
     }
-    
+
     led_num(1);
     usbd_device* usbd_dev = hid_setup();
     while (1) {
