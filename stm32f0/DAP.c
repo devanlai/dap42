@@ -103,14 +103,6 @@ int main(void) {
     usbd_device* usbd_dev = hid_setup();
     while (1) {
         usbd_poll(usbd_dev);
-        /*
-        if (gpio_get(GPIOB, GPIO8))
-        {
-            gpio_clear(GPIOA, GPIO0);
-        } else {
-            gpio_set(GPIOA, GPIO0);
-        }
-        */
     }
 
     return 0;

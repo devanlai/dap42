@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include "usb_conf.h"
+#include "hid_defs.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/st_usbfs.h>
@@ -166,28 +167,53 @@ static int hid_control_request(usbd_device *usbd_dev, struct usb_setup_data *req
     (void)complete;
     (void)usbd_dev;
 
-    led_num(3);
-
-    if ((req->bmRequestType != 0x81) ||
-            (req->bRequest != USB_REQ_GET_DESCRIPTOR) ||
-            (req->wValue != 0x2200)) {
-        led_num(4);
-        return USBD_REQ_NOTSUPP;
+    /* GET_DESCRIPTOR request */
+    int status = USBD_REQ_NOTSUPP;
+    if (req->bmRequestType == 0x81 && req->bRequest == USB_REQ_GET_DESCRIPTOR) {
+        if (req->wValue == 0x2200) {
+            /* Report descriptor */
+            *buf = (uint8_t *)hid_report_descriptor;
+            *len = sizeof(hid_report_descriptor);
+            status = USBD_REQ_HANDLED;
+        }
+    } else if (req->bmRequestType == 0xA1 && req->bRequest == USB_HID_REQ_GET_REPORT) {
+        uint8_t report_type = (uint8_t)(req->wValue >> 8);
+        uint8_t report_id = (uint8_t)(req->wValue & 0xFF);
+        // TODO: process get report request
+        (void)report_type;
+        (void)report_id;
+    } else if (req->bmRequestType == 0x21 && req->bRequest == USB_HID_REQ_SET_REPORT) {
+        uint8_t report_type = (uint8_t)(req->wValue >> 8);
+        uint8_t report_id = (uint8_t)(req->wValue & 0xFF);
+        (void)report_type;
+        (void)report_id;
+        // TODO: process set report request
     }
 
-    /* Handle the HID report descriptor. */
-    *buf = (uint8_t *)hid_report_descriptor;
-    *len = sizeof(hid_report_descriptor);
+    return status;
+}
+/* Handle sending a report to the host */
+static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
+    led_num(7);
+    const char* resp = "hello world";
+    usbd_ep_write_packet(usbd_dev, ep, resp, strlen(resp)+1);
+}
 
-    return USBD_REQ_HANDLED;
+/* Receive data from the host */
+static void hid_interrupt_out(usbd_device *usbd_dev, uint8_t ep) {
+    char buf[64];
+    uint16_t len = usbd_ep_read_packet(usbd_dev, ep, buf, sizeof(buf));
+    
 }
 
 static void hid_set_config(usbd_device *usbd_dev, uint16_t wValue) {
     (void)wValue;
     (void)usbd_dev;
 
-    usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_INTERRUPT, 64, NULL);
-    usbd_ep_setup(usbd_dev, 0x81, USB_ENDPOINT_ATTR_INTERRUPT, 64, NULL);
+    usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_INTERRUPT, 64,
+                  &hid_interrupt_out);
+    usbd_ep_setup(usbd_dev, 0x81, USB_ENDPOINT_ATTR_INTERRUPT, 64,
+                  &hid_interrupt_in);
 
     led_num(2);
 
@@ -196,19 +222,19 @@ static void hid_set_config(usbd_device *usbd_dev, uint16_t wValue) {
         USB_REQ_TYPE_STANDARD | USB_REQ_TYPE_INTERFACE,
         USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
         hid_control_request);
-
-
-    //systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
-    /* SysTick interrupt every N clock pulses: set reload to N-1 */
-    //systick_set_reload(99999);
-    //systick_interrupt_enable();
-    //systick_counter_enable();
+    /* Prime hid interrupt in ep? */
+    hid_interrupt_in(usbd_dev, 0x81);
+    // Clear the LED
+    led_num(0);
 }
 
 usbd_device* usbd_dev;
 
 usbd_device* hid_setup(void) {
-    rcc_periph_clock_enable(RCC_USB);
+    /* TODO: properly reset USB so that we re-enumerate correctly when from the
+       USB DFU bootloader */
+    rcc_periph_reset_pulse(RST_USB);
+
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_SYSCFG_COMP);
 
@@ -220,6 +246,6 @@ usbd_device* hid_setup(void) {
     usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config, usb_strings, 3,
                          usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, hid_set_config);
-
+    
     return usbd_dev;
 }
