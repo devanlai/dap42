@@ -29,6 +29,10 @@
 #include <libopencm3/stm32/st_usbfs.h>
 
 #include "usb_conf.h"
+#include "CMSIS_DAP_config.h"
+#include "CMSIS_DAP.h"
+
+#include <string.h>
 
 void led_num(uint8_t x);
 
@@ -89,22 +93,59 @@ void led_num(uint8_t x) {
 }
 
 static uint16_t echo_len;
-static char echo[64];
+static uint8_t echo[64];
 
-static void on_receive_report(char* data, uint16_t len) {
+static void echo_on_receive_report(uint8_t* data, uint16_t len) {
     echo_len = len;
     memcpy(echo, data, echo_len);
 }
 
-static void on_send_report(char* data, uint16_t* len) {
+static void echo_on_send_report(uint8_t* data, uint16_t* len) {
     *len = echo_len;
-    memcpy(data, echo, echo_len);
+    memcpy((void*)data, (const void*)echo, echo_len);
+}
+
+static uint8_t request_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
+static uint16_t request_lengths[DAP_PACKET_QUEUE_SIZE];
+
+static uint8_t response_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
+static uint16_t response_lengths[DAP_PACKET_QUEUE_SIZE];
+
+static uint8_t inbox_tail;
+static uint8_t process_head;
+static uint8_t outbox_head;
+
+static uint32_t usb_timer = 0;
+
+static void on_receive_report(uint8_t* data, uint16_t len) {
+    usb_timer = 1000;
+    memcpy((void*)request_buffers[inbox_tail], (const void*)data, len);
+    request_lengths[inbox_tail] = len;
+    inbox_tail = (inbox_tail + 1) % DAP_PACKET_QUEUE_SIZE;
+    
+}
+
+static void on_send_report(uint8_t* data, uint16_t* len) {
+    usb_timer = 1000;
+    if (outbox_head != process_head) {
+        memcpy((void*)data, (const void*)response_buffers[outbox_head], response_lengths[outbox_head]);
+        *len = response_lengths[outbox_head];
+
+        outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
+    }
+    else
+    {
+        *len = 0;
+    }
 }
 
 int main(void) {
     clock_setup();
     button_setup();
     gpio_setup();
+    led_num(0);
+
+    DAP_Setup();
 
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
@@ -112,10 +153,29 @@ int main(void) {
         set_usb_serial_number(serial);
     }
 
-    led_num(1);
     usbd_device* usbd_dev = hid_setup(&on_receive_report, &on_send_report);
     while (1) {
         usbd_poll(usbd_dev);
+        if (process_head != inbox_tail) {
+            uint32_t len = DAP_ProcessCommand(request_buffers[process_head],
+                                              response_buffers[process_head]);
+            response_lengths[process_head] = (uint16_t)len;
+            process_head = (process_head + 1) % DAP_PACKET_QUEUE_SIZE;
+        }
+
+        // TODO: push reports to the endpoint
+        if (outbox_head != process_head) {
+            usbd_ep_write_packet(usbd_dev, 0x81, (const void*)response_buffers[outbox_head], response_lengths[outbox_head]);
+
+            outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
+        }
+
+        if (usb_timer > 0) {
+            usb_timer--;
+            LED_ACTIVITY_OUT(1);
+        } else {
+            LED_ACTIVITY_OUT(0);
+        }
     }
 
     return 0;

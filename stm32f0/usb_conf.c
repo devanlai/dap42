@@ -93,7 +93,7 @@ const struct usb_endpoint_descriptor hid_endpoints[] = {
         .bDescriptorType = USB_DT_ENDPOINT,
         .bEndpointAddress = 0x81,
         .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-        .wMaxPacketSize = 64,
+        .wMaxPacketSize = USB_HID_MAX_PACKET_SIZE,
         .bInterval = 1,
     },
     {
@@ -101,7 +101,7 @@ const struct usb_endpoint_descriptor hid_endpoints[] = {
         .bDescriptorType = USB_DT_ENDPOINT,
         .bEndpointAddress = 0x01,
         .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-        .wMaxPacketSize = 64,
+        .wMaxPacketSize = USB_HID_MAX_PACKET_SIZE,
         .bInterval = 1,
     },
 };
@@ -200,11 +200,11 @@ static SendReportFunction sendCallback = NULL;
 /* Handle sending a report to the host */
 static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
     if (sendCallback != NULL) {
-        char buf[64];
+        uint8_t buf[USB_HID_MAX_PACKET_SIZE];
         uint16_t len = 0;
         sendCallback(buf, &len);
         if (len > 0) {
-            usbd_ep_write_packet(usbd_dev, ep, buf, len);
+            usbd_ep_write_packet(usbd_dev, ep, (const void*)buf, len);
         }
     }
 
@@ -212,8 +212,8 @@ static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
 
 /* Receive data from the host */
 static void hid_interrupt_out(usbd_device *usbd_dev, uint8_t ep) {
-    char buf[64];
-    uint16_t len = usbd_ep_read_packet(usbd_dev, ep, buf, sizeof(buf));
+    uint8_t buf[USB_HID_MAX_PACKET_SIZE];
+    uint16_t len = usbd_ep_read_packet(usbd_dev, ep, (void*)buf, sizeof(buf));
     if (len > 0 && (receiveCallback != NULL)) {
         receiveCallback(buf, len);
     }
@@ -234,7 +234,7 @@ static void hid_set_config(usbd_device *usbd_dev, uint16_t wValue) {
         USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
         hid_control_request);
     /* Prime hid interrupt in ep */
-    usbd_ep_write_packet(usbd_dev, 0x81, NULL, 0);
+    //usbd_ep_write_packet(usbd_dev, 0x81, NULL, 0);
 }
 
 usbd_device* hid_setup(ReceiveReportFunction recv_cb, SendReportFunction send_cb) {
