@@ -28,6 +28,8 @@
 #include <libopencm3/usb/hid.h>
 #include <libopencm3/stm32/st_usbfs.h>
 
+#include <libopencm3/stm32/usart.h>
+
 #include "usb_conf.h"
 #include "CMSIS_DAP_config.h"
 #include "CMSIS_DAP.h"
@@ -74,6 +76,24 @@ static void button_setup(void) {
     gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
+static void uart_setup(uint32_t baudrate) {
+    /* Enable UART clock */
+    rcc_periph_clock_enable(RCC_USART2);
+
+    /* Setup GPIO pins for UART2 */
+    gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2 | GPIO3);
+    gpio_set_af(GPIOA, GPIO_AF1, GPIO2 | GPIO3);
+
+    usart_set_baudrate(USART2, baudrate);
+    usart_set_databits(USART2, 8);
+    usart_set_parity(USART2, USART_PARITY_NONE);
+    usart_set_stopbits(USART2, USART_CR2_STOP_1_0BIT);
+    usart_set_mode(USART2, USART_MODE_TX_RX);
+    usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
+
+    usart_enable(USART2);
+
+}
 void led_num(uint8_t x) {
     if (x & 0x4) {
         gpio_clear(GPIOA, GPIO0);
@@ -128,8 +148,12 @@ int main(void) {
     gpio_setup();
     led_num(0);
 
-    DAP_Setup();
+    uart_setup(115200);
 
+    led_num(1);
+    
+    DAP_Setup();
+    /*
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
         desig_get_unique_id_as_string(serial, USB_SERIAL_NUM_LENGTH+1);
@@ -161,5 +185,27 @@ int main(void) {
         }
     }
 
+    */
+
+    const char* s = "Hello World!\r\n";
+    const char* p = s;
+    
+    while (1) {
+        LED_ACTIVITY_OUT(1);
+        usart_send_blocking(USART2, *p);
+        LED_ACTIVITY_OUT(0);
+        p++;
+        
+        if (*p == '\0') {
+            p = s;
+            int i;
+            for (i = 0; i < 1000000; i++) {/* Wait a bit. */
+                __asm__("NOP");
+            }
+        }
+
+
+    }
+        
     return 0;
 }
