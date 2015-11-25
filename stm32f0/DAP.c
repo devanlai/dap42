@@ -35,6 +35,7 @@
 #include "CMSIS_DAP.h"
 
 #include "tick.h"
+#include "retarget.h"
 
 #include <string.h>
 
@@ -173,6 +174,8 @@ int main(void) {
     led_num(0);
 
     uart_setup(115200);
+    retarget(STDOUT_FILENO, USART2);
+    retarget(STDERR_FILENO, USART2);
 
     led_num(1);
     
@@ -218,17 +221,9 @@ int main(void) {
     
     while (1) {
         LED_ACTIVITY_OUT(1);
-        usart_send_blocking(USART2, *p);
+        printf(s);
         LED_ACTIVITY_OUT(0);
-        p++;
-        
-        if (*p == '\0') {
-            p = s;
-            int i;
-            wait_ms(1000);
-        }
-
-
+        wait_ms(1000);
     }
     return 0;
 }
