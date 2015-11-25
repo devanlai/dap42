@@ -34,6 +34,8 @@
 #include "CMSIS_DAP_config.h"
 #include "CMSIS_DAP.h"
 
+#include "tick.h"
+
 #include <string.h>
 
 void led_num(uint8_t x);
@@ -41,8 +43,29 @@ void led_num(uint8_t x);
 /* Set STM32 to 48 MHz. */
 static void clock_setup(void) {
     rcc_clock_setup_in_hsi48_out_48mhz();
+
+    // Trim from USB sync frame
     crs_autotrim_usb_enable();
     rcc_set_usbclk_source(HSI48);
+}
+
+static inline uint32_t millis() {
+    return get_ticks();
+}
+
+static inline void wait_ms(uint32_t duration_ms) {
+    uint32_t now = millis();
+    uint32_t end = now + duration_ms;
+    if (end < now) {
+        end = 0xFFFFFFFFU - end;
+        while (millis() >= 0) {
+            __asm__("NOP");
+        }
+    }
+
+    while (millis() < end) {
+        __asm__("NOP");
+    }
 }
 
 static void gpio_setup(void) {
@@ -144,6 +167,7 @@ static void on_send_report(uint8_t* data, uint16_t* len) {
 
 int main(void) {
     clock_setup();
+    tick_setup(1000);
     button_setup();
     gpio_setup();
     led_num(0);
@@ -153,6 +177,8 @@ int main(void) {
     led_num(1);
     
     DAP_Setup();
+
+    tick_start();
     /*
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
@@ -199,13 +225,10 @@ int main(void) {
         if (*p == '\0') {
             p = s;
             int i;
-            for (i = 0; i < 1000000; i++) {/* Wait a bit. */
-                __asm__("NOP");
-            }
+            wait_ms(1000);
         }
 
 
     }
-        
     return 0;
 }
