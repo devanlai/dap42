@@ -69,6 +69,31 @@ static inline void wait_ms(uint32_t duration_ms) {
     }
 }
 
+void print_hex(uint32_t x) {
+    uint8_t i;
+    for (i=8; i > 0; i--) {
+        uint8_t nibble = (x >> ((i-1) * 4)) & 0xF;
+        char nibble_char;
+        if (nibble < 10) {
+            nibble_char = '0' + nibble;
+        } else {
+            nibble_char = 'A' + (nibble - 10);
+        }
+
+        putchar(nibble_char);
+    }
+}
+
+static inline void print(const char* s) {
+    while (*s != '\0') {
+        putchar(*s++);
+    }
+}
+
+static inline void println(const char* s) {
+    puts(s);
+}
+
 static void gpio_setup(void) {
     /*
       Button on PB8
@@ -216,12 +241,15 @@ int main(void) {
 
     */
 
-    const char* s = "Hello World!\r\n";
-    const char* p = s;
-    
+    int i = 0;
     while (1) {
         LED_ACTIVITY_OUT(1);
-        printf(s);
+
+        print("Hello ");
+        print_hex(i);
+        println("");
+
+        i++;
         LED_ACTIVITY_OUT(0);
         wait_ms(1000);
     }
