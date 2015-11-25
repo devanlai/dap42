@@ -49,7 +49,7 @@ static void clock_setup(void) {
     rcc_set_usbclk_source(HSI48);
 }
 
-static inline uint32_t millis() {
+static inline uint32_t millis(void) {
     return get_ticks();
 }
 
@@ -58,7 +58,7 @@ static inline void wait_ms(uint32_t duration_ms) {
     uint32_t end = now + duration_ms;
     if (end < now) {
         end = 0xFFFFFFFFU - end;
-        while (millis() >= 0) {
+        while (millis() >= now) {
             __asm__("NOP");
         }
     }
