@@ -83,7 +83,7 @@ void SWJ_Sequence (uint32_t count, uint8_t *data) {
 //   data:    DATA[31:0]
 //   return:  ACK[2:0]
 #define SWD_TransferFunction(speed)     /**/                                    \
-uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {                \
+static uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {         \
   uint32_t ack;                                                                 \
   uint32_t bit;                                                                 \
   uint32_t val;                                                                 \

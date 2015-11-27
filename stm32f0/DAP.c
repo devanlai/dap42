@@ -19,6 +19,9 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
+#include <string.h>
+
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/crs.h>
 #include <libopencm3/stm32/gpio.h>
@@ -36,8 +39,6 @@
 
 #include "tick.h"
 #include "retarget.h"
-
-#include <string.h>
 
 void led_num(uint8_t x);
 
@@ -69,7 +70,7 @@ static inline void wait_ms(uint32_t duration_ms) {
     }
 }
 
-void print_hex(uint32_t x) {
+static void print_hex(uint32_t x) {
     uint8_t i;
     for (i=8; i > 0; i--) {
         uint8_t nibble = (x >> ((i-1) * 4)) & 0xF;

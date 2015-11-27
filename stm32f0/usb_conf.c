@@ -163,7 +163,7 @@ void set_usb_serial_number(const char* serial) {
 }
 
 static int hid_control_request(usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf, uint16_t *len,
-                               int (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req)) {
+                               void (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req)) {
     (void)complete;
     (void)usbd_dev;
 

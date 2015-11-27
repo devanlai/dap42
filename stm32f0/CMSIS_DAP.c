@@ -1184,6 +1184,7 @@ end:
 //   response: pointer to response data
 //   return:   number of bytes in response
 __weak uint32_t DAP_ProcessVendorCommand(uint8_t *request, uint8_t *response) {
+  (void)request;
   *response = ID_DAP_Invalid;
   return (1);
 }
