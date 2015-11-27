@@ -4,15 +4,16 @@
 #include <libopencm3/stm32/usart.h>
 
 #include "retarget.h"
+#include "console.h"
 
-static uint32_t uart_stdout = NO_UART;
-static uint32_t uart_stderr = NO_UART;
+static uint32_t usart_stdout = NO_USART;
+static uint32_t usart_stderr = NO_USART;
 
-void retarget(int file, uint32_t uart) {
+void retarget(int file, uint32_t usart) {
     if (file == STDOUT_FILENO) {
-        uart_stdout = uart;
+        usart_stdout = usart;
     } else if (file == STDERR_FILENO) {
-        uart_stderr = uart;
+        usart_stderr = usart;
     }
 }
 
@@ -20,16 +21,16 @@ int _write(int file, char *ptr, int len)
 {
     int i;
 
-    uint32_t uart = NO_UART;
+    uint32_t usart = 0;
     if (file == STDOUT_FILENO) {
-        uart = uart_stdout;
+        usart = usart_stdout;
     } else if (file == STDERR_FILENO) {
-        uart = uart_stderr;
+        usart = usart_stderr;
     }
 
-    if (uart != NO_UART) {
+    if (usart == CONSOLE_USART) {
         for (i = 0; i < len; i++) {
-            usart_send_blocking(uart, ptr[i]);
+            console_send_blocking(ptr[i]);
         }
         return i;
     }

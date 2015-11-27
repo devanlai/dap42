@@ -3,9 +3,9 @@
 
 #include <unistd.h>
 
-#define NO_UART 0xFFFFFFFFU
+#define NO_USART 0xFFFFFFFFU
 
-extern void retarget(int file, uint32_t uart);
+extern void retarget(int file, uint32_t usart);
 extern int _write(int file, char *ptr, int len);
 
 #endif

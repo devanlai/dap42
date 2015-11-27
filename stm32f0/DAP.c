@@ -39,6 +39,7 @@
 
 #include "tick.h"
 #include "retarget.h"
+#include "console.h"
 
 void led_num(uint8_t x);
 
@@ -126,24 +127,6 @@ static void button_setup(void) {
     gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
-static void uart_setup(uint32_t baudrate) {
-    /* Enable UART clock */
-    rcc_periph_clock_enable(RCC_USART2);
-
-    /* Setup GPIO pins for UART2 */
-    gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2 | GPIO3);
-    gpio_set_af(GPIOA, GPIO_AF1, GPIO2 | GPIO3);
-
-    usart_set_baudrate(USART2, baudrate);
-    usart_set_databits(USART2, 8);
-    usart_set_parity(USART2, USART_PARITY_NONE);
-    usart_set_stopbits(USART2, USART_CR2_STOP_1_0BIT);
-    usart_set_mode(USART2, USART_MODE_TX_RX);
-    usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
-
-    usart_enable(USART2);
-
-}
 void led_num(uint8_t x) {
     if (x & 0x4) {
         gpio_clear(GPIOA, GPIO0);
@@ -199,9 +182,9 @@ int main(void) {
     gpio_setup();
     led_num(0);
 
-    uart_setup(115200);
-    retarget(STDOUT_FILENO, USART2);
-    retarget(STDERR_FILENO, USART2);
+    console_setup(115200);
+    retarget(STDOUT_FILENO, CONSOLE_USART);
+    retarget(STDERR_FILENO, CONSOLE_USART);
 
     led_num(1);
     
