@@ -10,3 +10,4 @@ GTAGS
 *.bin
 *.elf
 *.axf
+*.map
