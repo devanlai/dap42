@@ -94,7 +94,11 @@ static inline void print(const char* s) {
 }
 
 static inline void println(const char* s) {
-    puts(s);
+    while (*s != '\0') {
+        putchar(*s++);
+    }
+    putchar('\r');
+    putchar('\n');
 }
 
 static void gpio_setup(void) {
