@@ -1,5 +1,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/nvic.h>
 
 #include "console.h"
 
@@ -22,6 +23,6 @@ void console_setup(uint32_t baudrate) {
 }
 
 
-void usart2_handler(void) {
+void usart2_isr(void) {
 
 }

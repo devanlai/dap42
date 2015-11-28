@@ -15,8 +15,4 @@ extern inline uint8_t console_recv_blocking(void) {
     return usart_recv_blocking(CONSOLE_USART);
 }
 
-extern void usart2_handler(void);
-
-
-
 #endif
