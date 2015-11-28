@@ -41,7 +41,8 @@
 #include "retarget.h"
 #include "console.h"
 
-void led_num(uint8_t x);
+void led_num(uint8_t value);
+void led_bit(uint8_t position, bool state);
 
 /* Set STM32 to 48 MHz. */
 static void clock_setup(void) {
@@ -127,18 +128,37 @@ static void button_setup(void) {
     gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
-void led_num(uint8_t x) {
-    if (x & 0x4) {
+void led_bit(uint8_t position, bool state) {
+    uint32_t gpio = 0xFFFFFFFFU;
+    if (position == 0) {
+        gpio = GPIO4;
+    } else if (position == 1) {
+        gpio = GPIO1;
+    } else if (position == 2) {
+        gpio = GPIO0;
+    }
+
+    if (gpio != 0xFFFFFFFFU) {
+        if (state) {
+            gpio_clear(GPIOA, gpio);
+        } else {
+            gpio_set(GPIOA, gpio);
+        }
+    }
+}
+
+void led_num(uint8_t value) {
+    if (value & 0x4) {
         gpio_clear(GPIOA, GPIO0);
     } else {
         gpio_set(GPIOA, GPIO0);
     }
-    if (x & 0x2) {
+    if (value & 0x2) {
         gpio_clear(GPIOA, GPIO1);
     } else {
         gpio_set(GPIOA, GPIO1);
     }
-    if (x & 0x1) {
+    if (value & 0x1) {
         gpio_clear(GPIOA, GPIO4);
     } else {
         gpio_set(GPIOA, GPIO4);
