@@ -72,35 +72,6 @@ static inline void wait_ms(uint32_t duration_ms) {
     }
 }
 
-static void print_hex(uint32_t x) {
-    uint8_t i;
-    for (i=8; i > 0; i--) {
-        uint8_t nibble = (x >> ((i-1) * 4)) & 0xF;
-        char nibble_char;
-        if (nibble < 10) {
-            nibble_char = '0' + nibble;
-        } else {
-            nibble_char = 'A' + (nibble - 10);
-        }
-
-        putchar(nibble_char);
-    }
-}
-
-static inline void print(const char* s) {
-    while (*s != '\0') {
-        putchar(*s++);
-    }
-}
-
-static inline void println(const char* s) {
-    while (*s != '\0') {
-        putchar(*s++);
-    }
-    putchar('\r');
-    putchar('\n');
-}
-
 static void gpio_setup(void) {
     /*
       Button on PB8
