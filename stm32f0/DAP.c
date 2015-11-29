@@ -145,8 +145,7 @@ static void on_host_tx(uint8_t* data, uint16_t len) {
 
 static void on_host_rx(uint8_t* data, uint16_t* len) {
     usb_timer = 1000;
-    (void)data;
-    (void)len;
+    *len = (uint16_t)console_recv_buffered(data, USB_CDC_MAX_PACKET_SIZE);
 }
 
 /*
@@ -205,9 +204,26 @@ int main(void) {
         cdc_set_usb_serial_number(serial);
     }
 
-    usbd_device* usbd_dev = cdc_setup(&on_host_tx, &on_host_tx);
+    uint16_t len = 0;
+    uint8_t buf[USB_CDC_MAX_PACKET_SIZE];
+
+    //usbd_device* usbd_dev = cdc_setup(&on_host_tx, &on_host_rx);
+    usbd_device* usbd_dev = cdc_setup(&on_host_tx, NULL);
     while (1) {
         usbd_poll(usbd_dev);
+
+        if (len > 0) {
+            uint16_t sent = usbd_ep_write_packet(usbd_dev, 0x82, (const void*)buf, len);
+            if (sent == len) {
+                usb_timer = 1000;
+                len = 0;
+            }
+        }
+
+        if (len == 0) {
+            len = (uint16_t)console_recv_buffered(buf, USB_CDC_MAX_PACKET_SIZE);
+        }
+
         if (usb_timer > 0) {
             usb_timer--;
             LED_ACTIVITY_OUT(1);
