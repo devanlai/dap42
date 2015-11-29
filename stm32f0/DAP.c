@@ -27,13 +27,9 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/desig.h>
 
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/hid.h>
-#include <libopencm3/stm32/st_usbfs.h>
-
 #include <libopencm3/stm32/usart.h>
 
-#include "usb_conf.h"
+#include "cdc_usb_conf.h"
 #include "CMSIS_DAP_config.h"
 #include "CMSIS_DAP.h"
 
@@ -140,6 +136,21 @@ void led_num(uint8_t value) {
     }
 }
 
+static uint32_t usb_timer = 0;
+
+static void on_host_tx(uint8_t* data, uint16_t len) {
+    usb_timer = 1000;
+    console_send_buffered(data, (size_t)len);
+}
+
+static void on_host_rx(uint8_t* data, uint16_t* len) {
+    usb_timer = 1000;
+    (void)data;
+    (void)len;
+}
+
+/*
+
 static uint8_t request_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
 
 static uint8_t response_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
@@ -170,6 +181,7 @@ static void on_send_report(uint8_t* data, uint16_t* len) {
     }
 }
 
+*/
 int main(void) {
     clock_setup();
     tick_setup(1000);
@@ -186,13 +198,25 @@ int main(void) {
     DAP_Setup();
 
     tick_start();
-    /*
+    
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
         desig_get_unique_id_as_string(serial, USB_SERIAL_NUM_LENGTH+1);
-        set_usb_serial_number(serial);
+        cdc_set_usb_serial_number(serial);
     }
 
+    usbd_device* usbd_dev = cdc_setup(&on_host_tx, &on_host_tx);
+    while (1) {
+        usbd_poll(usbd_dev);
+        if (usb_timer > 0) {
+            usb_timer--;
+            LED_ACTIVITY_OUT(1);
+        } else {
+            LED_ACTIVITY_OUT(0);
+        }
+    }
+    
+    /*
     usbd_device* usbd_dev = hid_setup(&on_receive_report, &on_send_report);
     while (1) {
         usbd_poll(usbd_dev);
@@ -220,17 +244,5 @@ int main(void) {
 
     */
 
-    int i = 0;
-    while (1) {
-        LED_ACTIVITY_OUT(1);
-
-        print("Hello ");
-        print_hex(i);
-        println("");
-
-        i++;
-        LED_ACTIVITY_OUT(0);
-        wait_ms(1000);
-    }
     return 0;
 }
