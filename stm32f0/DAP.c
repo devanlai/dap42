@@ -29,7 +29,7 @@
 
 #include <libopencm3/stm32/usart.h>
 
-#include "cdc_usb_conf.h"
+#include "composite_usb_conf.h"
 #include "CMSIS_DAP_config.h"
 #include "CMSIS_DAP.h"
 
@@ -148,8 +148,6 @@ static void on_host_rx(uint8_t* data, uint16_t* len) {
     *len = (uint16_t)console_recv_buffered(data, USB_CDC_MAX_PACKET_SIZE);
 }
 
-/*
-
 static uint8_t request_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
 
 static uint8_t response_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
@@ -158,8 +156,6 @@ static uint16_t response_lengths[DAP_PACKET_QUEUE_SIZE];
 static uint8_t inbox_tail;
 static uint8_t process_head;
 static uint8_t outbox_head;
-
-static uint32_t usb_timer = 0;
 
 static void on_receive_report(uint8_t* data, uint16_t len) {
     usb_timer = 1000;
@@ -180,7 +176,6 @@ static void on_send_report(uint8_t* data, uint16_t* len) {
     }
 }
 
-*/
 int main(void) {
     clock_setup();
     tick_setup(1000);
@@ -201,41 +196,31 @@ int main(void) {
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
         desig_get_unique_id_as_string(serial, USB_SERIAL_NUM_LENGTH+1);
-        cdc_set_usb_serial_number(serial);
+        cmp_set_usb_serial_number(serial);
     }
 
-    uint16_t len = 0;
-    uint8_t buf[USB_CDC_MAX_PACKET_SIZE];
+    uint16_t cdc_len = 0;
+    uint8_t cdc_buf[USB_CDC_MAX_PACKET_SIZE];
 
-    //usbd_device* usbd_dev = cdc_setup(&on_host_tx, &on_host_rx);
-    usbd_device* usbd_dev = cdc_setup(&on_host_tx, NULL);
+    usbd_device* usbd_dev = cmp_setup(&on_send_report, &on_receive_report, &on_host_tx);
+
     while (1) {
         usbd_poll(usbd_dev);
 
-        if (len > 0) {
-            uint16_t sent = usbd_ep_write_packet(usbd_dev, 0x82, (const void*)buf, len);
-            if (sent == len) {
+        // Handle CDC
+        if (cdc_len > 0) {
+            uint16_t sent = usbd_ep_write_packet(usbd_dev, 0x82, (const void*)cdc_buf, cdc_len);
+            if (sent == cdc_len) {
                 usb_timer = 1000;
-                len = 0;
+                cdc_len = 0;
             }
         }
 
-        if (len == 0) {
-            len = (uint16_t)console_recv_buffered(buf, USB_CDC_MAX_PACKET_SIZE);
+        if (cdc_len == 0) {
+            cdc_len = (uint16_t)console_recv_buffered(cdc_buf, USB_CDC_MAX_PACKET_SIZE);
         }
 
-        if (usb_timer > 0) {
-            usb_timer--;
-            LED_ACTIVITY_OUT(1);
-        } else {
-            LED_ACTIVITY_OUT(0);
-        }
-    }
-    
-    /*
-    usbd_device* usbd_dev = hid_setup(&on_receive_report, &on_send_report);
-    while (1) {
-        usbd_poll(usbd_dev);
+        // Handle DAP
         if (process_head != inbox_tail) {
             uint32_t len = DAP_ProcessCommand(request_buffers[process_head],
                                               response_buffers[process_head]);
@@ -243,11 +228,11 @@ int main(void) {
             process_head = (process_head + 1) % DAP_PACKET_QUEUE_SIZE;
         }
 
-        // TODO: push reports to the endpoint
         if (outbox_head != process_head) {
-            usbd_ep_write_packet(usbd_dev, 0x81, (const void*)response_buffers[outbox_head], response_lengths[outbox_head]);
-
-            outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
+            uint16_t sent = usbd_ep_write_packet(usbd_dev, 0x84, (const void*)response_buffers[outbox_head], response_lengths[outbox_head]);
+            if (sent != 0) {
+                outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
+            }
         }
 
         if (usb_timer > 0) {
@@ -257,8 +242,6 @@ int main(void) {
             LED_ACTIVITY_OUT(0);
         }
     }
-
-    */
 
     return 0;
 }

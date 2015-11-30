@@ -87,7 +87,7 @@ static const struct {
     },
 };
 
-const struct usb_endpoint_descriptor hid_endpoints[] = {
+static const struct usb_endpoint_descriptor hid_endpoints[] = {
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
@@ -106,7 +106,7 @@ const struct usb_endpoint_descriptor hid_endpoints[] = {
     },
 };
 
-const struct usb_interface_descriptor hid_iface = {
+static const struct usb_interface_descriptor hid_iface = {
     .bLength = USB_DT_INTERFACE_SIZE,
     .bDescriptorType = USB_DT_INTERFACE,
     .bInterfaceNumber = 0,
