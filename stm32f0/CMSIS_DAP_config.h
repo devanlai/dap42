@@ -128,7 +128,7 @@ SWD functionality
 static __inline void PORT_SWD_SETUP (void)
 {
   GPIOA_BSRR = PIN_SWDIO;
-  GPIOB_BSRR = PIN_SWCLK;
+  GPIOA_BSRR = PIN_SWCLK;
   
   GPIOA_MODER   &= ~( (0x3 << (PIN_SWDIO_BITPOS << 1)) );
   GPIOA_MODER   &= ~( (0x3 << (PIN_SWCLK_BITPOS << 1)) );
@@ -186,10 +186,11 @@ static __inline uint32_t PIN_SWDIO_IN (void)
 
 static __inline void PIN_SWDIO_OUT (uint32_t bit)
 {
-  if (bit & 1)
+  if (bit & 1) {
     GPIOA_BSRR = PIN_SWDIO;
-  else
+  } else {
     GPIOA_BRR = PIN_SWDIO;
+  }
 }
 
 static __inline void     PIN_SWDIO_OUT_ENABLE  (void)
@@ -231,12 +232,11 @@ static __inline uint32_t PIN_nRESET_IN  (void) {
 }
 
 static __inline void PIN_nRESET_OUT (uint32_t bit) {
-	if (bit & 0x1)
-	{
-	  GPIOB_BSRR = PIN_nRESET;
-	} else {
-	  GPIOB_BRR = PIN_nRESET;
-	}
+  if (bit & 0x1) {
+    GPIOB_BSRR = PIN_nRESET;
+  } else {
+    GPIOB_BRR = PIN_nRESET;
+  }
 }
 
 static __inline void LED_CONNECTED_OUT (uint32_t bit) {
@@ -264,9 +264,9 @@ static __inline void LED_ACTIVITY_OUT (uint32_t bit) {
 }
 
 static __inline void DAP_SETUP (void) {
-    LED_ACTIVITY_OUT(0);
-    LED_RUNNING_OUT(0);
-    LED_CONNECTED_OUT(0);
+  LED_ACTIVITY_OUT(0);
+  LED_RUNNING_OUT(0);
+  LED_CONNECTED_OUT(0);
 }
 
 static __inline uint32_t RESET_TARGET (void) { return 0; }
