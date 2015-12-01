@@ -267,6 +267,14 @@ static __inline void DAP_SETUP (void) {
   LED_ACTIVITY_OUT(0);
   LED_RUNNING_OUT(0);
   LED_CONNECTED_OUT(0);
+
+  // Configure nRESET as an open-drain output
+  GPIOB_OTYPER  |= PIN_nRESET;
+  
+  GPIOB_MODER &= ~( (0x3 << (PIN_nRESET_BITPOS << 1)) );
+  GPIOB_MODER |=  ( (0x1 << (PIN_nRESET_BITPOS << 1)) );
+
+  GPIOB_BSRR   = PIN_nRESET;
 }
 
 static __inline uint32_t RESET_TARGET (void) { return 0; }
