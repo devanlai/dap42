@@ -22,10 +22,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <libopencm3/cm3/scb.h>
+
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/crs.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/desig.h>
+#include <libopencm3/stm32/syscfg.h>
 
 #include <libopencm3/stm32/usart.h>
 
@@ -36,6 +39,7 @@
 #include "tick.h"
 #include "retarget.h"
 #include "console.h"
+#include "backup.h"
 
 void led_num(uint8_t value);
 void led_bit(uint8_t position, bool state);
@@ -176,7 +180,67 @@ static void on_send_report(uint8_t* data, uint16_t* len) {
     }
 }
 
+static bool do_reset_to_dfu = false;
+uint32_t DAP_ProcessVendorCommand(uint8_t* request, uint8_t* response) {
+    if (request[0] == ID_DAP_Vendor31) {
+        if (request[1] == 'D' && request[2] == 'F' && request[3] == 'U') {
+            response[0] = request[0];
+            response[1] = DAP_OK;
+            do_reset_to_dfu = true;
+            return 2;
+        } else {
+            response[0] = request[0];
+            response[1] = DAP_ERROR;
+            return 2;
+        }
+    }
+
+    response[0] = ID_DAP_Invalid;
+    return 1;
+}
+
+static const uint32_t BOOT_ADDR = 0x1FFFC400UL;
+static inline void __set_MSP(uint32_t topOfMainStack)
+{
+    asm("msr msp, %0" : : "r" (topOfMainStack));
+}
+
+static inline void jump_to_bootloader(void) {
+    uint32_t boot_stack_ptr = *(uint32_t*)(BOOT_ADDR);
+    uint32_t dfu_reset_addr = *(uint32_t*)(BOOT_ADDR+4);
+
+    void (*dfu_bootloader)(void) = (void (*))(dfu_reset_addr);
+
+    /* Remap vector table to system memory */
+    rcc_periph_clock_enable(RCC_SYSCFG_COMP);
+    SYSCFG_CFGR1 = 0x1;
+
+    /* Reset the stack pointer */
+    __set_MSP(boot_stack_ptr);
+
+    dfu_bootloader();
+    while (true);
+}
+
+static bool do_jump_to_bootloader = false;
 int main(void) {
+    /* Check if we reset intentionally to enter DFU mode */
+    if (backup_read(BKP0) == 0x44465500UL) {
+        /* Clear the backup register */
+        backup_write(BKP0, 0x0);
+        do_jump_to_bootloader = true;
+    }
+
+    if (do_jump_to_bootloader) {
+        /* Temporary work-around until BOOT_SEL is cleared */
+        rcc_periph_clock_enable(RCC_GPIOB);
+        gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
+        gpio_set(GPIOB, GPIO8);
+
+        /* Jump to the ROM bootloader */
+        jump_to_bootloader();
+    }
+
     clock_setup();
     tick_setup(1000);
     button_setup();
@@ -192,7 +256,7 @@ int main(void) {
     DAP_Setup();
 
     tick_start();
-    
+
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
         desig_get_unique_id_as_string(serial, USB_SERIAL_NUM_LENGTH+1);
@@ -233,6 +297,23 @@ int main(void) {
             if (sent != 0) {
                 outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
             }
+        }
+
+        /* If resetting, wait until all pending requests are done */
+        if (do_reset_to_dfu && (outbox_head == process_head)) {
+            /* Write to the backup register so we remember to enter DFU */
+            backup_write(BKP0, 0x44465500UL);
+
+            /* Blink 3 times to indicate reset */
+            int x;
+            for (x=0; x < 3; x++) {
+                led_num(7);
+                wait_ms(150);
+                led_num(0);
+                wait_ms(150);
+            }
+
+            scb_reset_system();
         }
 
         if (usb_timer > 0) {
