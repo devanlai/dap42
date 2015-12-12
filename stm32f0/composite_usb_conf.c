@@ -443,13 +443,12 @@ usbd_device* cmp_setup(HostInFunction report_send_cb, HostOutFunction report_rec
     cdc_rx_callback = cdc_rx_cb;
     //cdc_tx_callback = tx_cb;
 
-    /* TODO: properly reset USB so that we re-enumerate correctly when from the
-       USB DFU bootloader */
     rcc_periph_reset_pulse(RST_USB);
 
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_SYSCFG_COMP);
 
+    /* Remap PA11 and PA12 for use as USB */
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
                     GPIO11 | GPIO12);
     gpio_set_af(GPIOA, GPIO_AF2, GPIO11 | GPIO12);
