@@ -280,7 +280,7 @@ static const char *usb_strings[] = {
 };
 
 /* Buffer to be used for control requests. */
-static uint8_t usbd_control_buffer[128];
+static uint8_t usbd_control_buffer[128] __attribute__ ((aligned (2)));
 
 void cmp_set_usb_serial_number(const char* serial) {
     serial_number[0] = '\0';
