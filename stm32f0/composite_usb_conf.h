@@ -9,6 +9,12 @@
 #define USB_HID_MAX_PACKET_SIZE 64
 #define USB_SERIAL_NUM_LENGTH   24
 
+#define ENDP_CDC_DATA_OUT       0x01
+#define ENDP_CDC_DATA_IN        0x82
+#define ENDP_CDC_COMM_IN        0x83
+#define ENDP_HID_REPORT_OUT     0x04
+#define ENDP_HID_REPORT_IN      0x84
+
 typedef void (*HostOutFunction)(uint8_t* data, uint16_t len);
 typedef void (*HostInFunction)(uint8_t* data, uint16_t* len);
 

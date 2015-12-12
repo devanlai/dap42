@@ -58,7 +58,7 @@ static const struct usb_endpoint_descriptor comm_endpoints[] = {
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = 0x83,
+        .bEndpointAddress = ENDP_CDC_COMM_IN,
         .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
         .wMaxPacketSize = 16,
         .bInterval = 1,
@@ -69,7 +69,7 @@ static const struct usb_endpoint_descriptor data_endpoints[] = {
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = 0x01,
+        .bEndpointAddress = ENDP_CDC_DATA_OUT,
         .bmAttributes = USB_ENDPOINT_ATTR_BULK,
         .wMaxPacketSize = USB_CDC_MAX_PACKET_SIZE,
         .bInterval = 1,
@@ -77,7 +77,7 @@ static const struct usb_endpoint_descriptor data_endpoints[] = {
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = 0x82,
+        .bEndpointAddress = ENDP_CDC_DATA_IN,
         .bmAttributes = USB_ENDPOINT_ATTR_BULK,
         .wMaxPacketSize = USB_CDC_MAX_PACKET_SIZE,
         .bInterval = 1,
@@ -206,7 +206,7 @@ static const struct usb_endpoint_descriptor hid_endpoints[] = {
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = 0x84,
+        .bEndpointAddress = ENDP_HID_REPORT_IN,
         .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
         .wMaxPacketSize = USB_HID_MAX_PACKET_SIZE,
         .bInterval = 1,
@@ -214,7 +214,7 @@ static const struct usb_endpoint_descriptor hid_endpoints[] = {
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
         .bDescriptorType = USB_DT_ENDPOINT,
-        .bEndpointAddress = 0x04,
+        .bEndpointAddress = ENDP_HID_REPORT_OUT,
         .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
         .wMaxPacketSize = USB_HID_MAX_PACKET_SIZE,
         .bInterval = 1,
@@ -414,14 +414,14 @@ static void hid_interrupt_out(usbd_device *usbd_dev, uint8_t ep) {
 static void cmp_set_config(usbd_device *usbd_dev, uint16_t wValue) {
     (void)wValue;
 
-    usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64,
+    usbd_ep_setup(usbd_dev, ENDP_CDC_DATA_OUT, USB_ENDPOINT_ATTR_BULK, 64,
                   cdc_bulk_data_out);
-    usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
-    usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+    usbd_ep_setup(usbd_dev, ENDP_CDC_DATA_IN, USB_ENDPOINT_ATTR_BULK, 64, NULL);
+    usbd_ep_setup(usbd_dev, ENDP_CDC_COMM_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
-    usbd_ep_setup(usbd_dev, 0x04, USB_ENDPOINT_ATTR_INTERRUPT, 64,
+    usbd_ep_setup(usbd_dev, ENDP_HID_REPORT_OUT, USB_ENDPOINT_ATTR_INTERRUPT, 64,
                   &hid_interrupt_out);
-    usbd_ep_setup(usbd_dev, 0x84, USB_ENDPOINT_ATTR_INTERRUPT, 64,
+    usbd_ep_setup(usbd_dev, ENDP_HID_REPORT_IN, USB_ENDPOINT_ATTR_INTERRUPT, 64,
                   &hid_interrupt_in);
 
     usbd_register_control_callback(

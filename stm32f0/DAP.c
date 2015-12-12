@@ -232,7 +232,8 @@ int main(void) {
 
         // Handle CDC
         if (cdc_len > 0) {
-            uint16_t sent = usbd_ep_write_packet(usbd_dev, 0x82, (const void*)cdc_buf, cdc_len);
+            uint16_t sent = usbd_ep_write_packet(usbd_dev, ENDP_CDC_DATA_IN,
+                                                 (const void*)cdc_buf, cdc_len);
             if (sent == cdc_len) {
                 usb_timer = 1000;
                 cdc_len = 0;
@@ -252,7 +253,9 @@ int main(void) {
         }
 
         if (outbox_head != process_head) {
-            uint16_t sent = usbd_ep_write_packet(usbd_dev, 0x84, (const void*)response_buffers[outbox_head], response_lengths[outbox_head]);
+            uint16_t sent = usbd_ep_write_packet(usbd_dev, ENDP_HID_REPORT_IN,
+                                                 (const void*)response_buffers[outbox_head],
+                                                 response_lengths[outbox_head]);
             if (sent != 0) {
                 outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
             }
