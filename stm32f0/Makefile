@@ -29,7 +29,7 @@ OBJS += $(SRCS:.c=.o)
 .DEFAULT_GOAL := $(BINARY).bin
 
 %.dfuse-flash: %.bin
-	$(DFU_UTIL) -a 0 -s 0x8000000 -D $(<)
+	$(DFU_UTIL) -a 0 -s 0x08000000:leave -D $(<)
 
 dfuse-flash: $(BINARY).dfuse-flash
 
