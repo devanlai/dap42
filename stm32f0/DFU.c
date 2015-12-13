@@ -3,6 +3,8 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/syscfg.h>
 
+#include <libopencm3/stm32/flash.h>
+
 #include "backup.h"
 #include "DFU.h"
 
@@ -39,7 +41,12 @@ static void jump_to_bootloader(void) {
 
 /* Writes a DFU command to the backup register and resets */
 void DFU_reset_and_jump_to_bootloader(void) {
-    backup_write(BKP0, CMD_BOOT_WITH_NBOOT0_BIT);
+    /* Check if BOOT_SEL is set, which requires driving the BOOT0 pin*/
+    if (FLASH_OBR & FLASH_OBR_BOOT_SEL) {
+        backup_write(BKP0, CMD_BOOT_WITH_BOOT0_PIN);
+    } else {
+        backup_write(BKP0, CMD_BOOT_WITH_NBOOT0_BIT);
+    }
     scb_reset_system();
 }
 
