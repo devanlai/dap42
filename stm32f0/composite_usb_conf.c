@@ -261,7 +261,7 @@ static const struct usb_config_descriptor config = {
     .bLength = USB_DT_CONFIGURATION_SIZE,
     .bDescriptorType = USB_DT_CONFIGURATION,
     .wTotalLength = 0,
-    .bNumInterfaces = 3,
+    .bNumInterfaces = sizeof(interfaces)/sizeof(struct usb_interface),
     .bConfigurationValue = 1,
     .iConfiguration = 0,
     .bmAttributes = 0xC0,
@@ -282,6 +282,12 @@ static const char *usb_strings[] = {
 /* Buffer to be used for control requests. */
 static uint8_t usbd_control_buffer[128] __attribute__ ((aligned (2)));
 
+/* User callbacks */
+static HostOutFunction cdc_rx_callback = NULL;
+static HostInFunction cdc_tx_callback = NULL;
+static HostOutFunction hid_report_out_callback = NULL;
+static HostInFunction hid_report_in_callback = NULL;
+
 void cmp_set_usb_serial_number(const char* serial) {
     serial_number[0] = '\0';
     if (serial) {
@@ -290,11 +296,16 @@ void cmp_set_usb_serial_number(const char* serial) {
     }
 }
 
-static int cdc_control_request(usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf, uint16_t *len,
-                               void (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req)) {
+static int cdc_control_class_request(usbd_device *usbd_dev,
+                                     struct usb_setup_data *req,
+                                     uint8_t **buf, uint16_t *len,
+                                     usbd_control_complete_callback* complete) {
     (void)complete;
     (void)usbd_dev;
 
+    if (req->wIndex != INTF_CDC_DATA && req->wIndex != INTF_CDC_COMM) {
+        return USBD_REQ_NEXT_CALLBACK;
+    }
     int status = USBD_REQ_NOTSUPP;
 
     switch (req->bRequest) {
@@ -336,7 +347,7 @@ static int cdc_control_request(usbd_device *usbd_dev, struct usb_setup_data *req
             break;
         }
         default: {
-            status = USBD_REQ_NEXT_CALLBACK;
+            status = USBD_REQ_NOTSUPP;
             break;
         }
     }
@@ -344,42 +355,80 @@ static int cdc_control_request(usbd_device *usbd_dev, struct usb_setup_data *req
     return status;
 }
 
-static int hid_control_request(usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf, uint16_t *len,
-                               void (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req)) {
+static int hid_control_standard_request(usbd_device *usbd_dev,
+                                        struct usb_setup_data *req,
+                                        uint8_t **buf, uint16_t *len,
+                                        usbd_control_complete_callback* complete) {
     (void)complete;
     (void)usbd_dev;
 
-    /* GET_DESCRIPTOR request */
+    if (req->wIndex != INTF_HID) {
+        return USBD_REQ_NEXT_CALLBACK;
+    }
+
     int status = USBD_REQ_NOTSUPP;
-    if (req->bmRequestType == 0x81 && req->bRequest == USB_REQ_GET_DESCRIPTOR) {
-        if (req->wValue == 0x2200) {
-            /* Report descriptor */
-            *buf = (uint8_t *)hid_report_descriptor;
-            *len = sizeof(hid_report_descriptor);
-            status = USBD_REQ_HANDLED;
+    switch (req->bRequest) {
+        case USB_REQ_GET_DESCRIPTOR: {
+            uint8_t descriptorType = (uint8_t)((req->wValue >> 8) & 0xFF);
+            uint8_t descriptorIndex = (uint8_t)(req->wValue & 0xFF);
+            if (descriptorType == USB_DT_REPORT) {
+                if (descriptorIndex == 0) {
+                    *buf = (uint8_t *)hid_report_descriptor;
+                    *len = sizeof(hid_report_descriptor);
+                    status = USBD_REQ_HANDLED;
+                }
+            }
+            break;
         }
-    } else if (req->bmRequestType == 0xA1 && req->bRequest == USB_HID_REQ_GET_REPORT) {
-        uint8_t report_type = (uint8_t)(req->wValue >> 8);
-        uint8_t report_id = (uint8_t)(req->wValue & 0xFF);
-        // TODO: process get report request
-        (void)report_type;
-        (void)report_id;
-    } else if (req->bmRequestType == 0x21 && req->bRequest == USB_HID_REQ_SET_REPORT) {
-        uint8_t report_type = (uint8_t)(req->wValue >> 8);
-        uint8_t report_id = (uint8_t)(req->wValue & 0xFF);
-        (void)report_type;
-        (void)report_id;
-        // TODO: process set report request
+        case USB_REQ_SET_DESCRIPTOR: {
+            status = USBD_REQ_NOTSUPP;
+            break;
+        }
+        default: {
+            status = USBD_REQ_NOTSUPP;
+            break;
+        }
     }
 
     return status;
 }
 
-/* User callbacks */
-static HostOutFunction cdc_rx_callback = NULL;
-static HostInFunction cdc_tx_callback = NULL;
-static HostOutFunction hid_report_out_callback = NULL;
-static HostInFunction hid_report_in_callback = NULL;
+static int hid_control_class_request(usbd_device *usbd_dev,
+                                     struct usb_setup_data *req,
+                                     uint8_t **buf, uint16_t *len,
+                                     usbd_control_complete_callback* complete) {
+    (void)complete;
+    (void)usbd_dev;
+
+    if (req->wIndex != INTF_HID) {
+        return USBD_REQ_NEXT_CALLBACK;
+    }
+
+    int status = USBD_REQ_NOTSUPP;
+    switch (req->bRequest) {
+        case USB_HID_REQ_GET_REPORT: {
+            if ((hid_report_in_callback != NULL) && (*buf != NULL)) {
+                hid_report_in_callback(*buf, len);
+                status = USBD_REQ_HANDLED;
+            }
+            break;
+        }
+        case USB_HID_REQ_SET_REPORT: {
+            if ((hid_report_out_callback != NULL) && (*len > 0))
+            {
+                hid_report_out_callback(*buf, *len);
+                status = USBD_REQ_HANDLED;
+            }
+            break;
+        }
+        default: {
+            status = USBD_REQ_NOTSUPP;
+            break;
+        }
+    }
+
+    return status;
+}
 
 /* Receive data from the host */
 static void cdc_bulk_data_out(usbd_device *usbd_dev, uint8_t ep) {
@@ -428,13 +477,19 @@ static void cmp_set_config(usbd_device *usbd_dev, uint16_t wValue) {
         usbd_dev,
         USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
         USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-        cdc_control_request);
+        cdc_control_class_request);
 
     usbd_register_control_callback(
         usbd_dev,
         USB_REQ_TYPE_STANDARD | USB_REQ_TYPE_INTERFACE,
         USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-        hid_control_request);
+        hid_control_standard_request);
+
+    usbd_register_control_callback(
+        usbd_dev,
+        USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
+        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
+        hid_control_class_request);
 }
 
 usbd_device* cmp_setup(HostInFunction report_send_cb, HostOutFunction report_recv_cb, HostOutFunction cdc_rx_cb) {
