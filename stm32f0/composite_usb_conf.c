@@ -102,7 +102,7 @@ static const struct {
         .bDescriptorType = CS_INTERFACE,
         .bDescriptorSubtype = USB_CDC_TYPE_CALL_MANAGEMENT,
         .bmCapabilities = 0,
-        .bDataInterface = 2,
+        .bDataInterface = INTF_CDC_DATA,
     },
     .acm = {
         .bFunctionLength = sizeof(struct usb_cdc_acm_descriptor),
@@ -114,15 +114,15 @@ static const struct {
         .bFunctionLength = sizeof(struct usb_cdc_union_descriptor),
         .bDescriptorType = CS_INTERFACE,
         .bDescriptorSubtype = USB_CDC_TYPE_UNION,
-        .bControlInterface = 1,
-        .bSubordinateInterface0 = 2,
+        .bControlInterface = INTF_CDC_COMM,
+        .bSubordinateInterface0 = INTF_CDC_DATA,
     }
 };
 
 static const struct usb_iface_assoc_descriptor iface_assoc = {
     .bLength = USB_DT_INTERFACE_ASSOCIATION_SIZE,
     .bDescriptorType = USB_DT_INTERFACE_ASSOCIATION,
-    .bFirstInterface = 0,
+    .bFirstInterface = INTF_CDC_COMM,
     .bInterfaceCount = 2,
     .bFunctionClass = USB_CLASS_CDC,
     .bFunctionSubClass = 0,
@@ -133,7 +133,7 @@ static const struct usb_iface_assoc_descriptor iface_assoc = {
 static const struct usb_interface_descriptor comm_iface = {
     .bLength = USB_DT_INTERFACE_SIZE,
     .bDescriptorType = USB_DT_INTERFACE,
-    .bInterfaceNumber = 1,
+    .bInterfaceNumber = INTF_CDC_COMM,
     .bAlternateSetting = 0,
     .bNumEndpoints = 1,
     .bInterfaceClass = USB_CLASS_CDC,
@@ -150,7 +150,7 @@ static const struct usb_interface_descriptor comm_iface = {
 static const struct usb_interface_descriptor data_iface = {
     .bLength = USB_DT_INTERFACE_SIZE,
     .bDescriptorType = USB_DT_INTERFACE,
-    .bInterfaceNumber = 2,
+    .bInterfaceNumber = INTF_CDC_DATA,
     .bAlternateSetting = 0,
     .bNumEndpoints = 2,
     .bInterfaceClass = USB_CLASS_DATA,
@@ -224,7 +224,7 @@ static const struct usb_endpoint_descriptor hid_endpoints[] = {
 static const struct usb_interface_descriptor hid_iface = {
     .bLength = USB_DT_INTERFACE_SIZE,
     .bDescriptorType = USB_DT_INTERFACE,
-    .bInterfaceNumber = 0,
+    .bInterfaceNumber = INTF_HID,
     .bAlternateSetting = 0,
     .bNumEndpoints = 2,
     .bInterfaceClass = USB_CLASS_HID,

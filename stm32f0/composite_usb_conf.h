@@ -15,6 +15,10 @@
 #define ENDP_HID_REPORT_OUT     0x04
 #define ENDP_HID_REPORT_IN      0x84
 
+#define INTF_HID                0
+#define INTF_CDC_COMM           1
+#define INTF_CDC_DATA           2
+
 typedef void (*HostOutFunction)(uint8_t* data, uint16_t len);
 typedef void (*HostInFunction)(uint8_t* data, uint16_t* len);
 
