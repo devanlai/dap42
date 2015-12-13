@@ -230,7 +230,7 @@ static const struct usb_interface_descriptor hid_iface = {
     .bInterfaceClass = USB_CLASS_HID,
     .bInterfaceSubClass = 0,
     .bInterfaceProtocol = 0,
-    .iInterface = 0,
+    .iInterface = 2,
 
     .endpoint = hid_endpoints,
 
