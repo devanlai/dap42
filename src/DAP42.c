@@ -28,6 +28,7 @@
 #include "USB/composite_usb_conf.h"
 #include "USB/cdc.h"
 #include "USB/vcdc.h"
+#include "USB/mtp.h"
 #include "USB/dfu.h"
 
 #include "DAP/app.h"
@@ -111,6 +112,10 @@ int main(void) {
 
     if (VCDC_AVAILABLE) {
         vcdc_app_setup(usbd_dev, &on_usb_activity, &on_usb_activity);
+    }
+
+    if (MTP_AVAILABLE) {
+        mtp_setup(usbd_dev, NULL, NULL);
     }
 
     if (DFU_AVAILABLE) {

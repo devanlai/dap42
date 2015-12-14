@@ -25,6 +25,7 @@
 #define USB_CDC_MAX_PACKET_SIZE 64
 #define USB_VCDC_MAX_PACKET_SIZE 64
 #define USB_HID_MAX_PACKET_SIZE 64
+#define USB_MTP_MAX_PACKET_SIZE 64
 #define USB_SERIAL_NUM_LENGTH   24
 
 enum {
@@ -35,6 +36,9 @@ enum {
 #endif
 #if VCDC_AVAILABLE
     ENDP_VCDC_DATA_OUT,
+#endif
+#if MTP_AVAILABLE
+    ENDP_MTP_DATA_OUT,
 #endif
 
     HIGHEST_OUT_ENDPOINT
@@ -51,6 +55,10 @@ enum {
     ENDP_VCDC_DATA_IN,
     ENDP_VCDC_COMM_IN,
 #endif
+#if MTP_AVAILABLE
+    ENDP_MTP_DATA_IN,
+    ENDP_MTP_EVENT_IN,
+#endif
 
     HIGHEST_IN_ENDPOINT,
 };
@@ -64,6 +72,9 @@ enum {
 #if VCDC_AVAILABLE
     INTF_VCDC_COMM,
     INTF_VCDC_DATA,
+#endif
+#if MTP_AVAILABLE
+    INTF_MTP,
 #endif
 #if DFU_AVAILABLE
     INTF_DFU,

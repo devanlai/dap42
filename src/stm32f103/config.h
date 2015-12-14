@@ -46,6 +46,8 @@
 #define CONSOLE_USART_IRQ_NAME  usart3_isr
 #define CONSOLE_USART_NVIC_LINE NVIC_USART3_IRQ
 
+#define MTP_AVAILABLE 1
+
 /* Word size for usart_recv and usart_send */
 typedef uint16_t usart_word_t;
 

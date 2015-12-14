@@ -29,6 +29,7 @@
 
 #include "hid_defs.h"
 #include "misc_defs.h"
+#include "ptp_defs.h"
 
 #include "hid.h"
 #include "dfu.h"
@@ -269,6 +270,51 @@ static const struct usb_interface_descriptor hid_iface = {
     .extralen = sizeof(hid_function),
 };
 
+#if MTP_AVAILABLE
+
+static const struct usb_endpoint_descriptor mtp_endpoints[] = {
+    {
+        .bLength = USB_DT_ENDPOINT_SIZE,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = ENDP_MTP_DATA_IN,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = USB_MTP_MAX_PACKET_SIZE,
+        .bInterval = 0,
+    },
+    {
+        .bLength = USB_DT_ENDPOINT_SIZE,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = ENDP_MTP_DATA_OUT,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = USB_MTP_MAX_PACKET_SIZE,
+        .bInterval = 0,
+    },
+    {
+        .bLength = USB_DT_ENDPOINT_SIZE,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = ENDP_MTP_EVENT_IN,
+        .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+        .wMaxPacketSize = USB_MTP_MAX_PACKET_SIZE,
+        .bInterval = 10,
+    },
+};
+
+static const struct usb_interface_descriptor mtp_iface = {
+    .bLength = USB_DT_INTERFACE_SIZE,
+    .bDescriptorType = USB_DT_INTERFACE,
+    .bInterfaceNumber = INTF_MTP,
+    .bAlternateSetting = 0,
+    .bNumEndpoints = 3,
+    .bInterfaceClass = USB_CLASS_IMAGE,
+    .bInterfaceSubClass = USB_IMAGE_SUBCLASS_STILL_IMAGING,
+    .bInterfaceProtocol = 0,
+    .iInterface = 10,
+
+    .endpoint = mtp_endpoints,
+};
+
+#endif
+
 #if DFU_AVAILABLE
 
 static const struct usb_interface_descriptor dfu_iface = {
@@ -322,6 +368,13 @@ static const struct usb_interface interfaces[] = {
         .altsetting = &vdata_iface,
     },
 #endif
+#if MTP_AVAILABLE
+    /* MTP Interface */
+    {
+        .num_altsetting = 1,
+        .altsetting = &mtp_iface,
+    },
+#endif
 #if DFU_AVAILABLE
     /* DFU interface */
     {
@@ -356,6 +409,7 @@ static const char *usb_strings[] = {
     (PRODUCT_NAME " DFU"),
     "SLCAN CDC Control",
     "SLCAN CDC Data",
+    (PRODUCT_NAME " MTP"),
 };
 
 void cmp_set_usb_serial_number(const char* serial) {
