@@ -24,7 +24,11 @@ LDSCRIPT = stm32f042x6.ld
 DFU_UTIL = dfu-util
 
 SRCS := $(wildcard *.c)
+SRCS += $(wildcard DAP/*.c)
+SRCS += $(wildcard USB/*.c)
+SRCS += $(wildcard DFU/*.c)
 OBJS += $(SRCS:.c=.o)
+DEPS  = $(SRCS:.c=.d)
 
 .DEFAULT_GOAL := $(BINARY).bin
 
@@ -32,6 +36,10 @@ OBJS += $(SRCS:.c=.o)
 	$(DFU_UTIL) -a 0 -s 0x08000000:leave -D $(<)
 
 dfuse-flash: $(BINARY).dfuse-flash
+
+clean::
+	@rm -f $(OBJS)
+	@rm -f $(DEPS)
 
 include libopencm3.target.mk
 

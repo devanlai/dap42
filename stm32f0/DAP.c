@@ -28,16 +28,15 @@
 #include <libopencm3/stm32/desig.h>
 #include <libopencm3/stm32/syscfg.h>
 
-#include <libopencm3/stm32/usart.h>
-
-#include "composite_usb_conf.h"
-#include "CMSIS_DAP_config.h"
-#include "CMSIS_DAP.h"
+#include "USB/composite_usb_conf.h"
+#include "DAP/CMSIS_DAP_config.h"
+#include "DAP/CMSIS_DAP.h"
+#include "DFU/DFU.h"
 
 #include "tick.h"
 #include "retarget.h"
 #include "console.h"
-#include "DFU.h"
+
 
 void led_num(uint8_t value);
 void led_bit(uint8_t position, bool state);

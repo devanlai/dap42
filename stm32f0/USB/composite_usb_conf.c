@@ -30,8 +30,6 @@
 #include "hid_defs.h"
 #include "misc_defs.h"
 
-extern void led_num(uint8_t x);
-
 static const struct usb_device_descriptor dev = {
     .bLength = USB_DT_DEVICE_SIZE,
     .bDescriptorType = USB_DT_DEVICE,
