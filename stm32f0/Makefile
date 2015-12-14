@@ -43,4 +43,7 @@ clean::
 
 include libopencm3.target.mk
 
+size: $(OBJS) $(BINARY).elf
+	@$(PREFIX)-size $(OBJS) $(BINARY).elf
+
 OBJS := $(sort $(OBJS))
