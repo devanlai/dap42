@@ -47,7 +47,7 @@ static void clock_setup(void) {
 
     // Trim from USB sync frame
     crs_autotrim_usb_enable();
-    rcc_set_usbclk_source(HSI48);
+    rcc_set_usbclk_source(RCC_HSI48);
 }
 
 static inline uint32_t millis(void) {
