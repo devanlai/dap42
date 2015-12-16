@@ -53,4 +53,8 @@ An example of the extra configuration for OpenOCD is given below:
 * Level-shifting/protective tri-state buffer between the probe and target SWD port.
 
 ## Licensing
-The dap42 source code is tentatively planned to be released under the two-clause BSD license, pending further interpretation of [libopencm3](http://libopencm3.org/wiki/Main_Page)'s linking exception.
+All contents of the dap42 project are licensed under terms that are compatible with the terms of the GNU Lesser General Public License version 3.
+
+Non-libopencm3 related portions of the dap42 project are licensed under the less restrictive ISC license, except where otherwise specified in the headers of specific files.
+
+See the LICENSE file for full details.
