@@ -1,7 +1,7 @@
 # dap42
-The dap42 project is an open-source firmware and hardware design for an inexpensive, minimalist CMSIS-DAP based debug probe based on the [STM32F042F6](http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1574/LN1823/PF259617) in a TSSOP-20 package.
+The dap42 project is an open-source firmware and [hardware design](https://github.com/devanlai/dap42-hardware) for an inexpensive, minimalist CMSIS-DAP based debug probe based on the [STM32F042F6](http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1574/LN1823/PF259617) in a TSSOP-20 package.
 
-This project is currently in alpha - features generaly do 80% of what's needed, but the last 20% is generally untested.
+This project is currently in alpha - features generally do 80% of what's needed, but the last 20% is generally untested.
 
 ## Current features
 ### Firmware
