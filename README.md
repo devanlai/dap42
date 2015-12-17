@@ -31,13 +31,12 @@ Because the STM32F042 enables the DFU bootloader when it hasn't been flashed and
 The dap42 firmware has been tested with gdb and OpenOCD on STM32F042 (of course), STM32F103, and LPC11C14 targets.
 
 For OpenOCD to configure and use the dap42, the CMSIS-DAP interface must be selected and the dap42's VID/PID pair must be specified.
-Currently, the firmware uses the [pid.codes](http://pid.codes/) [reserved test PID 1209/0001](http://pid.codes/1209/0001/).
-The VID/PID must be changed to an appropriately allocated pair before distributing hardware with the dap42 firmware.
+The dap42 VID/PID pair is from [pid.codes](http://pid.codes/): [1209/DA42](http://pid.codes/1209/DA42/).
 
 An example of the extra configuration for OpenOCD is given below:
 
     interface cmsis-dap
-    cmsis_dap_vid_pid 0x1209 0x0001
+    cmsis_dap_vid_pid 0x1209 0xDA42
 
 ## Planned features
 ### Firmware
