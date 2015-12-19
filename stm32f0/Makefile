@@ -19,6 +19,7 @@ OPENCM3_DIR = ../libopencm3
 LDSCRIPT = stm32f042x6.ld
 
 DFU_UTIL = dfu-util
+DFUSE_VID_PID := 0483:df11
 
 SRCS := $(wildcard *.c)
 SRCS += $(wildcard DAP/*.c)
@@ -30,7 +31,7 @@ DEPS  = $(SRCS:.c=.d)
 .DEFAULT_GOAL := $(BINARY).bin
 
 %.dfuse-flash: %.bin
-	$(DFU_UTIL) -a 0 -s 0x08000000:leave -D $(<)
+	$(DFU_UTIL) -d $(DFUSE_VID_PID) -a 0 -s 0x08000000:leave -D $(<)
 
 dfuse-flash: $(BINARY).dfuse-flash
 
