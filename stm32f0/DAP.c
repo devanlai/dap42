@@ -258,7 +258,7 @@ int main(void) {
         }
 
         /* If resetting, wait until all pending requests are done */
-        if (do_reset_to_dfu && (outbox_head == process_head)) {
+        if (do_reset_to_dfu && (outbox_head == inbox_tail)) {
             /* Blink 3 times to indicate reset */
             int x;
             for (x=0; x < 3; x++) {
