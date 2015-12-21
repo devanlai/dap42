@@ -16,8 +16,8 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MISC_DEFS_H
-#define MISC_DEFS_H
+#ifndef MISC_DEFS_H_INCLUDED
+#define MISC_DEFS_H_INCLUDED
 
 #define USB_CLASS_MISCELLANEOUS_DEVICE                     0xEF
 #define USB_MISC_SUBCLASS_COMMON                           0x02

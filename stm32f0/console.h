@@ -16,8 +16,8 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CONSOLE_H
-#define CONSOLE_H
+#ifndef CONSOLE_H_INCLUDED
+#define CONSOLE_H_INCLUDED
 
 #include <stddef.h>
 #include <libopencm3/stm32/usart.h>

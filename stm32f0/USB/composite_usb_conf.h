@@ -16,8 +16,8 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef COMPOSITE_USB_CONF_H
-#define COMPOSITE_USB_CONF_H
+#ifndef COMPOSITE_USB_CONF_H_INCLUDED
+#define COMPOSITE_USB_CONF_H_INCLUDED
 
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
