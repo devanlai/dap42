@@ -33,7 +33,7 @@
 #include "tick.h"
 #include "retarget.h"
 #include "console.h"
-
+#include "USB/hid.h"
 
 void led_num(uint8_t value);
 void led_bit(uint8_t position, bool state);
@@ -221,7 +221,8 @@ int main(void) {
     uint16_t cdc_len = 0;
     uint8_t cdc_buf[USB_CDC_MAX_PACKET_SIZE];
 
-    usbd_device* usbd_dev = cmp_setup(&on_send_report, &on_receive_report, &on_host_tx);
+    usbd_device* usbd_dev = cmp_setup(&on_host_tx);
+    hid_setup(usbd_dev, &on_send_report, &on_receive_report);
 
     while (1) {
         usbd_poll(usbd_dev);
@@ -249,10 +250,8 @@ int main(void) {
         }
 
         if (outbox_head != process_head) {
-            uint16_t sent = usbd_ep_write_packet(usbd_dev, ENDP_HID_REPORT_IN,
-                                                 (const void*)response_buffers[outbox_head],
-                                                 response_lengths[outbox_head]);
-            if (sent != 0) {
+            if (hid_send_report(response_buffers[outbox_head],
+                                response_lengths[outbox_head])) {
                 outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
             }
         }

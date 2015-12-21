@@ -19,11 +19,21 @@
 #ifndef HID_DEFS_H_INCLUDED
 #define HID_DEFS_H_INCLUDED
 
+#include <libopencm3/usb/hid.h>
+
 #define USB_HID_REQ_GET_REPORT      0x01
 #define USB_HID_REQ_GET_IDLE        0x02
 #define USB_HID_REQ_GET_PROTOCOL    0x03
 #define USB_HID_REQ_SET_REPORT      0x09
 #define USB_HID_REQ_SET_IDLE        0x0A
 #define USB_HID_REQ_SET_PROTOCOL    0x0B
+
+struct full_usb_hid_descriptor {
+    struct usb_hid_descriptor hid_descriptor;
+    struct {
+        uint8_t bReportDescriptorType;
+        uint16_t wDescriptorLength;
+    } __attribute__((packed)) hid_report;
+} __attribute__((packed));
 
 #endif /* HID_DEFS_H */
