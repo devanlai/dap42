@@ -22,6 +22,7 @@
 
 #include <libopencm3/usb/cdc.h>
 #include <libopencm3/usb/hid.h>
+#include <libopencm3/usb/dfu.h>
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
@@ -34,6 +35,7 @@
 #include "misc_defs.h"
 
 #include "hid.h"
+#include "dfu.h"
 
 static const struct usb_device_descriptor dev = {
     .bLength = USB_DT_DEVICE_SIZE,
@@ -142,7 +144,7 @@ static const struct usb_interface_descriptor comm_iface = {
     .bInterfaceClass = USB_CLASS_CDC,
     .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
     .bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
-    .iInterface = 0,
+    .iInterface = 5,
 
     .endpoint = comm_endpoints,
 
@@ -159,7 +161,7 @@ static const struct usb_interface_descriptor data_iface = {
     .bInterfaceClass = USB_CLASS_DATA,
     .bInterfaceSubClass = 0,
     .bInterfaceProtocol = 0,
-    .iInterface = 0,
+    .iInterface = 6,
 
     .endpoint = data_endpoints,
 };
@@ -200,6 +202,23 @@ static const struct usb_interface_descriptor hid_iface = {
     .extralen = sizeof(hid_function),
 };
 
+static const struct usb_interface_descriptor dfu_iface = {
+    .bLength = USB_DT_INTERFACE_SIZE,
+    .bDescriptorType = USB_DT_INTERFACE,
+    .bInterfaceNumber = INTF_DFU,
+    .bAlternateSetting = 0,
+    .bNumEndpoints = 0,
+    .bInterfaceClass = 0xFE,
+    .bInterfaceSubClass = 1,
+    .bInterfaceProtocol = 1,
+    .iInterface = 7,
+
+    .endpoint = NULL,
+
+    .extra = &dfu_function,
+    .extralen = sizeof(dfu_function),
+};
+
 static const struct usb_interface interfaces[] = {
     /* HID interface */
     {
@@ -216,6 +235,11 @@ static const struct usb_interface interfaces[] = {
     {
         .num_altsetting = 1,
         .altsetting = &data_iface,
+    },
+    /* DFU interface */
+    {
+        .num_altsetting = 1,
+        .altsetting = &dfu_iface,
     }
 };
 
@@ -238,7 +262,10 @@ static const char *usb_strings[] = {
     "Devanarchy",
     "DAP42 CMSIS-DAP",
     serial_number,
-    "DAP42 Composite CDC HID"
+    "DAP42 Composite CDC HID",
+    "CDC Control",
+    "CDC Data",
+    "DAP42 DFU",
 };
 
 /* Buffer to be used for control requests. */

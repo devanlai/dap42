@@ -27,6 +27,7 @@
 
 #include "USB/composite_usb_conf.h"
 #include "USB/cdc.h"
+#include "USB/dfu.h"
 
 #include "DAP/app.h"
 #include "DAP/CMSIS_DAP_config.h"
@@ -176,6 +177,7 @@ int main(void) {
     usbd_device* usbd_dev = cmp_usb_setup();
     DAP_app_setup(usbd_dev, &on_dfu_request);
     cdc_setup(usbd_dev, &on_host_rx, &on_host_tx);
+    dfu_setup(usbd_dev, &on_dfu_request);
 
     uint16_t cdc_len = 0;
     uint8_t cdc_buf[USB_CDC_MAX_PACKET_SIZE];
