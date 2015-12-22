@@ -19,10 +19,6 @@
 #ifndef CDC_H_INCLUDED
 #define CDC_H_INCLUDED
 
-#include <stdlib.h>
-
-#include <libopencm3/usb/usbd.h>
-
 #include "usb_common.h"
 
 extern void cdc_setup(usbd_device* usbd_dev,

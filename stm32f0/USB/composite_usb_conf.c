@@ -17,14 +17,18 @@
  */
 
 #include <stdlib.h>
-#include "composite_usb_conf.h"
+#include <stdint.h>
+#include <string.h>
+
+#include <libopencm3/usb/cdc.h>
+#include <libopencm3/usb/hid.h>
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/st_usbfs.h>
 #include <libopencm3/stm32/syscfg.h>
 
-#include <string.h>
+#include "composite_usb_conf.h"
 
 #include "hid_defs.h"
 #include "misc_defs.h"

@@ -19,10 +19,6 @@
 #ifndef COMPOSITE_USB_CONF_H_INCLUDED
 #define COMPOSITE_USB_CONF_H_INCLUDED
 
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/cdc.h>
-#include <libopencm3/usb/hid.h>
-
 #include "usb_common.h"
 
 #define USB_CDC_MAX_PACKET_SIZE 64

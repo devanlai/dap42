@@ -16,7 +16,10 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libopencm3/stm32/st_usbfs.h>
+#include <stdlib.h>
+
+#include <libopencm3/usb/usbd.h>
+#include <libopencm3/usb/hid.h>
 
 #include "composite_usb_conf.h"
 #include "hid.h"

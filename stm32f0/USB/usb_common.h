@@ -19,7 +19,10 @@
 #ifndef USB_COMMON_H_INCLUDED
 #define USB_COMMON_H_INCLUDED
 
+#include <stdlib.h>
 #include <stdint.h>
+
+#include <libopencm3/usb/usbd.h>
 
 typedef void (*HostOutFunction)(uint8_t* data, uint16_t len);
 typedef void (*HostInFunction)(uint8_t* data, uint16_t* len);

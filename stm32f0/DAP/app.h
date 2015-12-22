@@ -19,7 +19,7 @@
 #ifndef DAP_APP_H_INCLUDED
 #define DAP_APP_H_INCLUDED
 
-struct usbd_device;
+#include <libopencm3/usb/usbd.h>
 
 extern bool DAP_app_update(void);
 

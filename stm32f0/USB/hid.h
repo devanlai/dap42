@@ -19,10 +19,6 @@
 #ifndef HID_H_INCLUDED
 #define HID_H_INCLUDED
 
-#include <stdlib.h>
-
-#include <libopencm3/usb/usbd.h>
-
 #include "usb_common.h"
 #include "hid_defs.h"
 
