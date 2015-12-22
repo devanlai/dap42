@@ -26,11 +26,10 @@
 #include <libopencm3/stm32/syscfg.h>
 
 #include "USB/composite_usb_conf.h"
-#include "USB/hid.h"
 #include "USB/cdc.h"
 
+#include "DAP/app.h"
 #include "DAP/CMSIS_DAP_config.h"
-#include "DAP/CMSIS_DAP.h"
 #include "DFU/DFU.h"
 
 #include "tick.h"
@@ -148,51 +147,9 @@ static void on_host_rx(uint8_t* data, uint16_t* len) {
     *len = (uint16_t)console_recv_buffered(data, USB_CDC_MAX_PACKET_SIZE);
 }
 
-static uint8_t request_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
-
-static uint8_t response_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
-static uint16_t response_lengths[DAP_PACKET_QUEUE_SIZE];
-
-static uint8_t inbox_tail;
-static uint8_t process_head;
-static uint8_t outbox_head;
-
-static void on_receive_report(uint8_t* data, uint16_t len) {
-    usb_timer = 1000;
-    memcpy((void*)request_buffers[inbox_tail], (const void*)data, len);
-    inbox_tail = (inbox_tail + 1) % DAP_PACKET_QUEUE_SIZE;
-    
-}
-
-static void on_send_report(uint8_t* data, uint16_t* len) {
-    usb_timer = 1000;
-    if (outbox_head != process_head) {
-        memcpy((void*)data, (const void*)response_buffers[outbox_head], response_lengths[outbox_head]);
-        *len = response_lengths[outbox_head];
-
-        outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
-    } else {
-        *len = 0;
-    }
-}
-
 static bool do_reset_to_dfu = false;
-uint32_t DAP_ProcessVendorCommand(uint8_t* request, uint8_t* response) {
-    if (request[0] == ID_DAP_Vendor31) {
-        if (request[1] == 'D' && request[2] == 'F' && request[3] == 'U') {
-            response[0] = request[0];
-            response[1] = DAP_OK;
-            do_reset_to_dfu = true;
-            return 2;
-        } else {
-            response[0] = request[0];
-            response[1] = DAP_ERROR;
-            return 2;
-        }
-    }
-
-    response[0] = ID_DAP_Invalid;
-    return 1;
+static void on_dfu_request(void) {
+    do_reset_to_dfu = true;
 }
 
 int main(void) {
@@ -209,10 +166,6 @@ int main(void) {
     retarget(STDERR_FILENO, CONSOLE_USART);
 
     led_num(1);
-    
-    DAP_Setup();
-
-    tick_start();
 
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
@@ -220,13 +173,15 @@ int main(void) {
         cmp_set_usb_serial_number(serial);
     }
 
+    usbd_device* usbd_dev = cmp_usb_setup();
+    DAP_app_setup(usbd_dev, &on_dfu_request);
+    cdc_setup(usbd_dev, &on_host_rx, &on_host_tx);
+
     uint16_t cdc_len = 0;
     uint8_t cdc_buf[USB_CDC_MAX_PACKET_SIZE];
 
-    usbd_device* usbd_dev = cmp_usb_setup();
-    hid_setup(usbd_dev, &on_send_report, &on_receive_report);
-    cdc_setup(usbd_dev, &on_host_rx, &on_host_tx);
 
+    tick_start();
     while (1) {
         usbd_poll(usbd_dev);
 
@@ -243,22 +198,10 @@ int main(void) {
         }
 
         // Handle DAP
-        if (process_head != inbox_tail) {
-            uint32_t len = DAP_ProcessCommand(request_buffers[process_head],
-                                              response_buffers[process_head]);
-            response_lengths[process_head] = (uint16_t)len;
-            process_head = (process_head + 1) % DAP_PACKET_QUEUE_SIZE;
-        }
-
-        if (outbox_head != process_head) {
-            if (hid_send_report(response_buffers[outbox_head],
-                                response_lengths[outbox_head])) {
-                outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
-            }
-        }
-
-        /* If resetting, wait until all pending requests are done */
-        if (do_reset_to_dfu && (outbox_head == inbox_tail)) {
+        bool dap_active = DAP_app_update();
+        if (dap_active) {
+            usb_timer = 1000;
+        } else if (do_reset_to_dfu) {
             /* Blink 3 times to indicate reset */
             int x;
             for (x=0; x < 3; x++) {

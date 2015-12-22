@@ -45,3 +45,6 @@ size: $(OBJS) $(BINARY).elf
 	@$(PREFIX)-size $(OBJS) $(BINARY).elf
 
 OBJS := $(sort $(OBJS))
+
+# Add the base directory to the header search path
+CPPFLAGS += -I.
