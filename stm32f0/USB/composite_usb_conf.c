@@ -240,10 +240,6 @@ static const char *usb_strings[] = {
 /* Buffer to be used for control requests. */
 static uint8_t usbd_control_buffer[128] __attribute__ ((aligned (2)));
 
-/* User callbacks */
-static HostOutFunction cdc_rx_callback = NULL;
-static HostInFunction cdc_tx_callback = NULL;
-
 void cmp_set_usb_serial_number(const char* serial) {
     serial_number[0] = '\0';
     if (serial) {
@@ -252,93 +248,7 @@ void cmp_set_usb_serial_number(const char* serial) {
     }
 }
 
-static int cdc_control_class_request(usbd_device *usbd_dev,
-                                     struct usb_setup_data *req,
-                                     uint8_t **buf, uint16_t *len,
-                                     usbd_control_complete_callback* complete) {
-    (void)complete;
-    (void)usbd_dev;
-
-    if (req->wIndex != INTF_CDC_DATA && req->wIndex != INTF_CDC_COMM) {
-        return USBD_REQ_NEXT_CALLBACK;
-    }
-    int status = USBD_REQ_NOTSUPP;
-
-    switch (req->bRequest) {
-        case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
-            /*
-             * This Linux cdc_acm driver requires this to be implemented
-             * even though it's optional in the CDC spec, and we don't
-             * advertise it in the ACM functional descriptor.
-             */
-
-            bool dtr = (req->wValue & (1 << 0)) != 0;
-            bool rts = (req->wValue & (1 << 1)) != 0;
-
-            (void)dtr;
-            (void)rts;
-
-            //glue_set_line_state_cb(dtr, rts);
-
-            status = USBD_REQ_HANDLED;
-            break;
-        }
-        case USB_CDC_REQ_SET_LINE_CODING: {
-            struct usb_cdc_line_coding *coding;
-
-            if (*len < sizeof(struct usb_cdc_line_coding)) {
-                status = USBD_REQ_NOTSUPP;
-                break;
-            }
-
-            coding = (struct usb_cdc_line_coding *)*buf;
-            (void)coding;
-            /*
-            return glue_set_line_coding_cb(coding->dwDTERate,
-                               coding->bDataBits,
-                               coding->bParityType,
-                               coding->bCharFormat);
-            */
-            status = USBD_REQ_HANDLED;
-            break;
-        }
-        default: {
-            status = USBD_REQ_NOTSUPP;
-            break;
-        }
-    }
-
-    return status;
-}
-
-/* Receive data from the host */
-static void cdc_bulk_data_out(usbd_device *usbd_dev, uint8_t ep) {
-    uint8_t buf[USB_CDC_MAX_PACKET_SIZE];
-    uint16_t len = usbd_ep_read_packet(usbd_dev, ep, (void*)buf, sizeof(buf));
-    if (len > 0 && (cdc_rx_callback != NULL)) {
-        cdc_rx_callback(buf, len);
-    }
-}
-
-static void cmp_set_config(usbd_device *usbd_dev, uint16_t wValue) {
-    (void)wValue;
-
-    usbd_ep_setup(usbd_dev, ENDP_CDC_DATA_OUT, USB_ENDPOINT_ATTR_BULK, 64,
-                  cdc_bulk_data_out);
-    usbd_ep_setup(usbd_dev, ENDP_CDC_DATA_IN, USB_ENDPOINT_ATTR_BULK, 64, NULL);
-    usbd_ep_setup(usbd_dev, ENDP_CDC_COMM_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
-
-    usbd_register_control_callback(
-        usbd_dev,
-        USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-        cdc_control_class_request);
-}
-
-usbd_device* cmp_setup(HostOutFunction cdc_rx_cb) {
-    cdc_rx_callback = cdc_rx_cb;
-    //cdc_tx_callback = tx_cb;
-
+usbd_device* cmp_usb_setup(void) {
     rcc_periph_reset_pulse(RST_USB);
 
     rcc_periph_clock_enable(RCC_GPIOA);
@@ -353,7 +263,6 @@ usbd_device* cmp_setup(HostOutFunction cdc_rx_cb) {
     usbd_device* usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config,
                                       usb_strings, 4,
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
-    usbd_register_set_config_callback(usbd_dev, cmp_set_config);
 
     return usbd_dev;
 }

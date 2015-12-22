@@ -1,4 +1,3 @@
-#include <stdlib.h>
 /*
  * Copyright (c) 2015, Devan Lai
  *
@@ -20,8 +19,6 @@
 #include <libopencm3/stm32/st_usbfs.h>
 
 #include "composite_usb_conf.h"
-#include "hid_defs.h"
-
 #include "hid.h"
 
 const uint8_t hid_report_descriptor[] = {

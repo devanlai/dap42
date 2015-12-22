@@ -26,6 +26,9 @@
 #include <libopencm3/stm32/syscfg.h>
 
 #include "USB/composite_usb_conf.h"
+#include "USB/hid.h"
+#include "USB/cdc.h"
+
 #include "DAP/CMSIS_DAP_config.h"
 #include "DAP/CMSIS_DAP.h"
 #include "DFU/DFU.h"
@@ -33,7 +36,6 @@
 #include "tick.h"
 #include "retarget.h"
 #include "console.h"
-#include "USB/hid.h"
 
 void led_num(uint8_t value);
 void led_bit(uint8_t position, bool state);
@@ -221,17 +223,16 @@ int main(void) {
     uint16_t cdc_len = 0;
     uint8_t cdc_buf[USB_CDC_MAX_PACKET_SIZE];
 
-    usbd_device* usbd_dev = cmp_setup(&on_host_tx);
+    usbd_device* usbd_dev = cmp_usb_setup();
     hid_setup(usbd_dev, &on_send_report, &on_receive_report);
+    cdc_setup(usbd_dev, &on_host_rx, &on_host_tx);
 
     while (1) {
         usbd_poll(usbd_dev);
 
         // Handle CDC
         if (cdc_len > 0) {
-            uint16_t sent = usbd_ep_write_packet(usbd_dev, ENDP_CDC_DATA_IN,
-                                                 (const void*)cdc_buf, cdc_len);
-            if (sent == cdc_len) {
+            if (cdc_send_data(cdc_buf, cdc_len)) {
                 usb_timer = 1000;
                 cdc_len = 0;
             }

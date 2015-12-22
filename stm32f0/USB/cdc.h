@@ -16,30 +16,19 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef COMPOSITE_USB_CONF_H_INCLUDED
-#define COMPOSITE_USB_CONF_H_INCLUDED
+#ifndef CDC_H_INCLUDED
+#define CDC_H_INCLUDED
+
+#include <stdlib.h>
 
 #include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/cdc.h>
-#include <libopencm3/usb/hid.h>
 
 #include "usb_common.h"
 
-#define USB_CDC_MAX_PACKET_SIZE 64
-#define USB_HID_MAX_PACKET_SIZE 64
-#define USB_SERIAL_NUM_LENGTH   24
+extern void cdc_setup(usbd_device* usbd_dev,
+                      HostInFunction cdc_tx_cb,
+                      HostOutFunction cdc_rx_cb);
 
-#define ENDP_CDC_DATA_OUT       0x01
-#define ENDP_CDC_DATA_IN        0x82
-#define ENDP_CDC_COMM_IN        0x83
-#define ENDP_HID_REPORT_OUT     0x04
-#define ENDP_HID_REPORT_IN      0x84
-
-#define INTF_HID                0
-#define INTF_CDC_COMM           1
-#define INTF_CDC_DATA           2
-
-extern void cmp_set_usb_serial_number(const char* serial);
-extern usbd_device* cmp_usb_setup(void);
+extern bool cdc_send_data(const uint8_t* data, size_t len);
 
 #endif
