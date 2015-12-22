@@ -260,8 +260,10 @@ usbd_device* cmp_usb_setup(void) {
     gpio_set_af(GPIOA, GPIO_AF2, GPIO11 | GPIO12);
     SYSCFG_CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
 
+    int num_strings = sizeof(usb_strings)/sizeof(const char*);
+
     usbd_device* usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config,
-                                      usb_strings, 4,
+                                      usb_strings, num_strings,
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
 
     return usbd_dev;
