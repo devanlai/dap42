@@ -277,6 +277,82 @@ void cmp_set_usb_serial_number(const char* serial) {
     }
 }
 
+/* Class-specific control request handlers */
+struct callback_entry {
+    usbd_control_callback callback;
+    uint16_t interface;
+};
+
+static struct callback_entry control_class_callbacks[USB_MAX_CONTROL_CLASS_CALLBACKS];
+static uint8_t num_control_class_callbacks;
+
+/* Config setup handlers */
+static usbd_set_config_callback set_config_callbacks[USB_MAX_SET_CONFIG_CALLBACKS];
+static uint8_t num_set_config_callbacks;
+
+void cmp_usb_register_control_class_callback(uint16_t interface,
+                                             usbd_control_callback callback) {
+    if (num_control_class_callbacks < USB_MAX_CONTROL_CLASS_CALLBACKS) {
+        control_class_callbacks[num_control_class_callbacks].interface = interface;
+        control_class_callbacks[num_control_class_callbacks].callback = callback;
+        num_control_class_callbacks++;
+    }
+}
+
+static int cmp_usb_dispatch_control_class_request(usbd_device *usbd_dev,
+                                                  struct usb_setup_data *req,
+                                                  uint8_t **buf, uint16_t *len,
+                                                  usbd_control_complete_callback* complete) {
+
+    int result = USBD_REQ_NEXT_CALLBACK;
+
+    uint8_t i;
+    uint16_t interface = req->wIndex;
+    for (i=0; i < num_control_class_callbacks; i++) {
+        if (interface == control_class_callbacks[i].interface) {
+            usbd_control_callback callback = control_class_callbacks[i].callback;
+            result = callback(usbd_dev, req, buf, len, complete);
+            if (result == USBD_REQ_HANDLED || result == USBD_REQ_NOTSUPP) {
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+void cmp_usb_register_set_config_callback(usbd_set_config_callback callback) {
+    if (callback && num_set_config_callbacks < USB_MAX_SET_CONFIG_CALLBACKS) {
+        set_config_callbacks[num_set_config_callbacks++] = callback;
+    }
+}
+
+static void cmp_usb_set_config(usbd_device* usbd_dev, uint16_t wValue) {
+    uint8_t i;
+    /* Remove existing callbacks, to be re-registered by
+       set-config callbacks below */
+    for (i=0; i < USB_MAX_CONTROL_CLASS_CALLBACKS; i++) {
+        control_class_callbacks[i].interface = 0;
+        control_class_callbacks[i].callback = NULL;
+    }
+
+    num_control_class_callbacks = 0;
+
+    /* Register our class-specific control request dispatcher */
+    usbd_register_control_callback(
+        usbd_dev,
+        USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
+        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
+        cmp_usb_dispatch_control_class_request);
+
+    /* Run registered setup handlers */
+    for (i=0; i < num_set_config_callbacks; i++) {
+        if (set_config_callbacks[i]) {
+            set_config_callbacks[i](usbd_dev, wValue);
+        }
+    }
+}
+
 usbd_device* cmp_usb_setup(void) {
     int num_strings = sizeof(usb_strings)/sizeof(const char*);
 
@@ -284,6 +360,7 @@ usbd_device* cmp_usb_setup(void) {
     usbd_device* usbd_dev = usbd_init(driver, &dev, &config,
                                       usb_strings, num_strings,
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
+    usbd_register_set_config_callback(usbd_dev, cmp_usb_set_config);
 
     return usbd_dev;
 }

@@ -36,7 +36,13 @@
 #define INTF_CDC_DATA           2
 #define INTF_DFU                3
 
+#define USB_MAX_CONTROL_CLASS_CALLBACKS 8
+#define USB_MAX_SET_CONFIG_CALLBACKS    8
+
 extern void cmp_set_usb_serial_number(const char* serial);
 extern usbd_device* cmp_usb_setup(void);
+extern void cmp_usb_register_control_class_callback(uint16_t interface,
+                                                    usbd_control_callback callback);
+extern void cmp_usb_register_set_config_callback(usbd_set_config_callback callback);
 
 #endif

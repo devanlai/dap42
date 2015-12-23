@@ -174,11 +174,7 @@ static void hid_set_config(usbd_device* usbd_dev, uint16_t wValue) {
         USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
         hid_control_standard_request);
 
-    usbd_register_control_callback(
-        usbd_dev,
-        USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-        hid_control_class_request);
+    cmp_usb_register_control_class_callback(INTF_HID, hid_control_class_request);
 }
 
 void hid_setup(usbd_device* usbd_dev,
@@ -188,7 +184,7 @@ void hid_setup(usbd_device* usbd_dev,
     hid_report_out_callback = report_recv_cb;
     hid_report_in_callback = report_send_cb;
 
-    usbd_register_set_config_callback(usbd_dev, hid_set_config);
+    cmp_usb_register_set_config_callback(hid_set_config);
 }
 
 bool hid_send_report(const uint8_t* report, size_t len) {

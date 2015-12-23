@@ -122,11 +122,8 @@ static void cdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
     usbd_ep_setup(usbd_dev, ENDP_CDC_DATA_IN, USB_ENDPOINT_ATTR_BULK, 64, NULL);
     usbd_ep_setup(usbd_dev, ENDP_CDC_COMM_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
-    usbd_register_control_callback(
-        usbd_dev,
-        USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-        cdc_control_class_request);
+    cmp_usb_register_control_class_callback(INTF_CDC_DATA, cdc_control_class_request);
+    cmp_usb_register_control_class_callback(INTF_CDC_COMM, cdc_control_class_request);
 }
 
 static usbd_device* cdc_usbd_dev;
@@ -144,7 +141,7 @@ void cdc_setup(usbd_device* usbd_dev,
     cdc_set_line_coding_callback = set_line_coding_cb;
     cdc_get_line_coding_callback = get_line_coding_cb;
 
-    usbd_register_set_config_callback(usbd_dev, cdc_set_config);
+    cmp_usb_register_set_config_callback(cdc_set_config);
 }
 
 bool cdc_send_data(const uint8_t* data, size_t len) {

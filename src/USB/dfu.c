@@ -81,16 +81,14 @@ static int dfu_control_class_request(usbd_device *usbd_dev,
 }
 
 static void dfu_set_config(usbd_device* usbd_dev, uint16_t wValue) {
+    (void)usbd_dev;
     (void)wValue;
 
-    usbd_register_control_callback(
-        usbd_dev,
-        USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-        dfu_control_class_request);
+    cmp_usb_register_control_class_callback(INTF_DFU, dfu_control_class_request);
 }
 
 void dfu_setup(usbd_device* usbd_dev, GenericCallback on_detach_request) {
+    (void)usbd_dev;
     dfu_detach_request_callback = on_detach_request;
-    usbd_register_set_config_callback(usbd_dev, dfu_set_config);
+    cmp_usb_register_set_config_callback(dfu_set_config);
 }
