@@ -70,11 +70,26 @@ void DFU_reset_and_jump_to_bootloader(void) {
 
 /* Potentially diverts to the DFU bootloader should be called as early as possible */
 void DFU_maybe_jump_to_bootloader(void) {
-    uint32_t cmd = backup_read(BKP0);
-    if (cmd == CMD_BOOT_WITH_BOOT0_PIN || cmd == CMD_BOOT_WITH_NBOOT0_BIT) {
-        /* Clear the backup register */
-        backup_write(BKP0, 0x0);
+    uint32_t cmd = 0;
 
+    if (backup_check_reset_source(RST_SRC_IWDG)) {
+        /* Watchdog timeout - enter the bootloader */
+        if (FLASH_OBR & FLASH_OBR_BOOT_SEL) {
+            cmd = CMD_BOOT_WITH_BOOT0_PIN;
+        } else {
+            cmd = CMD_BOOT_WITH_NBOOT0_BIT;
+        }
+    } else if (backup_check_reset_source(RST_SRC_SW)) {
+        /* Intentional software reset - read the backup
+           register to see what we should do */
+        cmd = backup_read(BKP0);
+    }
+
+    /* Clear values that survive reset */
+    backup_write(BKP0, 0x0);
+    backup_clear_reset_source();
+
+    if (cmd == CMD_BOOT_WITH_BOOT0_PIN || cmd == CMD_BOOT_WITH_NBOOT0_BIT) {
         if (cmd == CMD_BOOT_WITH_BOOT0_PIN) {
             /* If BOOT_SEL is set, drive the BOOT0 pin high so that the
                ROM bootloader will enter DFU mode */

@@ -30,4 +30,16 @@ enum BackupRegister {
 extern void backup_write(enum BackupRegister reg, uint32_t value);
 extern uint32_t backup_read(enum BackupRegister reg);
 
+enum ResetSource {
+    RST_SRC_LPWR,
+    RST_SRC_WWDG,
+    RST_SRC_IWDG,
+    RST_SRC_SW,
+    RST_SRC_POR,
+    RST_SRC_PIN
+};
+
+extern bool backup_check_reset_source(enum ResetSource src);
+extern void backup_clear_reset_source(void);
+
 #endif

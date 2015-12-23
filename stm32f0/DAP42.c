@@ -23,7 +23,7 @@
 #include <libopencm3/stm32/crs.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/desig.h>
-#include <libopencm3/stm32/syscfg.h>
+#include <libopencm3/stm32/iwdg.h>
 
 #include "USB/composite_usb_conf.h"
 #include "USB/cdc.h"
@@ -182,9 +182,15 @@ int main(void) {
     uint16_t cdc_len = 0;
     uint8_t cdc_buf[USB_CDC_MAX_PACKET_SIZE];
 
-
     tick_start();
+
+
+    /* Enable the watchdog to enable DFU recovery from bad firmware images */
+    iwdg_set_period_ms(1000);
+    iwdg_start();
+
     while (1) {
+        iwdg_reset();
         usbd_poll(usbd_dev);
 
         // Handle CDC
