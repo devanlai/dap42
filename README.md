@@ -7,25 +7,16 @@ This project is currently in alpha - features generally do 80% of what's needed,
 ### Firmware
 * [Serial Wire Debug](http://www.arm.com/products/system-ip/debug-trace/coresight-soc-components/serial-wire-debug.php) (SWD) access over [CMSIS-DAP 1.0](http://www.arm.com/products/processors/cortex-m/cortex-microcontroller-software-interface-standard.php) HID interface (currently only works with [OpenOCD](http://openocd.org))
 * CDC-ACM USB-serial bridge
-* Can initiate the on-chip [DFuSe](http://dfu-util.sourceforge.net/dfuse.html) bootloader from user code.
+* [Device Firmware Upgrade](http://www.usb.org/developers/docs/devclass_docs/DFU_1.1.pdf) (DFU) over USB (detach-only, switches to on-chip [DFuSe](http://dfu-util.sourceforge.net/dfuse.html) bootloader).
 
-### Hardware
-Discounting resistors and capacitors, the debug probe has a very low BOM count:
-* 1x STM32F042F6
-* 2x 0.05" 2x5 SWD headers, one for debugging the target, one for debugging the probe (optional)
-* 1x mini-USB type B connector
-* 1x 5V -> 3.3V linear regulator (MIC5504-3.3YM5)
-* 2x 3mm momentary pushbuttons for reset and bootloader (optional)
-* 3x LEDs (optional, but fun to look at)
+## Flash instructions
+In general, the firmware can be uploaded over USB DFU without any extra hardware:
+* Unflashed STM32F04x chips always start in the DFU bootloader.
+* The bootloader button can be used to force the chip to start from the bootloader on reset (unless disabled)
+* dap42 firmware supports the DFU_DETACH request to switch to the bootloader
+* When dap42 firmware is reset by the watchdog, it enables the bootloader to ensure that firmware that consistently hard-faults or hangs can always upload new firmware.
 
-In single quantities from official distributors, the STM32F042F6 can be bought for $2-$3 and is very easy to hand-solder.
-
-In production use, with the probe integrated onto the target board, the BOM count can be further reduced:
-* 1x STM32F042F6 (or STM32F042F4 with the current build size)
-* 1x mini-usb type B connector
-* 1x 5V -> 3.3V linear regulator
-
-Because the STM32F042 enables the DFU bootloader when it hasn't been flashed and the dap42 firmware supports launching the bootloader from user code, it is possible to install or upgrade the dap42 firmware [dfu-util](http://dfu-util.sourceforge.net/) without ever needing to use the bootloader pin or an external debugger.
+The default method to upload new firmware is via [dfu-util](http://dfu-util.sourceforge.net/). The Makefile includes the `dfuse-flash` target to invoke dfu-util. dfu-util automatically detaches the dap42 firmware and uploads the firmware through the on-chip bootloader.
 
 ## Usage
 The dap42 firmware has been tested with gdb and OpenOCD on STM32F042 (of course), STM32F103, and LPC11C14 targets.
