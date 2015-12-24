@@ -24,7 +24,7 @@
 #include <libopencm3/usb/usbd.h>
 
 #include "usb_common.h"
-#include "ptp_defs.h"
+#include "mtp_defs.h"
 
 extern void mtp_setup(usbd_device* usbd_dev,
                       HostOutFunction mtp_recv_cb,

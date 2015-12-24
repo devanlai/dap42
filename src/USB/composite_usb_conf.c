@@ -29,7 +29,7 @@
 
 #include "hid_defs.h"
 #include "misc_defs.h"
-#include "ptp_defs.h"
+#include "mtp_defs.h"
 
 #include "hid.h"
 #include "dfu.h"
