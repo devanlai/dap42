@@ -23,6 +23,7 @@
 
 #define USB_CLASS_IMAGE                     0x06
 #define USB_IMAGE_SUBCLASS_STILL_IMAGING    0x01
+#define USB_IMAGE_PROTOCOL_BULK_ONLY        0x01
 
 #define USB_PTP_REQ_CANCEL_REQ              0x64
 #define USB_PTP_REQ_GET_EXTENDED_EVENT_DATA 0x65
