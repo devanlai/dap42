@@ -12,5 +12,8 @@ GTAGS
 *.axf
 *.map
 
+# ignore python bytecode
+*.pyc
+
 # ignore local makefile settings
 src/local.mk

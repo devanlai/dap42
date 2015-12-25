@@ -1,0 +1,38 @@
+header_prologue: |
+  #ifndef MTP_DATASETS_INCLUDED_H
+  #define MTP_DATASETS_INCLUDED_H
+header_epilogue: |
+  #endif
+
+definition_prologue: |
+  #include <stdint.h>
+  #include "mtp_datasets.h"
+datasets:
+  - name: mtp_device_info
+    type: DeviceInfo
+    Model: DAP42
+    SerialNumber: "000000000000000000000000000000000000"
+    OperationsSupported:
+      - GetDeviceInfo
+      - OpenSession
+      - CloseSession
+      - GetStorageIDs
+      - GetStorageInfo
+  - name: mtp_test_store_info
+    type: StorageInfo
+    StorageType: Fixed ROM
+    FilesystemType: Generic flat
+    AccessCapability: Read-only without object deletion
+    MaxCapacity: 128
+    FreeSpaceInBytes: 0
+    FreeSpaceInObjects: 0
+    StorageDescription: Test
+    VolumeIdentifier: DAP42TEST
+  - name: hello_world_object_info
+    type: ObjectInfo
+    StorageID: 0x00010001
+    ObjectFormat: Text
+    ProtectionStatus: "Read-only"
+    ObjectCompressedSize: 11
+    ParentObject: 0x00000000
+    Filename: "test.txt"

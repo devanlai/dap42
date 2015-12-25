@@ -159,6 +159,12 @@ int main(void) {
             DFU_reset_and_jump_to_bootloader();
         }
 
+        // Handle MTP
+        bool mtp_active = mtp_update();
+        if (mtp_active) {
+            usb_timer = 1000;
+        }
+
         if (usb_timer > 0) {
             usb_timer--;
             LED_ACTIVITY_OUT(1);
