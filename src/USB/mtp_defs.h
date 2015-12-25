@@ -40,7 +40,7 @@ struct usb_ptp_cancel_request {
 struct usb_ptp_extended_event_data_request_header {
     uint16_t code;
     uint32_t transactionID;
-    uint16_t numParams;
+    uint16_t num_params;
     uint8_t remainder[0];
 } __attribute__((packed));
 
@@ -48,7 +48,7 @@ struct usb_ptp_extended_event_data_request_header {
 struct usb_ptp_get_device_status_request {
     uint16_t length;
     uint16_t code;
-    uint8_t remainder[0];
+    uint8_t payload[0];
 } __attribute__((packed));
 
 /* Table 7.1-1 Generic Container Structure */
@@ -84,6 +84,14 @@ struct usb_ptp_async_event {
     uint32_t transactionID;
     uint32_t parameters[3];
 } __attribute__((packed));
+
+enum ContainerType {
+    BLK_Undefined = 0,
+    BLK_Command = 1,
+    BLK_Data = 2,
+    BLK_Response = 3,
+    BLK_Event = 4,
+};
 
 /* Taken from USB Media Transfer Protocol Specification Revision 1.1 */
 

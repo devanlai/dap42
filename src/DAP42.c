@@ -115,7 +115,7 @@ int main(void) {
     }
 
     if (MTP_AVAILABLE) {
-        mtp_setup(usbd_dev, NULL, NULL);
+        mtp_setup(usbd_dev);
     }
 
     if (DFU_AVAILABLE) {
