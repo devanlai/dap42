@@ -18,6 +18,10 @@ datasets:
       - CloseSession
       - GetStorageIDs
       - GetStorageInfo
+      - GetNumObjects
+      - GetObjectHandles
+      - GetObjectInfo
+      - GetObject
   - name: mtp_test_store_info
     type: StorageInfo
     StorageType: Fixed ROM

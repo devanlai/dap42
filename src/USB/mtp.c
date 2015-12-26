@@ -95,12 +95,14 @@ static CommandConfig mtp_handle_command(struct usb_ptp_command_block* command,
     config.data_length = 0;
     config.has_data_stage = false;
     config.data_stage_out = false;
+    mtp_data_buffer_offset = 0;
+    mtp_data_buffer_count = 0;
+    uint8_t num_params = (command->length - sizeof(*command)) / 4;
     switch (command->code) {
         case OPR_GetDeviceInfo: {
             response->code = RSP_OK;
             config.has_data_stage = true;
             config.data_length = sizeof(mtp_device_info);
-            mtp_data_buffer_offset = 0;
             mtp_data_buffer_count = sizeof(mtp_device_info);
             memcpy(mtp_data_buffer, mtp_device_info, sizeof(mtp_device_info));
             break;
@@ -122,11 +124,11 @@ static CommandConfig mtp_handle_command(struct usb_ptp_command_block* command,
                 uint32_t ids[0];
             };
 
-            struct storage_id_array* arr = (struct storage_id_array*)(mtp_data_buffer);
+            struct storage_id_array* arr =
+                (struct storage_id_array*)(mtp_data_buffer);
             arr->count = 1;
             arr->ids[0] = 0x00010001U;
             mtp_data_buffer_count = 8;
-            mtp_data_buffer_offset = 0;
             break;
         }
         case OPR_GetStorageInfo: {
@@ -135,7 +137,124 @@ static CommandConfig mtp_handle_command(struct usb_ptp_command_block* command,
             config.data_length = sizeof(mtp_test_store_info);
             memcpy(mtp_data_buffer, mtp_test_store_info, sizeof(mtp_test_store_info));
             mtp_data_buffer_count = sizeof(mtp_test_store_info);
-            mtp_data_buffer_offset = 0;
+            break;
+        }
+        case OPR_GetNumObjects: {
+            uint32_t storage_id = 0;
+            uint32_t object_format_code = 0;
+            uint32_t assoc_object_handle = 0;
+            if (num_params >= 1) {
+                storage_id = command->parameters[0];
+            }
+            if (num_params >= 2) {
+                object_format_code = command->parameters[1];
+            }
+            if (num_params >= 3) {
+                assoc_object_handle = command->parameters[2];
+            }
+            if (num_params >= 4) {
+                response->code = RSP_Parameter_Not_Supported;
+            } else if (object_format_code != 0) {
+                response->code = RSP_Specification_By_Format_Unsupported;
+            } else if (assoc_object_handle != 0) {
+                response->code = RSP_Parameter_Not_Supported;
+            } else {
+                if ((storage_id == 0x00010001U) || (storage_id == 0xFFFFFFFFU)) {
+                    response->code = RSP_OK;
+                    response->length = sizeof(*response) + 4;
+                    response->parameters[0] = 1;
+                } else {
+                    response->code = RSP_Store_Not_Available;
+                    response->length = sizeof(*response) + 4;
+                    response->parameters[0] = 0;
+                }
+            }
+            
+            break;
+        }
+        case OPR_GetObjectHandles: {
+            config.has_data_stage = true;
+            
+            uint32_t storage_id = 0;
+            uint32_t object_format_code = 0;
+            uint32_t assoc_object_handle = 0;
+            if (num_params >= 1) {
+                storage_id = command->parameters[0];
+            }
+            if (num_params >= 2) {
+                object_format_code = command->parameters[1];
+            }
+            if (num_params >= 3) {
+                assoc_object_handle = command->parameters[2];
+            }
+            if (num_params >= 4) {
+                response->code = RSP_Parameter_Not_Supported;
+            } else if (object_format_code != 0) {
+                response->code = RSP_Specification_By_Format_Unsupported;
+            } else if (assoc_object_handle != 0) {
+                response->code = RSP_Parameter_Not_Supported;
+            } else {
+                struct object_handle_array {
+                    uint32_t count;
+                    uint32_t handles[0];
+                };
+
+                struct object_handle_array* arr =
+                    (struct object_handle_array*)(mtp_data_buffer);
+
+                if ((storage_id == 0x00010001U) || (storage_id == 0xFFFFFFFFU)) {
+                    response->code = RSP_OK;
+                    arr->count = 1;
+                    arr->handles[0] = 0x00000001U;
+                    mtp_data_buffer_count = 8;
+                    config.data_length = 8;
+                } else {
+                    response->code = RSP_Store_Not_Available;
+                    arr->count = 0;
+                    mtp_data_buffer_count = 4;
+                    config.data_length = 4;
+                }
+            }
+            break;
+        }
+        case OPR_GetObjectInfo: {
+            config.has_data_stage = true;
+            uint32_t object_handle = 0;
+            if (num_params >= 1) {
+                object_handle = command->parameters[0];
+            }
+            if (num_params >= 2) {
+                response->code = RSP_Parameter_Not_Supported;
+            } else {
+                if (object_handle == 0x00000001U) {
+                    response->code = RSP_OK;
+                    mtp_data_buffer_count = sizeof(hello_world_object_info);
+                    config.data_length = sizeof(hello_world_object_info);
+                    memcpy(mtp_data_buffer, hello_world_object_info, sizeof(hello_world_object_info));
+                } else {
+                    response->code = RSP_Invalid_ObjectHandle;
+                }
+            }
+            break;
+        }
+        case OPR_GetObject: {
+            config.has_data_stage = true;
+            uint32_t object_handle = 0;
+            if (num_params >= 1) {
+                object_handle = command->parameters[0];
+            }
+            if (num_params >= 2) {
+                response->code = RSP_Parameter_Not_Supported;
+            } else {
+                if (object_handle == 0x00000001U) {
+                    response->code = RSP_OK;
+                    mtp_data_buffer_count = sizeof("Hello World");
+                    config.data_length = sizeof("Hello World");
+                    strcpy((char*)mtp_data_buffer, "Hello World");
+                } else {
+                    response->code = RSP_Invalid_ObjectHandle;
+                }
+            }
             break;
         }
         default: {
