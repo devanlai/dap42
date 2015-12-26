@@ -191,7 +191,7 @@ static CommandConfig mtp_handle_command(struct usb_ptp_command_block* command,
                 response->code = RSP_Parameter_Not_Supported;
             } else if (object_format_code != 0) {
                 response->code = RSP_Specification_By_Format_Unsupported;
-            } else if (assoc_object_handle != 0) {
+            } else if (assoc_object_handle != 0 && assoc_object_handle != 0xFFFFFFFFU) {
                 response->code = RSP_Parameter_Not_Supported;
             } else {
                 struct object_handle_array {
@@ -248,8 +248,8 @@ static CommandConfig mtp_handle_command(struct usb_ptp_command_block* command,
             } else {
                 if (object_handle == 0x00000001U) {
                     response->code = RSP_OK;
-                    mtp_data_buffer_count = sizeof("Hello World");
-                    config.data_length = sizeof("Hello World");
+                    mtp_data_buffer_count = strlen("Hello World");
+                    config.data_length = strlen("Hello World");
                     strcpy((char*)mtp_data_buffer, "Hello World");
                 } else {
                     response->code = RSP_Invalid_ObjectHandle;
