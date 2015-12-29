@@ -21,13 +21,14 @@ The default method to upload new firmware is via [dfu-util](http://dfu-util.sour
 ## Usage
 The dap42 firmware has been tested with gdb and OpenOCD on STM32F042 (of course), STM32F103, and LPC11C14 targets.
 
-For OpenOCD to configure and use the dap42, the CMSIS-DAP interface must be selected and the dap42's VID/PID pair must be specified.
+With the current configuration, the modem manager on Linux may attempt to grab the serial port and use it as a modem.
+To prevent this, you can define a custom udev rule to ensure that the modem manager ignores the debugger.
+
+    ATTRS{idVendor}=="1209" ATTRS{idProduct}=="da42", ENV{ID_MM_DEVICE_IGNORE}="1"
+
 The dap42 VID/PID pair is from [pid.codes](http://pid.codes/): [1209/DA42](http://pid.codes/1209/DA42/).
 
-An example of the extra configuration for OpenOCD is given below:
-
-    interface cmsis-dap
-    cmsis_dap_vid_pid 0x1209 0xDA42
+Example OpenOCD configurations can be found under the [stm32f0/openocd/](stm32f0/openocd/) folder.
 
 ## Planned features
 ### Firmware
