@@ -26,9 +26,7 @@
 #include "DAP/app.h"
 
 static uint8_t request_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
-
 static uint8_t response_buffers[DAP_PACKET_SIZE][DAP_PACKET_QUEUE_SIZE];
-static uint16_t response_lengths[DAP_PACKET_QUEUE_SIZE];
 
 static uint8_t inbox_tail;
 static uint8_t process_head;
@@ -43,8 +41,9 @@ static void on_receive_report(uint8_t* data, uint16_t len) {
 
 static void on_send_report(uint8_t* data, uint16_t* len) {
     if (outbox_head != process_head) {
-        memcpy((void*)data, (const void*)response_buffers[outbox_head], response_lengths[outbox_head]);
-        *len = response_lengths[outbox_head];
+        memcpy((void*)data, (const void*)response_buffers[outbox_head],
+               DAP_PACKET_SIZE);
+        *len = DAP_PACKET_SIZE;
 
         outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
     } else {
@@ -79,16 +78,15 @@ bool DAP_app_update(void) {
     bool active = false;
 
     if (process_head != inbox_tail) {
+        memset(response_buffers[process_head], 0, DAP_PACKET_SIZE);
         uint32_t len = DAP_ProcessCommand(request_buffers[process_head],
                                           response_buffers[process_head]);
-        response_lengths[process_head] = (uint16_t)len;
         process_head = (process_head + 1) % DAP_PACKET_QUEUE_SIZE;
         active = true;
     }
 
     if (outbox_head != process_head) {
-        if (hid_send_report(response_buffers[outbox_head],
-                            response_lengths[outbox_head])) {
+        if (hid_send_report(response_buffers[outbox_head], DAP_PACKET_SIZE)) {
             outbox_head = (outbox_head + 1) % DAP_PACKET_QUEUE_SIZE;
         }
         active = true;
