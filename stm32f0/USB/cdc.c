@@ -27,6 +27,8 @@
 /* User callbacks */
 static HostOutFunction cdc_rx_callback = NULL;
 static HostInFunction cdc_tx_callback = NULL;
+static SetControlLineStateFunction cdc_set_control_line_state_callback = NULL;
+static SetLineCodingFunction cdc_set_line_coding_callback = NULL;
 
 static int cdc_control_class_request(usbd_device *usbd_dev,
                                      struct usb_setup_data *req,
@@ -51,31 +53,30 @@ static int cdc_control_class_request(usbd_device *usbd_dev,
             bool dtr = (req->wValue & (1 << 0)) != 0;
             bool rts = (req->wValue & (1 << 1)) != 0;
 
-            (void)dtr;
-            (void)rts;
-
-            //glue_set_line_state_cb(dtr, rts);
+            if (cdc_set_control_line_state_callback) {
+                cdc_set_control_line_state_callback(dtr, rts);
+            }
 
             status = USBD_REQ_HANDLED;
             break;
         }
         case USB_CDC_REQ_SET_LINE_CODING: {
-            struct usb_cdc_line_coding *coding;
+            const struct usb_cdc_line_coding *coding;
 
             if (*len < sizeof(struct usb_cdc_line_coding)) {
                 status = USBD_REQ_NOTSUPP;
-                break;
+            } else if (cdc_set_line_coding_callback) {
+                coding = (const struct usb_cdc_line_coding *)(*buf);
+                if (cdc_set_line_coding_callback(coding)) {
+                    status = USBD_REQ_HANDLED;
+                } else {
+                    status = USBD_REQ_NOTSUPP;
+                }
+            } else {
+                /* No callback - accept whatever is requested */
+                status = USBD_REQ_HANDLED;
             }
 
-            coding = (struct usb_cdc_line_coding *)*buf;
-            (void)coding;
-            /*
-            return glue_set_line_coding_cb(coding->dwDTERate,
-                               coding->bDataBits,
-                               coding->bParityType,
-                               coding->bCharFormat);
-            */
-            status = USBD_REQ_HANDLED;
             break;
         }
         default: {
@@ -115,10 +116,14 @@ static usbd_device* cdc_usbd_dev;
 
 void cdc_setup(usbd_device* usbd_dev,
                HostInFunction cdc_tx_cb,
-               HostOutFunction cdc_rx_cb) {
+               HostOutFunction cdc_rx_cb,
+               SetControlLineStateFunction set_control_line_state_cb,
+               SetLineCodingFunction set_line_coding_cb) {
     cdc_usbd_dev = usbd_dev;
     cdc_tx_callback = cdc_tx_cb;
     cdc_rx_callback = cdc_rx_cb;
+    cdc_set_control_line_state_callback = set_control_line_state_cb,
+    cdc_set_line_coding_callback = set_line_coding_cb;
 
     usbd_register_set_config_callback(usbd_dev, cdc_set_config);
 }

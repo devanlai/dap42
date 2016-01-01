@@ -148,6 +148,45 @@ static void on_host_rx(uint8_t* data, uint16_t* len) {
     *len = (uint16_t)console_recv_buffered(data, USB_CDC_MAX_PACKET_SIZE);
 }
 
+static bool on_set_line_coding(const struct usb_cdc_line_coding* line_coding) {
+    uint32_t databits;
+    if (line_coding->bDataBits == 7 || line_coding->bDataBits == 8) {
+        databits = line_coding->bDataBits;
+    } else {
+        return false;
+    }
+
+    uint32_t stopbits;
+    switch (line_coding->bCharFormat) {
+        case USB_CDC_1_STOP_BITS:
+            stopbits = USART_STOPBITS_1;
+            break;
+        case USB_CDC_2_STOP_BITS:
+            stopbits = USART_STOPBITS_2;
+            break;
+        default:
+            return false;
+    }
+
+    uint32_t parity;
+    switch(line_coding->bParityType) {
+        case USB_CDC_NO_PARITY:
+            parity = USART_PARITY_NONE;
+            break;
+        case USB_CDC_ODD_PARITY:
+            parity = USART_PARITY_ODD;
+            break;
+        case USB_CDC_EVEN_PARITY:
+            parity = USART_PARITY_EVEN;
+            break;
+        default:
+            return false;
+    }
+
+    console_reconfigure(line_coding->dwDTERate, databits, stopbits, parity);
+    return true;
+}
+
 static bool do_reset_to_dfu = false;
 static void on_dfu_request(void) {
     do_reset_to_dfu = true;
@@ -176,7 +215,8 @@ int main(void) {
 
     usbd_device* usbd_dev = cmp_usb_setup();
     DAP_app_setup(usbd_dev, &on_dfu_request);
-    cdc_setup(usbd_dev, &on_host_rx, &on_host_tx);
+    cdc_setup(usbd_dev, &on_host_rx, &on_host_tx,
+              NULL, &on_set_line_coding);
     dfu_setup(usbd_dev, &on_dfu_request);
 
     uint16_t cdc_len = 0;
@@ -204,6 +244,7 @@ int main(void) {
         if (cdc_len == 0) {
             cdc_len = (uint16_t)console_recv_buffered(cdc_buf, USB_CDC_MAX_PACKET_SIZE);
         }
+
 
         // Handle DAP
         bool dap_active = DAP_app_update();

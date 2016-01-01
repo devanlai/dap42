@@ -43,6 +43,23 @@ void console_setup(uint32_t baudrate) {
     nvic_enable_irq(NVIC_USART2_IRQ);
 }
 
+void console_reconfigure(uint32_t baudrate, uint32_t databits, uint32_t stopbits,
+                         uint32_t parity) {
+    usart_disable(CONSOLE_USART);
+
+    if (parity != USART_PARITY_NONE) {
+        /* usart_set_databits counts parity bits as "data" bits */
+        databits += 1;
+    }
+
+    usart_set_baudrate(CONSOLE_USART, baudrate);
+    usart_set_databits(CONSOLE_USART, databits);
+    usart_set_stopbits(CONSOLE_USART, stopbits);
+    usart_set_parity(CONSOLE_USART, parity);
+
+    usart_enable(CONSOLE_USART);
+}
+
 static volatile uint8_t console_tx_buffer[CONSOLE_TX_BUFFER_SIZE];
 static volatile uint8_t console_rx_buffer[CONSOLE_RX_BUFFER_SIZE];
 
