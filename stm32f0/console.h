@@ -26,6 +26,15 @@
 #define CONSOLE_TX_BUFFER_SIZE 128
 #define CONSOLE_RX_BUFFER_SIZE 128
 
+// Workaround for non-commonalized STM32F0 USART code
+#ifndef USART_STOPBITS_1
+#define USART_STOPBITS_1 USART_CR2_STOP_1_0BIT
+#endif
+
+#ifndef USART_STOPBITS_2
+#define USART_STOPBITS_2 USART_CR2_STOP_2_0BIT
+#endif
+
 extern void console_setup(uint32_t baudrate);
 
 extern inline void console_send_blocking(uint8_t data) {
