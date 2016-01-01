@@ -79,8 +79,8 @@ bool DAP_app_update(void) {
 
     if (process_head != inbox_tail) {
         memset(response_buffers[process_head], 0, DAP_PACKET_SIZE);
-        uint32_t len = DAP_ProcessCommand(request_buffers[process_head],
-                                          response_buffers[process_head]);
+        DAP_ProcessCommand(request_buffers[process_head],
+                           response_buffers[process_head]);
         process_head = (process_head + 1) % DAP_PACKET_QUEUE_SIZE;
         active = true;
     }
