@@ -40,6 +40,8 @@
 void led_num(uint8_t value);
 void led_bit(uint8_t position, bool state);
 
+#define DEFAULT_BAUDRATE 115200
+
 /* Set STM32 to 48 MHz. */
 static void clock_setup(void) {
     rcc_clock_setup_in_hsi48_out_48mhz();
@@ -148,6 +150,13 @@ static void on_host_rx(uint8_t* data, uint16_t* len) {
     *len = (uint16_t)console_recv_buffered(data, USB_CDC_MAX_PACKET_SIZE);
 }
 
+static struct usb_cdc_line_coding current_line_coding = {
+    .dwDTERate = DEFAULT_BAUDRATE,
+    .bCharFormat = USB_CDC_1_STOP_BITS,
+    .bParityType = USB_CDC_NO_PARITY,
+    .bDataBits = 8
+};
+
 static bool on_set_line_coding(const struct usb_cdc_line_coding* line_coding) {
     uint32_t databits;
     if (line_coding->bDataBits == 7 || line_coding->bDataBits == 8) {
@@ -184,6 +193,12 @@ static bool on_set_line_coding(const struct usb_cdc_line_coding* line_coding) {
     }
 
     console_reconfigure(line_coding->dwDTERate, databits, stopbits, parity);
+    memcpy(&current_line_coding, (const void*)line_coding, sizeof(current_line_coding));
+    return true;
+}
+
+static bool on_get_line_coding(struct usb_cdc_line_coding* line_coding) {
+    memcpy(line_coding, (const void*)&current_line_coding, sizeof(current_line_coding));
     return true;
 }
 
@@ -201,7 +216,7 @@ int main(void) {
     gpio_setup();
     led_num(0);
 
-    console_setup(115200);
+    console_setup(DEFAULT_BAUDRATE);
     retarget(STDOUT_FILENO, CONSOLE_USART);
     retarget(STDERR_FILENO, CONSOLE_USART);
 
@@ -216,7 +231,7 @@ int main(void) {
     usbd_device* usbd_dev = cmp_usb_setup();
     DAP_app_setup(usbd_dev, &on_dfu_request);
     cdc_setup(usbd_dev, &on_host_rx, &on_host_tx,
-              NULL, &on_set_line_coding);
+              NULL, &on_set_line_coding, &on_get_line_coding);
     dfu_setup(usbd_dev, &on_dfu_request);
 
     uint16_t cdc_len = 0;

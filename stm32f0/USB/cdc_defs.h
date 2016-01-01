@@ -16,25 +16,9 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CDC_H_INCLUDED
-#define CDC_H_INCLUDED
+#ifndef CDC_DEFS_H_INCLUDED
+#define CDC_DEFS_H_INCLUDED
 
-#include "usb_common.h"
-#include <libopencm3/usb/cdc.h>
-#include "cdc_defs.h"
-
-typedef void (*SetControlLineStateFunction)(bool dtr, bool rts);
-
-typedef bool (*SetLineCodingFunction)(const struct usb_cdc_line_coding* line_coding);
-typedef bool (*GetLineCodingFunction)(struct usb_cdc_line_coding* line_coding);
-
-extern void cdc_setup(usbd_device* usbd_dev,
-                      HostInFunction cdc_tx_cb,
-                      HostOutFunction cdc_rx_cb,
-                      SetControlLineStateFunction set_control_line_state_cb,
-                      SetLineCodingFunction set_line_coding_cb,
-                      GetLineCodingFunction get_line_coding_cb);
-
-extern bool cdc_send_data(const uint8_t* data, size_t len);
+#define USB_CDC_REQ_GET_LINE_CODING 0xA0
 
 #endif
