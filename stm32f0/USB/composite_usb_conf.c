@@ -131,7 +131,7 @@ static const struct usb_iface_assoc_descriptor iface_assoc = {
     .bInterfaceCount = 2,
     .bFunctionClass = USB_CLASS_CDC,
     .bFunctionSubClass = USB_CDC_SUBCLASS_ACM,
-    .bFunctionProtocol = 0,
+    .bFunctionProtocol = USB_CDC_PROTOCOL_NONE,
     .iFunction = 4,
 };
 
@@ -143,7 +143,7 @@ static const struct usb_interface_descriptor comm_iface = {
     .bNumEndpoints = 1,
     .bInterfaceClass = USB_CLASS_CDC,
     .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
-    .bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
+    .bInterfaceProtocol = USB_CDC_PROTOCOL_NONE,
     .iInterface = 5,
 
     .endpoint = comm_endpoints,
