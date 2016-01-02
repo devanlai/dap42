@@ -161,6 +161,9 @@ static bool on_set_line_coding(const struct usb_cdc_line_coding* line_coding) {
     uint32_t databits;
     if (line_coding->bDataBits == 7 || line_coding->bDataBits == 8) {
         databits = line_coding->bDataBits;
+    } else if (line_coding->bDataBits == 0) {
+        // Work-around for PuTTY on Windows
+        databits = current_line_coding.bDataBits;
     } else {
         return false;
     }
@@ -194,6 +197,10 @@ static bool on_set_line_coding(const struct usb_cdc_line_coding* line_coding) {
 
     console_reconfigure(line_coding->dwDTERate, databits, stopbits, parity);
     memcpy(&current_line_coding, (const void*)line_coding, sizeof(current_line_coding));
+
+    if (line_coding->bDataBits == 0) {
+        current_line_coding.bDataBits = databits;
+    }
     return true;
 }
 
