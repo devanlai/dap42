@@ -37,7 +37,17 @@ Add the following line to `probetable.csv`:
     0x1209, 0xDA42, 64, 1, 0, 0, 0, "CMSIS-DAP", 0, -1
 
 ### USB-serial
-With the current configuration, the modem manager on Linux may attempt to grab the serial port and use it as a modem.
+#### Windows
+On Windows 10, the serial port works without requiring additional configuration.
+
+For Windows XP through Windows 7, the [DAP42CDC.inf](drivers/DAP42CDC.inf) `.inf` file can be used to load the generic USB serial driver.
+
+#### Mac OSX
+On Mac OSX version 10.7 and later, the serial port should work without requiring any additional configuration.
+
+#### Linux
+On Linux, the serial port should be detected without requiring additional configuration.
+Depending on your distro settings, the modem manager may attempt to grab the serial port and use it as a modem.
 To prevent this, you can define a custom udev rule to ensure that the modem manager ignores the debugger.
 
     ATTRS{idVendor}=="1209" ATTRS{idProduct}=="da42", ENV{ID_MM_DEVICE_IGNORE}="1"
