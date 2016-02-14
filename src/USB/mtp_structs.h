@@ -54,7 +54,34 @@ struct mtp_object_info_dataset {
     const char* keywords;
 } __attribute__((packed));
 
+struct mtp_storage_info_dataset {
+    uint16_t storageType;
+    uint16_t filesystemType;
+    uint16_t accessCapability;
+    uint64_t maxCapacity;
+    uint64_t freeSpaceInBytes;
+    uint32_t freeSpaceInObjects;
+
+    const char* storageDescription;
+    const char* volumeIdentifier;
+} __attribute__((packed));
+
+struct mtp_device_prop_desc_dataset {
+    uint16_t    devicePropertyCode;
+    uint16_t    datatype;
+    uint8_t     getSet;
+    const void* defaultValue;
+    size_t      defaultValueLen;
+    const void* currentValue;
+    size_t      currentValueLen;
+    uint8_t     formFlag;
+    const void* form;
+    size_t      formLen;
+} __attribute__((packed));
+
 extern size_t mtp_build_string(const char* str, uint8_t* buffer);
 extern size_t mtp_build_object_info(const struct mtp_object_info_dataset* object_info, uint8_t* buffer);
+extern size_t mtp_build_storage_info(const struct mtp_storage_info_dataset* storage_info, uint8_t* buffer);
+extern size_t mtp_build_device_prop_desc(const struct mtp_device_prop_desc_dataset* prop_desc, uint8_t* buffer);
 
 #endif

@@ -73,3 +73,57 @@ size_t mtp_build_object_info(const struct mtp_object_info_dataset* object_info,
 
     return total;
 }
+
+size_t mtp_build_storage_info(const struct mtp_storage_info_dataset* storage_info,
+                              uint8_t* buffer) {
+    size_t total = 0;
+    size_t fixed_length_header_size =
+        offsetof(struct mtp_storage_info_dataset, storageDescription);
+    memcpy(buffer, storage_info, fixed_length_header_size);
+    buffer += fixed_length_header_size;
+    total  += fixed_length_header_size;
+
+    const char* strings[] = {
+        storage_info->storageDescription,
+        storage_info->volumeIdentifier,
+    };
+
+    size_t i;
+    for (i=0; i < sizeof(strings)/sizeof(const char*); i++) {
+        size_t string_size = mtp_build_string(strings[i], buffer);
+        buffer += string_size;
+        total  += string_size;
+    }
+
+    return total;
+}
+
+size_t mtp_build_device_prop_desc(const struct mtp_device_prop_desc_dataset* prop_desc,
+                                  uint8_t* buffer) {
+    size_t total = 0;
+    size_t fixed_length_header_size =
+        offsetof(struct mtp_device_prop_desc_dataset, defaultValue);
+    memcpy(buffer, prop_desc, fixed_length_header_size);
+    buffer += fixed_length_header_size;
+    total  += fixed_length_header_size;
+
+    memcpy(buffer, prop_desc->defaultValue, prop_desc->defaultValueLen);
+    buffer += prop_desc->defaultValueLen;
+    total  += prop_desc->defaultValueLen;
+
+    memcpy(buffer, prop_desc->currentValue, prop_desc->currentValueLen);
+    buffer += prop_desc->currentValueLen;
+    total  += prop_desc->currentValueLen;
+
+    *buffer = prop_desc->formFlag;
+    buffer += 1;
+    total  += 1;
+
+    if (prop_desc->formFlag != 0) {
+        memcpy(buffer, prop_desc->form, prop_desc->formLen);
+        buffer += prop_desc->formLen;
+        total  += prop_desc->formLen;
+    }
+
+    return total;
+}

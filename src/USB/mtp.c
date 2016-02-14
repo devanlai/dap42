@@ -58,6 +58,15 @@ static const struct mtp_object_info_dataset hello_world = {
     .filename = "test.txt"
 };
 
+static const struct mtp_storage_info_dataset test_storage = {
+    .storageType = 0x0001,
+    .filesystemType = 0x0001,
+    .accessCapability = 0x0001,
+    .maxCapacity=128,
+    .storageDescription="Test",
+    .volumeIdentifier="DAP42TEST"
+};
+
 static bool mtp_stream_data_ready(const struct usb_ptp_command_block* command) {
     (void)command;
     return true;
@@ -145,9 +154,8 @@ static CommandConfig mtp_handle_command(struct usb_ptp_command_block* command,
         case OPR_GetStorageInfo: {
             response->code = RSP_OK;
             config.has_data_stage = true;
-            config.data_length = sizeof(mtp_test_store_info);
-            memcpy(mtp_data_buffer, mtp_test_store_info, sizeof(mtp_test_store_info));
-            mtp_data_buffer_count = sizeof(mtp_test_store_info);
+            config.data_length = mtp_build_storage_info(&test_storage, mtp_data_buffer);
+            mtp_data_buffer_count = config.data_length;
             break;
         }
         case OPR_GetNumObjects: {
