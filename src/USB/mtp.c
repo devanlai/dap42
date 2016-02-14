@@ -23,6 +23,7 @@
 
 #include "composite_usb_conf.h"
 #include "mtp.h"
+#include "mtp_structs.h"
 #include "mtp_datasets.h"
 
 #if MTP_AVAILABLE
@@ -46,6 +47,16 @@ static StreamDataInCallback mtp_stream_data_in;
 static StreamDataCompleteCallback mtp_stream_data_complete;
 static HandleCommandCallback mtp_handle_command;
 */
+
+static const struct mtp_object_info_dataset hello_world = {
+    .storageID = 0x00010001,
+    .objectFormat = 0x3004,
+    .protectionStatus = 0x0001,
+    .objectCompressedSize = 11,
+    .thumbFormat = 0x3000,
+    .parentObject = 0x00000000,
+    .filename = "test.txt"
+};
 
 static bool mtp_stream_data_ready(const struct usb_ptp_command_block* command) {
     (void)command;
@@ -228,9 +239,8 @@ static CommandConfig mtp_handle_command(struct usb_ptp_command_block* command,
             } else {
                 if (object_handle == 0x00000001U) {
                     response->code = RSP_OK;
-                    mtp_data_buffer_count = sizeof(hello_world_object_info);
-                    config.data_length = sizeof(hello_world_object_info);
-                    memcpy(mtp_data_buffer, hello_world_object_info, sizeof(hello_world_object_info));
+                    config.data_length = mtp_build_object_info(&hello_world, mtp_data_buffer);
+                    mtp_data_buffer_count = config.data_length;
                 } else {
                     response->code = RSP_Invalid_ObjectHandle;
                 }
