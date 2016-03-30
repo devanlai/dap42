@@ -22,6 +22,8 @@ datasets:
       - GetObjectHandles
       - GetObjectInfo
       - GetObject
+      - SendObjectInfo
+      - SendObject
   - name: mtp_test_store_info
     type: StorageInfo
     StorageType: Fixed ROM

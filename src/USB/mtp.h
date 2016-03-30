@@ -82,6 +82,11 @@ typedef size_t (*StreamDataInCallback)(const struct usb_ptp_command_block* comma
 typedef void (*StreamDataCompleteCallback)(const struct usb_ptp_command_block* command,
                                            struct usb_ptp_response_block* response);
 
+/*
+typedef uint16_t (*SendObjectInfoRequestHandler)(const struct usb_ptp_command_block* command,
+                                                          struct mtp_raw_object_info_dataset* object_info);
+*/
+
 extern void mtp_set_data_ready_callback(StreamDataReadyCallback cb);
 extern void mtp_set_data_out_callback(StreamDataOutCallback cb);
 extern void mtp_set_data_in_callback(StreamDataInCallback cb);

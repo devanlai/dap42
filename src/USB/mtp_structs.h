@@ -30,7 +30,7 @@ struct mtp_object_info_dataset {
     uint16_t objectFormat;
     uint16_t protectionStatus;
     uint32_t objectCompressedSize;
-    
+
     /* Only required for actual images */
     uint16_t thumbFormat;
     uint32_t thumbCompressedSize;
@@ -39,9 +39,9 @@ struct mtp_object_info_dataset {
     uint32_t imagePixWidth;
     uint32_t imagePixHeight;
     uint32_t imageBitDepth;
-    
+
     uint32_t parentObject;
-    
+
     /* Only needed for folders */
     uint16_t associationType;
     uint32_t associationDescription;
@@ -52,6 +52,33 @@ struct mtp_object_info_dataset {
     const char* dateCreated;
     const char* dateModified;
     const char* keywords;
+} __attribute__((packed));
+
+/* Struct for parsing an actual dataset */
+struct mtp_raw_object_info_dataset {
+    uint32_t storageID;
+    uint16_t objectFormat;
+    uint16_t protectionStatus;
+    uint32_t objectCompressedSize;
+
+    /* Only required for actual images */
+    uint16_t thumbFormat;
+    uint32_t thumbCompressedSize;
+    uint32_t thumbPixWidth;
+    uint32_t thumbPixHeight;
+    uint32_t imagePixWidth;
+    uint32_t imagePixHeight;
+    uint32_t imageBitDepth;
+
+    uint32_t parentObject;
+
+    /* Only needed for folders */
+    uint16_t associationType;
+    uint32_t associationDescription;
+
+    uint32_t sequenceNumber;
+
+    uint8_t remainder[0];
 } __attribute__((packed));
 
 struct mtp_storage_info_dataset {
