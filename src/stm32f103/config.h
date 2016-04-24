@@ -25,7 +25,17 @@
 #define CONSOLE_TX_BUFFER_SIZE 128
 #define CONSOLE_RX_BUFFER_SIZE 128
 
+#define CONSOLE_USART_GPIO_PORT GPIOA
+#define CONSOLE_USART_GPIO_TX   GPIO2
+#define CONSOLE_USART_GPIO_RX   GPIO3
+
 #define CONSOLE_USART_CLOCK RCC_USART2
+
+#define CONSOLE_USART_IRQ_NAME  usart2_isr
+#define CONSOLE_USART_NVIC_LINE NVIC_USART2_IRQ
+
+/* Word size for usart_recv and usart_send */
+typedef uint16_t usart_word_t;
 
 #define LED_OPEN_DRAIN         0
 

@@ -25,9 +25,17 @@
 #define CONSOLE_TX_BUFFER_SIZE 128
 #define CONSOLE_RX_BUFFER_SIZE 128
 
+#define CONSOLE_USART_GPIO_PORT GPIOA
+#define CONSOLE_USART_GPIO_PINS (GPIO2|GPIO3)
+#define CONSOLE_USART_GPIO_AF   GPIO_AF1
+
 #define CONSOLE_USART_CLOCK RCC_USART2
 
-// Workaround for non-commonalized STM32F0 USART code
+#define CONSOLE_USART_IRQ_NAME  usart2_isr
+#define CONSOLE_USART_NVIC_LINE NVIC_USART2_IRQ
+
+#include <libopencm3/stm32/usart.h>
+/* Workaround for non-commonalized STM32F0 USART code */
 #ifndef USART_STOPBITS_1
 #define USART_STOPBITS_1 USART_CR2_STOP_1_0BIT
 #endif
@@ -35,5 +43,16 @@
 #ifndef USART_STOPBITS_2
 #define USART_STOPBITS_2 USART_CR2_STOP_2_0BIT
 #endif
+
+#ifndef USART_SR_RXNE
+#define USART_SR_RXNE USART_ISR_RXNE
+#endif
+
+#ifndef USART_SR_TXE
+#define USART_SR_TXE USART_ISR_TXE
+#endif
+
+/* Word size for usart_recv and usart_send */
+typedef uint8_t usart_word_t;
 
 #endif

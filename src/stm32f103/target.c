@@ -49,6 +49,17 @@ void gpio_setup(void) {
     gpio_set_mode(GPIOC, mode, conf, GPIO13 | GPIO14 | GPIO15);
 }
 
+void target_console_init(void){
+    /* Enable UART clock */
+    rcc_periph_clock_enable(CONSOLE_USART_CLOCK);
+
+    /* Setup GPIO pins */
+    gpio_set_mode(CONSOLE_USART_GPIO_PORT, GPIO_MODE_OUTPUT_50_MHZ,
+                  GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, CONSOLE_USART_GPIO_TX);
+    gpio_set_mode(CONSOLE_USART_GPIO_PORT, GPIO_MODE_INPUT,
+                  GPIO_CNF_INPUT_FLOAT, CONSOLE_USART_GPIO_RX);
+}
+
 void led_bit(uint8_t position, bool state) {
     uint32_t gpio = 0xFFFFFFFFU;
     if (position == 0) {

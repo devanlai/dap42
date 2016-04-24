@@ -21,6 +21,7 @@
 #include <libopencm3/stm32/gpio.h>
 
 #include "target.h"
+#include "config.h"
 
 /* Set STM32 to 48 MHz. */
 void clock_setup(void) {
@@ -61,6 +62,15 @@ void gpio_setup(void) {
     gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
                     GPIO0 | GPIO1 | GPIO4);
     button_setup();
+}
+
+void target_console_init(void) {
+    /* Enable UART clock */
+    rcc_periph_clock_enable(CONSOLE_USART_CLOCK);
+
+    /* Setup GPIO pins for UART2 */
+    gpio_mode_setup(CONSOLE_USART_GPIO_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, CONSOLE_USART_GPIO_PINS);
+    gpio_set_af(CONSOLE_USART_GPIO_PORT, CONSOLE_USART_GPIO_AF, CONSOLE_USART_GPIO_PINS);
 }
 
 void led_bit(uint8_t position, bool state) {

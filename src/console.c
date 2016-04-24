@@ -16,19 +16,14 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 
 #include "console.h"
+#include "target.h"
 
 void console_setup(uint32_t baudrate) {
-    /* Enable UART clock */
-    rcc_periph_clock_enable(CONSOLE_USART_CLOCK);
-
-    /* Setup GPIO pins for UART2 */
-    gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2 | GPIO3);
-    gpio_set_af(GPIOA, GPIO_AF1, GPIO2 | GPIO3);
+    /* Setup GPIO */
+    target_console_init();
 
     usart_set_baudrate(CONSOLE_USART, baudrate);
     usart_set_databits(CONSOLE_USART, 8);
@@ -40,7 +35,7 @@ void console_setup(uint32_t baudrate) {
     usart_enable(CONSOLE_USART);
     usart_enable_rx_interrupt(CONSOLE_USART);
 
-    nvic_enable_irq(NVIC_USART2_IRQ);
+    nvic_enable_irq(CONSOLE_USART_NVIC_LINE);
 }
 
 void console_reconfigure(uint32_t baudrate, uint32_t databits, uint32_t stopbits,
@@ -136,9 +131,9 @@ void console_set_echo(bool enable) {
     console_echo_input = enable;
 }
 
-void usart2_isr(void) {
-    if (usart_get_interrupt_source(USART2, USART_ISR_RXNE)) {
-        uint8_t received_byte = usart_recv(USART2);
+void CONSOLE_USART_IRQ_NAME(void) {
+    if (usart_get_interrupt_source(CONSOLE_USART, USART_SR_RXNE)) {
+        uint8_t received_byte = (uint8_t)usart_recv(CONSOLE_USART);
         if (!console_rx_buffer_full()) {
             console_rx_buffer_put(received_byte);
         }
@@ -152,12 +147,12 @@ void usart2_isr(void) {
         }
     }
 
-    if (usart_get_interrupt_source(USART2, USART_ISR_TXE)) {
+    if (usart_get_interrupt_source(CONSOLE_USART, USART_SR_TXE)) {
         if (!console_tx_buffer_empty()) {
-            uint8_t buffered_byte = console_tx_buffer_get();
-            usart_send(USART2, buffered_byte);
+            usart_word_t buffered_byte = console_tx_buffer_get();
+            usart_send(CONSOLE_USART, buffered_byte);
         } else {
-            usart_disable_tx_interrupt(USART2);
+            usart_disable_tx_interrupt(CONSOLE_USART);
         }
     }
 }
