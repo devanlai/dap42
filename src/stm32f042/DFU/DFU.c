@@ -24,7 +24,7 @@
 #include <libopencm3/stm32/flash.h>
 
 #include "backup.h"
-#include "DFU.h"
+#include "DFU/DFU.h"
 
 static const uint32_t CMD_BOOT_WITH_BOOT0_PIN  = 0x44465500UL;
 static const uint32_t CMD_BOOT_WITH_NBOOT0_BIT = 0x44466621UL;

@@ -17,8 +17,8 @@
  */
 
 #include <string.h>
-#include "CMSIS_DAP_config.h"
-#include "CMSIS_DAP.h"
+#include "DAP/CMSIS_DAP_config.h"
+#include "DAP/CMSIS_DAP.h"
 
 #include <libopencm3/cm3/systick.h>
 #include <libopencmsis/core_cm3.h>

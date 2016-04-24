@@ -24,12 +24,8 @@
 #include <libopencm3/usb/hid.h>
 #include <libopencm3/usb/dfu.h>
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/st_usbfs.h>
-#include <libopencm3/stm32/syscfg.h>
-
 #include "composite_usb_conf.h"
+#include "usb_setup.h"
 
 #include "hid_defs.h"
 #include "misc_defs.h"
@@ -280,20 +276,10 @@ void cmp_set_usb_serial_number(const char* serial) {
 }
 
 usbd_device* cmp_usb_setup(void) {
-    rcc_periph_reset_pulse(RST_USB);
-
-    rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_SYSCFG_COMP);
-
-    /* Remap PA11 and PA12 for use as USB */
-    gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
-                    GPIO11 | GPIO12);
-    gpio_set_af(GPIOA, GPIO_AF2, GPIO11 | GPIO12);
-    SYSCFG_CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
-
     int num_strings = sizeof(usb_strings)/sizeof(const char*);
 
-    usbd_device* usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config,
+    const usbd_driver* driver = target_usb_init();
+    usbd_device* usbd_dev = usbd_init(driver, &dev, &config,
                                       usb_strings, num_strings,
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
 

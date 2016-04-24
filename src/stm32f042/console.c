@@ -24,7 +24,7 @@
 
 void console_setup(uint32_t baudrate) {
     /* Enable UART clock */
-    rcc_periph_clock_enable(RCC_USART2);
+    rcc_periph_clock_enable(CONSOLE_USART_CLOCK);
 
     /* Setup GPIO pins for UART2 */
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2 | GPIO3);

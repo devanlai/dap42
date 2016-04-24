@@ -1,8 +1,7 @@
 /*
  * This file is part of the libopencm3 project.
  *
- * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
- * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
+ * Copyright (C) 2015 Karl Palsson <karlp@tweak.net.au>
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,15 +17,15 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Linker script for STM32F072FxB, 128K flash, 16K RAM). */
+/* Linker script for STM32F103x8, 64k flash, 20k RAM. */
 
 /* Define memory regions. */
 MEMORY
 {
-	rom (rx) : ORIGIN = 0x08000000, LENGTH = 128K
-	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
+	rom (rx) : ORIGIN = 0x08000000, LENGTH = 64K
+	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
 
 /* Include the common ld script. */
-INCLUDE libopencm3_stm32f0.ld
+INCLUDE libopencm3_stm32f1.ld
 

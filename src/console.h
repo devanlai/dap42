@@ -22,18 +22,7 @@
 #include <stddef.h>
 #include <libopencm3/stm32/usart.h>
 
-#define CONSOLE_USART USART2
-#define CONSOLE_TX_BUFFER_SIZE 128
-#define CONSOLE_RX_BUFFER_SIZE 128
-
-// Workaround for non-commonalized STM32F0 USART code
-#ifndef USART_STOPBITS_1
-#define USART_STOPBITS_1 USART_CR2_STOP_1_0BIT
-#endif
-
-#ifndef USART_STOPBITS_2
-#define USART_STOPBITS_2 USART_CR2_STOP_2_0BIT
-#endif
+#include "config.h"
 
 extern void console_setup(uint32_t baudrate);
 extern void console_reconfigure(uint32_t baudrate, uint32_t databits,

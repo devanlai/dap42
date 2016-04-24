@@ -18,11 +18,23 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-LIBNAME		= opencm3_stm32f0
-DEFS		= -DSTM32F0
+ifeq ($(ARCH),STM32F0)
+	LIBNAME		= opencm3_stm32f0
+	DEFS		+= -DSTM32F0
+	FP_FLAGS	?= -msoft-float
+	ARCH_FLAGS	= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
+endif
+ifeq ($(ARCH),STM32F1)
+	LIBNAME		= opencm3_stm32f1
+	DEFS		+= -DSTM32F1
+	FP_FLAGS	?= -msoft-float
+	ARCH_FLAGS	= -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
+endif
 
-FP_FLAGS	?= -msoft-float
-ARCH_FLAGS	= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
+LIBNAME		?= opencm3_stm32f0
+DEFS		?= -DSTM32F0
+FP_FLAGS    ?= -msoft-float
+ARCH_FLAGS	?= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 
 ################################################################################
 # OpenOCD specific variables

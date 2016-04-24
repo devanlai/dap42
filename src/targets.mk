@@ -1,4 +1,4 @@
-## Copyright (c) 2015, Devan Lai
+## Copyright (c) 2016, Devan Lai
 ##
 ## Permission to use, copy, modify, and/or distribute this software
 ## for any purpose with or without fee is hereby granted, provided
@@ -14,38 +14,16 @@
 ## NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 ## CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-BINARY = DAP42
-OPENCM3_DIR = ../libopencm3
-LDSCRIPT = stm32f042x6.ld
-
-DFU_UTIL = dfu-util
-DFUSE_VID_PID := 0483:df11
-DAP42_VID_PID := 1209:da42
-
-SRCS := $(wildcard *.c)
-SRCS += $(wildcard DAP/*.c)
-SRCS += $(wildcard USB/*.c)
-SRCS += $(wildcard DFU/*.c)
-OBJS += $(SRCS:.c=.o)
-DEPS  = $(SRCS:.c=.d)
-
-.DEFAULT_GOAL := $(BINARY).bin
-
-%.dfuse-flash: %.bin
-	$(DFU_UTIL) -d $(DAP42_VID_PID),$(DFUSE_VID_PID) -a 0 -s 0x08000000:leave -D $(<)
-
-dfuse-flash: $(BINARY).dfuse-flash
-
-clean::
-	@rm -f $(OBJS)
-	@rm -f $(DEPS)
-
-include libopencm3.target.mk
-
-size: $(OBJS) $(BINARY).elf
-	@$(PREFIX)-size $(OBJS) $(BINARY).elf
-
-OBJS := $(sort $(OBJS))
-
-# Add the base directory to the header search path
-CPPFLAGS += -I.
+ifeq ($(TARGET),STM32F042)
+	TARGET_DIR	:= ./stm32f042
+	LDSCRIPT	?= $(TARGET_DIR)/stm32f042x6.ld
+	ARCH		= STM32F0
+endif
+ifeq ($(TARGET),STM32F103)
+	TARGET_DIR	:= ./stm32f103
+	LDSCRIPT	?= $(TARGET_DIR)/stm32f103x8.ld
+	ARCH		= STM32F1
+endif
+ifndef ARCH
+$(error Unknown target $(TARGET))
+endif

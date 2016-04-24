@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "CMSIS_DAP_config.h"
-#include "CMSIS_DAP.h"
+#include "DAP/CMSIS_DAP_config.h"
+#include "DAP/CMSIS_DAP.h"
 
 
 // SW Macros
