@@ -29,7 +29,7 @@ void console_setup(uint32_t baudrate) {
     usart_set_databits(CONSOLE_USART, 8);
     usart_set_parity(CONSOLE_USART, USART_PARITY_NONE);
     usart_set_stopbits(CONSOLE_USART, USART_STOPBITS_1);
-    usart_set_mode(CONSOLE_USART, USART_MODE_TX_RX);
+    usart_set_mode(CONSOLE_USART, CONSOLE_USART_MODE);
     usart_set_flow_control(CONSOLE_USART, USART_FLOWCONTROL_NONE);
 
     usart_enable(CONSOLE_USART);

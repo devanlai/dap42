@@ -134,12 +134,12 @@ Provides definitions about:
 #define nRESET_GPIO_PORT        GPIOB
 #define nRESET_GPIO_PIN         GPIO6
 
-#define LED_CON_GPIO_PORT       GPIOC
-#define LED_CON_GPIO_PIN        GPIO13
-#define LED_RUN_GPIO_PORT       GPIOC
-#define LED_RUN_GPIO_PIN        GPIO14
-#define LED_ACT_GPIO_PORT       GPIOC
-#define LED_ACT_GPIO_PIN        GPIO15
+#define LED_CON_GPIO_PORT       GPIOA
+#define LED_CON_GPIO_PIN        GPIO9
+#define LED_RUN_GPIO_PORT       GPIOA
+#define LED_RUN_GPIO_PIN        GPIO9
+#define LED_ACT_GPIO_PORT       GPIOA
+#define LED_ACT_GPIO_PIN        GPIO9
 
 #define SWDIO_GPIO_PIN_NUM      14
 
