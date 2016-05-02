@@ -23,12 +23,14 @@ ifeq ($(ARCH),STM32F0)
 	DEFS		+= -DSTM32F0
 	FP_FLAGS	?= -msoft-float
 	ARCH_FLAGS	= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
+	OOCD_BOARD  ?= target/stm32f0x.cfg
 endif
 ifeq ($(ARCH),STM32F1)
 	LIBNAME		= opencm3_stm32f1
 	DEFS		+= -DSTM32F1
 	FP_FLAGS	?= -msoft-float
 	ARCH_FLAGS	= -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
+	OOCD_BOARD  ?= target/stm32f1x.cfg
 endif
 
 LIBNAME		?= opencm3_stm32f0
@@ -40,17 +42,7 @@ ARCH_FLAGS	?= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 # OpenOCD specific variables
 
 OOCD		?= openocd
-OOCD_INTERFACE	?= flossjtag
-OOCD_BOARD	?= olimex_stm32_h103
-
-################################################################################
-# Black Magic Probe specific variables
-# Set the BMP_PORT to a serial port and then BMP is used for flashing
-BMP_PORT	?=
-
-################################################################################
-# texane/stlink specific variables
-#STLINK_PORT	?= :4242
-
+OOCD_INTERFACE	?= interface/cmsis-dap.cfg
+OOCD_BOARD	?= target/stm32f1x.cfg
 
 include ../libopencm3.rules.mk

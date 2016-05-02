@@ -14,6 +14,8 @@
 ## NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 ## CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+-include local.mk
+
 BINARY = DAP42
 OPENCM3_DIR = ../libopencm3
 
@@ -51,6 +53,11 @@ include libopencm3.target.mk
 
 size: $(OBJS) $(BINARY).elf
 	@$(PREFIX)-size $(OBJS) $(BINARY).elf
+
+debug: $(BINARY).elf
+	-$(GDB) --tui --eval "target remote | $(OOCD) -f $(OOCD_INTERFACE) -f $(OOCD_BOARD) -f ../openocd/debug.cfg" $(BINARY).elf
+
+.PHONY += debug size dfuse-flash
 
 OBJS := $(sort $(OBJS))
 
