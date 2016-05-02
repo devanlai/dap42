@@ -24,5 +24,14 @@
 
 const usbd_driver* target_usb_init(void) {
     rcc_periph_reset_pulse(RST_USB);
+
+    /* Force re-enumeration */
+    rcc_periph_clock_enable(RCC_GPIOA);
+    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_10_MHZ,
+                  GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
+    gpio_clear(GPIOA, GPIO12);
+    int i;
+    for (i = 0; i < 800000; i++)
+        __asm__("nop");
     return &st_usbfs_v1_usb_driver;
 }

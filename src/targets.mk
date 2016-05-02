@@ -24,6 +24,11 @@ ifeq ($(TARGET),STM32F103)
 	LDSCRIPT	?= $(TARGET_DIR)/stm32f103x8.ld
 	ARCH		= STM32F1
 endif
+ifeq ($(TARGET),STM32F103-DFUBOOT)
+	TARGET_DIR	:= ./stm32f103
+	LDSCRIPT	?= $(TARGET_DIR)/stm32f103x8-dfuboot.ld
+	ARCH		= STM32F1
+endif
 ifndef ARCH
 $(error Unknown target $(TARGET))
 endif

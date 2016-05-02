@@ -193,10 +193,12 @@ int main(void) {
             /* Blink 3 times to indicate reset */
             int x;
             for (x=0; x < 3; x++) {
+                iwdg_reset();
                 led_num(7);
                 wait_ms(150);
                 led_num(0);
                 wait_ms(150);
+                iwdg_reset();
             }
 
             DFU_reset_and_jump_to_bootloader();
