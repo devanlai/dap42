@@ -33,6 +33,8 @@
 #include "hid.h"
 #include "dfu.h"
 
+#include "config.h"
+
 static const struct usb_device_descriptor dev = {
     .bLength = USB_DT_DEVICE_SIZE,
     .bDescriptorType = USB_DT_DEVICE,
@@ -256,12 +258,12 @@ static char serial_number[USB_SERIAL_NUM_LENGTH+1] = "000000000000000000000000";
 
 static const char *usb_strings[] = {
     "Devanarchy",
-    "DAP42 CMSIS-DAP",
+    (PRODUCT_NAME " CMSIS-DAP"),
     serial_number,
-    "DAP42 Composite CDC HID",
+    (PRODUCT_NAME " Composite CDC HID"),
     "CDC Control",
     "CDC Data",
-    "DAP42 DFU",
+    (PRODUCT_NAME " DFU"),
 };
 
 /* Buffer to be used for control requests. */
