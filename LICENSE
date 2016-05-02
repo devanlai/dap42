@@ -27,9 +27,10 @@ Makefile and linker script are derived from the libopencm3 examples
 template and are licensed under the GNU Lesser General Public
 License version 3:
 * libopencm3.rules.mk
-* stm32f0/libopencm3.target.mk
-* stm32f0/stm32f042x6.ld
-* stm32f0/stm32f072xB.ld
+* src/libopencm3.target.mk
+* src/stm32f042/stm32f042x6.ld
+* src/stm32f103/stm32f103x8.ld
+* src/stm32f103/stm32f103x8-dfuboot.ld
 
 libopencm3, included as a submodule and statically linked as part
 of the build process, is separately licensed under the LGPLv3.

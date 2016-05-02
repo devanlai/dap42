@@ -18,6 +18,15 @@ In general, the firmware can be uploaded over USB DFU without any extra hardware
 
 The default method to upload new firmware is via [dfu-util](http://dfu-util.sourceforge.net/). The Makefile includes the `dfuse-flash` target to invoke dfu-util. dfu-util automatically detaches the dap42 firmware and uploads the firmware through the on-chip bootloader.
 
+### STM32F103
+The dap42 firmware can experimentally also target the STM32F103 chip. The CDC UART is connected to `PB6` (the `SWIM` pin on certain STLink/v2 knockoff designs) as an RX-only input.
+
+To flash directly without a bootloader:
+
+    make clean
+    make TARGET=STM32F103
+    make TARGET=STM32F103 flash
+
 ## Usage
 ### OpenOCD
 The dap42 firmware has been tested with gdb and OpenOCD on STM32F042 (of course), STM32F103, and LPC11C14 targets.
@@ -26,7 +35,7 @@ In general, the probe can be used with OpenOCD just by specifying the cmsis-dap 
 
     openocd -f interface/cmsis-dap.cfg -f your_config.cfg -c "some inline command"
 
-Example OpenOCD configurations can be found under the [stm32f0/openocd/](stm32f0/openocd/) folder.
+Example OpenOCD configurations can be found under the [openocd/](openocd/) folder.
 
 ### LPCXpresso
 As of LPCXpresso 8.0.0, the default probe detection rules will not auto-discover generic CMSIS-DAP probes.
