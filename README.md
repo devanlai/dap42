@@ -19,7 +19,7 @@ In general, the firmware can be uploaded over USB DFU without any extra hardware
 The default method to upload new firmware is via [dfu-util](http://dfu-util.sourceforge.net/). The Makefile includes the `dfuse-flash` target to invoke dfu-util. dfu-util automatically detaches the dap42 firmware and uploads the firmware through the on-chip bootloader.
 
 ### STM32F103
-The dap42 firmware can experimentally also target the STM32F103 chip. The CDC UART is connected to `PB6` (the `SWIM` pin on certain STLink/v2 knockoff designs) as an RX-only input.
+The dap42 firmware can experimentally also target the STM32F103 chip. The CDC UART is connected to `PB11` (the `SWIM` pin on certain STLink/v2 knockoff designs) as an RX-only input.
 
 To flash directly without a bootloader:
 
