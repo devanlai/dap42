@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Devan Lai
+ * Copyright (c) 2016, Devan Lai
  *
  * Permission to use, copy, modify, and/or distribute this software
  * for any purpose with or without fee is hereby granted, provided
@@ -16,19 +16,16 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RETARGET_H_INCLUDED
-#define RETARGET_H_INCLUDED
+#ifndef VCDC_H_INCLUDED
+#define VCDC_H_INCLUDED
 
-#include <unistd.h>
+#include "usb_common.h"
 
-#define NO_USART 0xFFFFFFFFU
-#define VIRTUAL_USART 0xFFFFFFFEU
-
-extern void retarget(int file, uint32_t usart);
-extern int _write(int file, char *ptr, int len);
-
-extern void print_hex(uint32_t x);
-extern void print(const char* s);
-extern void println(const char* s);
+extern void vcdc_app_setup(usbd_device* usbd_dev,
+                           GenericCallback vcdc_tx_cb,
+                           GenericCallback vcdc_rx_cb);
+extern bool vcdc_app_update(void);
+extern size_t vcdc_recv_buffered(uint8_t* data, size_t max_bytes);
+extern size_t vcdc_send_buffered(const uint8_t* data, size_t num_bytes);
 
 #endif

@@ -24,6 +24,7 @@
 
 #include <libopencm3/usb/usbd.h>
 
+typedef void (*GenericCallback)(void);
 typedef void (*HostOutFunction)(uint8_t* data, uint16_t len);
 typedef void (*HostInFunction)(uint8_t* data, uint16_t* len);
 

@@ -24,6 +24,8 @@
 #include "composite_usb_conf.h"
 #include "dfu.h"
 
+#if DFU_AVAILABLE
+
 const struct usb_dfu_descriptor dfu_function = {
     .bLength = sizeof(struct usb_dfu_descriptor),
     .bDescriptorType = DFU_FUNCTIONAL,
@@ -92,3 +94,5 @@ void dfu_setup(usbd_device* usbd_dev, GenericCallback on_detach_request) {
     dfu_detach_request_callback = on_detach_request;
     cmp_usb_register_set_config_callback(dfu_set_config);
 }
+
+#endif

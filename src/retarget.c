@@ -23,6 +23,7 @@
 
 #include "retarget.h"
 #include "console.h"
+#include "USB/vcdc.h"
 
 static uint32_t usart_stdout = NO_USART;
 static uint32_t usart_stderr = NO_USART;
@@ -50,6 +51,9 @@ int _write(int file, char *ptr, int len) {
 
     if (usart == CONSOLE_USART) {
         sent = console_send_buffered((uint8_t*)ptr, (size_t)len);
+        return sent;
+    } else if (usart == VIRTUAL_USART) {
+        sent = vcdc_send_buffered((uint8_t*)ptr, (size_t)len);
         return sent;
     }
 

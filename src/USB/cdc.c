@@ -24,6 +24,8 @@
 #include "composite_usb_conf.h"
 #include "cdc.h"
 
+#if CDC_AVAILABLE
+
 /* User callbacks */
 static HostOutFunction cdc_rx_callback = NULL;
 static HostInFunction cdc_tx_callback = NULL;
@@ -157,3 +159,5 @@ bool cdc_send_data(const uint8_t* data, size_t len) {
                                          (uint16_t)len);
     return (sent != 0);
 }
+
+#endif

@@ -25,8 +25,6 @@
 
 extern const struct usb_dfu_descriptor dfu_function;
 
-typedef void (*GenericCallback)(void);
-
 extern void dfu_setup(usbd_device* usbd_dev,
                       GenericCallback on_detach_request);
 

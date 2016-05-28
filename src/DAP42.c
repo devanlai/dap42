@@ -27,6 +27,7 @@
 
 #include "USB/composite_usb_conf.h"
 #include "USB/cdc.h"
+#include "USB/vcdc.h"
 #include "USB/dfu.h"
 
 #include "DAP/app.h"
@@ -133,17 +134,27 @@ static void on_dfu_request(void) {
 }
 
 int main(void) {
-    DFU_maybe_jump_to_bootloader();
+    if (DFU_AVAILABLE) {
+        DFU_maybe_jump_to_bootloader();
+    }
 
     clock_setup();
     tick_setup(1000);
     gpio_setup();
     led_num(0);
 
-    console_setup(DEFAULT_BAUDRATE);
-    retarget(STDOUT_FILENO, CONSOLE_USART);
-    retarget(STDERR_FILENO, CONSOLE_USART);
+    if (CDC_AVAILABLE) {
+        console_setup(DEFAULT_BAUDRATE);
+    }
 
+    if (VCDC_AVAILABLE) {
+        retarget(STDOUT_FILENO, VIRTUAL_USART);
+        retarget(STDERR_FILENO, VIRTUAL_USART);
+    } else if (CDC_AVAILABLE) {
+        retarget(STDOUT_FILENO, CONSOLE_USART);
+        retarget(STDERR_FILENO, CONSOLE_USART);
+    }
+    
     led_num(1);
 
     {
@@ -154,15 +165,23 @@ int main(void) {
 
     usbd_device* usbd_dev = cmp_usb_setup();
     DAP_app_setup(usbd_dev, &on_dfu_request);
+
+#if CDC_AVAILABLE
     cdc_setup(usbd_dev, &on_host_rx, &on_host_tx,
               NULL, &on_set_line_coding, &on_get_line_coding);
-    dfu_setup(usbd_dev, &on_dfu_request);
-
     uint16_t cdc_len = 0;
     uint8_t cdc_buf[USB_CDC_MAX_PACKET_SIZE];
+#endif
+
+    if (VCDC_AVAILABLE) {
+        vcdc_app_setup(usbd_dev, NULL, NULL);
+    }
+
+    if (DFU_AVAILABLE) {
+        dfu_setup(usbd_dev, &on_dfu_request);
+    }
 
     tick_start();
-
 
     /* Enable the watchdog to enable DFU recovery from bad firmware images */
     iwdg_set_period_ms(1000);
@@ -172,6 +191,7 @@ int main(void) {
         iwdg_reset();
         usbd_poll(usbd_dev);
 
+#if CDC_AVAILABLE
         // Handle CDC
         if (cdc_len > 0) {
             if (cdc_send_data(cdc_buf, cdc_len)) {
@@ -183,13 +203,20 @@ int main(void) {
         if (cdc_len == 0) {
             cdc_len = (uint16_t)console_recv_buffered(cdc_buf, USB_CDC_MAX_PACKET_SIZE);
         }
+#endif
 
+        if (VCDC_AVAILABLE) {
+            bool vcdc_active = vcdc_app_update();
+            if (vcdc_active) {
+                usb_timer = 1000;
+            }
+        }
 
         // Handle DAP
         bool dap_active = DAP_app_update();
         if (dap_active) {
             usb_timer = 1000;
-        } else if (do_reset_to_dfu) {
+        } else if (do_reset_to_dfu && DFU_AVAILABLE) {
             /* Blink 3 times to indicate reset */
             int x;
             for (x=0; x < 3; x++) {

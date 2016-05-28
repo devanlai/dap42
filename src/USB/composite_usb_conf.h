@@ -20,8 +20,10 @@
 #define COMPOSITE_USB_CONF_H_INCLUDED
 
 #include "usb_common.h"
+#include "config.h"
 
 #define USB_CDC_MAX_PACKET_SIZE 64
+#define USB_VCDC_MAX_PACKET_SIZE 64
 #define USB_HID_MAX_PACKET_SIZE 64
 #define USB_SERIAL_NUM_LENGTH   24
 
@@ -30,12 +32,23 @@
 #define ENDP_CDC_COMM_IN        0x83
 #define ENDP_HID_REPORT_OUT     0x04
 #define ENDP_HID_REPORT_IN      0x84
+#define ENDP_VCDC_DATA_OUT       0x05
+#define ENDP_VCDC_DATA_IN        0x86
+#define ENDP_VCDC_COMM_IN        0x87
 
 enum {
     INTF_HID,
+#if CDC_AVAILABLE
     INTF_CDC_COMM,
     INTF_CDC_DATA,
+#endif
+#if VCDC_AVAILABLE
+    INTF_VCDC_COMM,
+    INTF_VCDC_DATA,
+#endif
+#if DFU_AVAILABLE
     INTF_DFU,
+#endif
 };
 
 #define USB_MAX_CONTROL_CLASS_CALLBACKS 8
