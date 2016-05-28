@@ -65,6 +65,22 @@ int _write(int file, char *ptr, int len) {
 
 #endif
 
+void print_hex_nibble(uint8_t x) {
+    uint8_t nibble = x & 0x0F;
+    char nibble_char;
+    if (nibble < 10) {
+        nibble_char = '0' + nibble;
+    } else {
+        nibble_char = 'A' + (nibble - 10);
+    }
+    putchar(nibble_char);
+}
+
+void print_hex_byte(uint8_t x) {
+    print_hex_nibble(x >> 4);
+    print_hex_nibble(x);
+}
+
 void print_hex(uint32_t x) {
     uint8_t i;
     for (i=8; i > 0; i--) {

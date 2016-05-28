@@ -122,7 +122,7 @@ int main(void) {
     }
 
     if (CAN_RX_AVAILABLE) {
-        //can_setup(500000);
+        can_setup(500000);
     }
 
     tick_start();
@@ -140,6 +140,32 @@ int main(void) {
         }
 
         if (VCDC_AVAILABLE) {
+            if (CAN_RX_AVAILABLE) {
+                CAN_Message msg;
+                bool read = false;
+                while (can_read(&msg)) {
+                    read = true;
+                    if (msg.format == CANStandard) {
+                        print(msg.type == CANData ? "t" : "r");
+                        print_hex_nibble((uint8_t)(msg.id >> 8));
+                        print_hex_byte((uint8_t)(msg.id & 0xFF));
+                        putchar('0' + msg.len);
+                    } else {
+                        print(msg.type == CANData ? "T" : "R");
+                        print_hex(msg.id);
+                        putchar('0' + msg.len);
+                    }
+                    uint8_t i = 0;
+                    for (i=0; i < msg.len; i++) {
+                        print_hex_byte(msg.data[i]);
+                    }
+                    putchar('\r');
+                }
+
+                if (read) {
+                    fflush(stdout);
+                }
+            }
             vcdc_app_update();
         }
 
