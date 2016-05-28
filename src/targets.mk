@@ -15,19 +15,28 @@
 ## CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ifeq ($(TARGET),STM32F042)
-	TARGET_DIR	:= ./stm32f042
-	LDSCRIPT	?= $(TARGET_DIR)/stm32f042x6.ld
-	ARCH		= STM32F0
+	TARGET_COMMON_DIR	:= ./stm32f042
+	TARGET_SPEC_DIR		:= ./stm32f042/dap42
+	LDSCRIPT			?= ./stm32f042/stm32f042x6.ld
+	ARCH				= STM32F0
+endif
+ifeq ($(TARGET),KITCHEN42)
+	TARGET_COMMON_DIR	:= ./stm32f042
+	TARGET_SPEC_DIR		:= ./stm32f042/kitchen42
+	LDSCRIPT			?= ./stm32f042/stm32f042x6.ld
+	ARCH				= STM32F0
 endif
 ifeq ($(TARGET),STM32F103)
-	TARGET_DIR	:= ./stm32f103
-	LDSCRIPT	?= $(TARGET_DIR)/stm32f103x8.ld
-	ARCH		= STM32F1
+	TARGET_COMMON_DIR	:= ./stm32f103
+	TARGET_SPEC_DIR		:= ./stm32f103
+	LDSCRIPT			?= ./stm32f103/stm32f103x8.ld
+	ARCH				= STM32F1
 endif
 ifeq ($(TARGET),STM32F103-DFUBOOT)
-	TARGET_DIR	:= ./stm32f103
-	LDSCRIPT	?= $(TARGET_DIR)/stm32f103x8-dfuboot.ld
-	ARCH		= STM32F1
+	TARGET_COMMON_DIR	:= ./stm32f103
+	TARGET_SPEC_DIR		:= ./stm32f103
+	LDSCRIPT			?= ./stm32f103/stm32f103x8-dfuboot.ld
+	ARCH				= STM32F1
 endif
 ifndef ARCH
 $(error Unknown target $(TARGET))

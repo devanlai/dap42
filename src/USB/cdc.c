@@ -114,6 +114,8 @@ static void cdc_bulk_data_out(usbd_device *usbd_dev, uint8_t ep) {
     }
 }
 
+static bool configured = false;
+
 static void cdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
     (void)wValue;
 
@@ -121,6 +123,8 @@ static void cdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
                   cdc_bulk_data_out);
     usbd_ep_setup(usbd_dev, ENDP_CDC_DATA_IN, USB_ENDPOINT_ATTR_BULK, 64, NULL);
     usbd_ep_setup(usbd_dev, ENDP_CDC_COMM_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+
+    configured = true;
 
     cmp_usb_register_control_class_callback(INTF_CDC_DATA, cdc_control_class_request);
     cmp_usb_register_control_class_callback(INTF_CDC_COMM, cdc_control_class_request);
@@ -145,6 +149,9 @@ void cdc_setup(usbd_device* usbd_dev,
 }
 
 bool cdc_send_data(const uint8_t* data, size_t len) {
+    if (!configured) {
+        return false;
+    }
     uint16_t sent = usbd_ep_write_packet(cdc_usbd_dev, ENDP_CDC_DATA_IN,
                                          (const void*)data,
                                          (uint16_t)len);

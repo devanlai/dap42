@@ -23,6 +23,7 @@
 
 #include <libopencm3/stm32/flash.h>
 
+#include "config.h"
 #include "backup.h"
 #include "DFU/DFU.h"
 
@@ -93,9 +94,9 @@ void DFU_maybe_jump_to_bootloader(void) {
         if (cmd == CMD_BOOT_WITH_BOOT0_PIN) {
             /* If BOOT_SEL is set, drive the BOOT0 pin high so that the
                ROM bootloader will enter DFU mode */
-            rcc_periph_clock_enable(RCC_GPIOB);
-            gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
-            gpio_set(GPIOB, GPIO8);
+            rcc_periph_clock_enable(nBOOT0_GPIO_CLOCK);
+            gpio_mode_setup(nBOOT0_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, nBOOT0_GPIO_PIN);
+            gpio_set(nBOOT0_GPIO_PORT, nBOOT0_GPIO_PIN);
         }
 
         /* Jump to the ROM bootloader */

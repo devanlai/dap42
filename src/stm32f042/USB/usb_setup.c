@@ -22,17 +22,22 @@
 #include <libopencm3/stm32/st_usbfs.h>
 
 #include "USB/usb_setup.h"
+#include "config.h"
 
 const usbd_driver* target_usb_init(void) {
     rcc_periph_reset_pulse(RST_USB);
 
     rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_SYSCFG_COMP);
-
+    
+#if REMAP_USB
     /* Remap PA11 and PA12 for use as USB */
+    rcc_periph_clock_enable(RCC_SYSCFG_COMP);
+    SYSCFG_CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
+#endif
+    /*
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
                     GPIO11 | GPIO12);
     gpio_set_af(GPIOA, GPIO_AF2, GPIO11 | GPIO12);
-    SYSCFG_CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
+    */
     return &st_usbfs_v2_usb_driver;
 }

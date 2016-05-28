@@ -30,10 +30,14 @@ SRCS := $(wildcard *.c)
 SRCS += $(wildcard DAP/*.c)
 SRCS += $(wildcard USB/*.c)
 SRCS += $(wildcard DFU/*.c)
-SRCS += $(wildcard $(TARGET_DIR)/*.c)
-SRCS += $(wildcard $(TARGET_DIR)/DAP/*.c)
-SRCS += $(wildcard $(TARGET_DIR)/USB/*.c)
-SRCS += $(wildcard $(TARGET_DIR)/DFU/*.c)
+SRCS += $(wildcard $(TARGET_COMMON_DIR)/*.c)
+SRCS += $(wildcard $(TARGET_COMMON_DIR)/DAP/*.c)
+SRCS += $(wildcard $(TARGET_COMMON_DIR)/USB/*.c)
+SRCS += $(wildcard $(TARGET_COMMON_DIR)/DFU/*.c)
+SRCS += $(wildcard $(TARGET_SPEC_DIR)/*.c)
+SRCS += $(wildcard $(TARGET_SPEC_DIR)/DAP/*.c)
+SRCS += $(wildcard $(TARGET_SPEC_DIR)/USB/*.c)
+SRCS += $(wildcard $(TARGET_SPEC_DIR)/DFU/*.c)
 
 OBJS += $(SRCS:.c=.o)
 DEPS  = $(SRCS:.c=.d)
@@ -64,5 +68,6 @@ OBJS := $(sort $(OBJS))
 # Add the base directory to the header search path
 CPPFLAGS += -I.
 
-# Add target config directory to the heade search path
-CPPFLAGS += -I$(TARGET_DIR)/
+# Add target config directory to the header search path
+CPPFLAGS += -I$(TARGET_COMMON_DIR)/
+CPPFLAGS += -I$(TARGET_SPEC_DIR)/
