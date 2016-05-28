@@ -31,10 +31,12 @@
 #define ENDP_HID_REPORT_OUT     0x04
 #define ENDP_HID_REPORT_IN      0x84
 
-#define INTF_HID                0
-#define INTF_CDC_COMM           1
-#define INTF_CDC_DATA           2
-#define INTF_DFU                3
+enum {
+    INTF_HID,
+    INTF_CDC_COMM,
+    INTF_CDC_DATA,
+    INTF_DFU,
+};
 
 #define USB_MAX_CONTROL_CLASS_CALLBACKS 8
 #define USB_MAX_SET_CONFIG_CALLBACKS    8
