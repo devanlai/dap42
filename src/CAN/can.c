@@ -19,6 +19,7 @@
 #include <libopencm3/stm32/can.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/nvic.h>
 
 #include <string.h>
 
@@ -65,19 +66,7 @@ void can_rx_buffer_get(CAN_Message* msg) {
     can_rx_head = (can_rx_head + 1) % CAN_RX_BUFFER_SIZE;
 }
 
-bool can_setup(uint32_t baudrate) {
-    /* Enable CAN clock */
-    rcc_periph_clock_enable(RCC_CAN);
-
-    /* Setup CANRX */
-    gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO8);
-    gpio_set_af(GPIOB, GPIO_AF4, GPIO8);
-
-#if CAN_TX_AVAILABLE
-    gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
-    gpio_set_af(GPIOB, GPIO_AF4, GPIO9);
-#endif
-
+bool can_reconfigure(uint32_t baudrate, CanMode mode) {
     /* Set appropriate bit timing */
     uint32_t sjw = CAN_BTR_SJW_1TQ;
     uint32_t ts1;
@@ -110,6 +99,13 @@ bool can_setup(uint32_t baudrate) {
 
     can_reset(CAN);
 
+    bool loopback = (mode == MODE_TEST_LOCAL || mode == MODE_TEST_SILENT);
+    bool silent = (mode == MODE_SILENT || mode == MODE_TEST_SILENT);
+
+    if (mode == MODE_TEST_GLOBAL) {
+        return false;
+    }
+
     /* CAN cell init. */
     if (can_init(CAN,
                  false,           /* TTCM: Time triggered comm mode? */
@@ -122,26 +118,43 @@ bool can_setup(uint32_t baudrate) {
                  ts1,
                  ts2,
                  brp,/* BRP+1: Baud rate prescaler */
-                 false,/* loopback mode */
-                 true))/* silent mode */
+                 loopback,/* loopback mode */
+                 silent))/* silent mode */
     {
         return false;
     }
 
-    /* CAN filter 0 init. */
-    can_filter_id_mask_32bit_init(CAN,
-                                  0,     /* Filter ID */
-                                  0,     /* CAN ID */
-                                  0,     /* CAN ID mask */
-                                  0,     /* FIFO assignment (here: FIFO0) */
-                                  true); /* Enable the filter. */
-
-    /* Enable CAN RX interrupt. */
-    //can_enable_irq(CAN, CAN_IER_FMPIE0);
-
-    //nvic_enable_irq(NVIC_CEC_CAN_IRQ);
-
     return true;
+}
+
+bool can_setup(uint32_t baudrate, CanMode mode) {
+    /* Enable CAN clock */
+    rcc_periph_clock_enable(RCC_CAN);
+
+    /* Setup CANRX */
+    gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO8);
+    gpio_set_af(GPIOB, GPIO_AF4, GPIO8);
+
+#if CAN_TX_AVAILABLE
+    gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
+    gpio_set_af(GPIOB, GPIO_AF4, GPIO9);
+#endif
+
+    if (can_reconfigure(baudrate, mode)) {
+        /* CAN filter 0 init. */
+        can_filter_id_mask_32bit_init(CAN,
+                                      0,     /* Filter ID */
+                                      0,     /* CAN ID */
+                                      0,     /* CAN ID mask */
+                                      0,     /* FIFO assignment (here: FIFO0) */
+                                      true); /* Enable the filter. */
+        /* Enable CAN RX interrupt. */
+        //can_enable_irq(CAN, CAN_IER_FMPIE0);
+        //nvic_enable_irq(NVIC_CEC_CAN_IRQ);
+        return true;
+    }
+
+    return false;
 }
 
 bool can_read(CAN_Message* msg) {
@@ -167,10 +180,26 @@ bool can_read(CAN_Message* msg) {
     return success;
 }
 
+bool can_read_buffer(CAN_Message* msg) {
+    bool success = false;
+    if (!can_rx_buffer_empty()) {
+        can_rx_buffer_get(msg);
+        success = true;
+    }
+
+    return success;
+}
 
 /*
 void cec_can_isr(void) {
-
+    while (!can_rx_buffer_full()) {
+        CAN_Message msg;
+        bool read = can_read(&msg);
+        if (!read) {
+            break;
+        }
+        can_rx_buffer_put(&msg);
+    }
 }
 */
 

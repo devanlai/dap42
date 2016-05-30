@@ -122,7 +122,7 @@ int main(void) {
     }
 
     if (CAN_RX_AVAILABLE) {
-        can_setup(500000);
+        can_setup(500000, MODE_SILENT);
     }
 
     tick_start();

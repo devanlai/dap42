@@ -44,6 +44,15 @@ struct CAN_Message {
 };
 typedef struct CAN_Message CAN_Message;
 
+typedef enum {
+    MODE_RESET,
+    MODE_NORMAL,
+    MODE_SILENT,
+    MODE_TEST_LOCAL,
+    MODE_TEST_GLOBAL,
+    MODE_TEST_SILENT
+} CanMode;
+
 #ifdef __cplusplus
 };
 #endif

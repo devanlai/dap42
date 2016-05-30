@@ -23,14 +23,14 @@
 
 #define CAN_RX_BUFFER_SIZE 16
 
-extern bool can_setup(uint32_t baudrate);
+extern bool can_setup(uint32_t baudrate, CanMode mode);
+extern bool can_reconfigure(uint32_t baudrate, CanMode mode);
 extern bool can_read(CAN_Message* msg);
+extern bool can_read_buffer(CAN_Message* msg);
 
 extern bool can_rx_buffer_empty(void);
 extern bool can_rx_buffer_full(void);
 extern void can_rx_buffer_put(const CAN_Message* msg);
 extern void can_rx_buffer_get(CAN_Message* msg);
-
-//extern void cec_can_isr(void);
 
 #endif
