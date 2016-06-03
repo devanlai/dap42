@@ -48,3 +48,7 @@ void tick_start(void) {
 void tick_stop(void) {
     systick_counter_disable();
 }
+
+uint32_t get_ticks(void) {
+    return __ticks;
+}

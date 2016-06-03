@@ -131,6 +131,14 @@ void console_set_echo(bool enable) {
     console_echo_input = enable;
 }
 
+void console_send_blocking(uint8_t data) {
+    usart_send_blocking(CONSOLE_USART, data);
+}
+
+uint8_t console_recv_blocking(void) {
+    return usart_recv_blocking(CONSOLE_USART);
+}
+
 void CONSOLE_USART_IRQ_NAME(void) {
     if (usart_get_interrupt_source(CONSOLE_USART, USART_SR_RXNE)) {
         uint8_t received_byte = (uint8_t)usart_recv(CONSOLE_USART);

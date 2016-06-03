@@ -25,8 +25,6 @@ extern void tick_stop(void);
 
 extern volatile uint32_t __ticks;
 
-extern inline uint32_t get_ticks(void) {
-    return __ticks;
-}
+extern uint32_t get_ticks(void);
 
 #endif
