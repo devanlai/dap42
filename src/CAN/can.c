@@ -119,11 +119,16 @@ bool can_reconfigure(uint32_t baudrate, CanMode mode) {
                  sjw, ts1, ts2,
                  brp,  /* BRP+1: Baud rate prescaler */
                  loopback,
-                 silent) != 0)
-    {
+                 silent) != 0) {
         return false;
+    } else {
+        can_filter_id_mask_32bit_init(CAN,
+                                      0,     /* Filter ID */
+                                      0,     /* CAN ID */
+                                      0,     /* CAN ID mask */
+                                      0,     /* FIFO assignment (here: FIFO0) */
+                                      true); /* Enable the filter. */
     }
-
     return true;
 }
 
@@ -140,21 +145,7 @@ bool can_setup(uint32_t baudrate, CanMode mode) {
     gpio_set_af(GPIOB, GPIO_AF4, GPIO9);
 #endif
 
-    if (can_reconfigure(baudrate, mode)) {
-        /* CAN filter 0 init. */
-        can_filter_id_mask_32bit_init(CAN,
-                                      0,     /* Filter ID */
-                                      0,     /* CAN ID */
-                                      0,     /* CAN ID mask */
-                                      0,     /* FIFO assignment (here: FIFO0) */
-                                      true); /* Enable the filter. */
-        /* Enable CAN RX interrupt. */
-        //can_enable_irq(CAN, CAN_IER_FMPIE0);
-        //nvic_enable_irq(NVIC_CEC_CAN_IRQ);
-        return true;
-    }
-
-    return false;
+    return can_reconfigure(baudrate, mode);
 }
 
 bool can_read(CAN_Message* msg) {
