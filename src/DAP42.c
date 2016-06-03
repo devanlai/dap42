@@ -34,7 +34,7 @@
 #include "DAP/CMSIS_DAP_hal.h"
 #include "DFU/DFU.h"
 
-#include "CAN/can.h"
+#include "CAN/slcan.h"
 
 #include "tick.h"
 #include "retarget.h"
@@ -121,8 +121,8 @@ int main(void) {
         dfu_setup(usbd_dev, &on_dfu_request);
     }
 
-    if (CAN_RX_AVAILABLE) {
-        can_setup(500000, MODE_SILENT);
+    if (CAN_RX_AVAILABLE && VCDC_AVAILABLE) {
+        slcan_app_setup(500000, MODE_RESET);
     }
 
     tick_start();
@@ -139,33 +139,11 @@ int main(void) {
             cdc_uart_app_update();
         }
 
-        if (VCDC_AVAILABLE) {
-            if (CAN_RX_AVAILABLE) {
-                CAN_Message msg;
-                bool read = false;
-                while (can_read(&msg)) {
-                    read = true;
-                    if (msg.format == CANStandard) {
-                        print(msg.type == CANData ? "t" : "r");
-                        print_hex_nibble((uint8_t)(msg.id >> 8));
-                        print_hex_byte((uint8_t)(msg.id & 0xFF));
-                        putchar('0' + msg.len);
-                    } else {
-                        print(msg.type == CANData ? "T" : "R");
-                        print_hex(msg.id);
-                        putchar('0' + msg.len);
-                    }
-                    uint8_t i = 0;
-                    for (i=0; i < msg.len; i++) {
-                        print_hex_byte(msg.data[i]);
-                    }
-                    putchar('\r');
-                }
+        if (CAN_RX_AVAILABLE && VCDC_AVAILABLE) {
+            slcan_app_update();
+        }
 
-                if (read) {
-                    fflush(stdout);
-                }
-            }
+        if (VCDC_AVAILABLE) {
             vcdc_app_update();
         }
 

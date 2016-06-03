@@ -28,6 +28,8 @@ extern bool can_reconfigure(uint32_t baudrate, CanMode mode);
 extern bool can_read(CAN_Message* msg);
 extern bool can_read_buffer(CAN_Message* msg);
 
+extern bool can_write(CAN_Message* msg);
+
 extern bool can_rx_buffer_empty(void);
 extern bool can_rx_buffer_full(void);
 extern void can_rx_buffer_put(const CAN_Message* msg);

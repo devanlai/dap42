@@ -249,4 +249,51 @@ bool vcdc_app_update(void) {
     return active;
 }
 
+void vcdc_putchar(const char c) {
+    if (!vcdc_tx_buffer_full()) {
+        vcdc_tx_buffer_put(c);
+    }
+}
+
+void vcdc_print(const char* s) {
+    while (*s != '\0') {
+        vcdc_putchar(*s++);
+    }
+}
+
+void vcdc_println(const char* s) {
+    while (*s != '\0') {
+        vcdc_putchar(*s++);
+    }
+    vcdc_putchar('\r');
+    vcdc_putchar('\n');
+}
+
+void vcdc_print_hex_nibble(uint8_t x) {
+    uint8_t nibble = x & 0x0F;
+    char nibble_char;
+    if (nibble < 10) {
+        nibble_char = '0' + nibble;
+    } else {
+        nibble_char = 'A' + (nibble - 10);
+    }
+    vcdc_putchar(nibble_char);
+}
+
+void vcdc_print_hex_byte(uint8_t x) {
+    vcdc_print_hex_nibble(x >> 4);
+    vcdc_print_hex_nibble(x);
+}
+
+void vcdc_print_hex(uint32_t x) {
+    vcdc_print_hex_nibble((uint8_t)(x >> 28));
+    vcdc_print_hex_nibble((uint8_t)(x >> 24));
+    vcdc_print_hex_nibble((uint8_t)(x >> 20));
+    vcdc_print_hex_nibble((uint8_t)(x >> 16));
+    vcdc_print_hex_nibble((uint8_t)(x >> 12));
+    vcdc_print_hex_nibble((uint8_t)(x >> 8));
+    vcdc_print_hex_nibble((uint8_t)(x >> 4));
+    vcdc_print_hex_nibble((uint8_t)(x >> 0));
+}
+
 #endif

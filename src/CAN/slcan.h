@@ -16,26 +16,19 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef VCDC_H_INCLUDED
-#define VCDC_H_INCLUDED
+#ifndef SLCAN_H_INCLUDED
+#define SLCAN_H_INCLUDED
 
-#include "usb_common.h"
-#include "cdc_defs.h"
+#include "can.h"
 
-extern const struct cdc_acm_functional_descriptors vcdc_acm_functional_descriptors;
+#define SLCAN_MAX_MESSAGE_LEN 27
 
-extern void vcdc_app_setup(usbd_device* usbd_dev,
-                           GenericCallback vcdc_tx_cb,
-                           GenericCallback vcdc_rx_cb);
-extern bool vcdc_app_update(void);
-extern size_t vcdc_recv_buffered(uint8_t* data, size_t max_bytes);
-extern size_t vcdc_send_buffered(const uint8_t* data, size_t num_bytes);
+#define SLCAN_OK    '\r'
+#define SLCAN_ERROR '\a'
 
-extern void vcdc_putchar(const char c);
-extern void vcdc_print(const char* s);
-extern void vcdc_println(const char* s);
-extern void vcdc_print_hex(uint32_t x);
-extern void vcdc_print_hex_byte(uint8_t x);
-extern void vcdc_print_hex_nibble(uint8_t x);
+extern bool slcan_output_messages(void);
+extern bool slcan_exec_command(const char* command, size_t len);
+extern void slcan_app_setup(uint32_t baudrate, CanMode mode);
+extern bool slcan_app_update(void);
 
 #endif

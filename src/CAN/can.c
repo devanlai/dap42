@@ -67,6 +67,13 @@ void can_rx_buffer_get(CAN_Message* msg) {
 }
 
 bool can_reconfigure(uint32_t baudrate, CanMode mode) {
+    can_reset(CAN);
+
+    if (mode == MODE_RESET) {
+        // Just stop after resetting the CAN controller.
+        return true;
+    }
+
     /* Set appropriate bit timing */
     uint32_t sjw = CAN_BTR_SJW_1TQ;
     uint32_t ts1;
@@ -97,29 +104,22 @@ bool can_reconfigure(uint32_t baudrate, CanMode mode) {
         return false;
     }
 
-    can_reset(CAN);
-
     bool loopback = (mode == MODE_TEST_LOCAL || mode == MODE_TEST_SILENT);
     bool silent = (mode == MODE_SILENT || mode == MODE_TEST_SILENT);
 
-    if (mode == MODE_TEST_GLOBAL) {
-        return false;
-    }
+    bool TTCM = false; /* TTCM: Time triggered comm mode? */
+    bool ABOM = true;  /* ABOM: Automatic bus-off management? */
+    bool AWUM = false; /* AWUM: Automatic wakeup mode? */
+    bool NART = false; /* NART: No automatic retransmission? */
+    bool RFLM = true;  /* RFLM: Receive FIFO locked mode? */
+    bool TXFP = false; /* TXFP: Transmit FIFO priority? */
 
     /* CAN cell init. */
-    if (can_init(CAN,
-                 false,           /* TTCM: Time triggered comm mode? */
-                 true,            /* ABOM: Automatic bus-off management? */
-                 false,           /* AWUM: Automatic wakeup mode? */
-                 false,           /* NART: No automatic retransmission? */
-                 true,            /* RFLM: Receive FIFO locked mode? */
-                 false,           /* TXFP: Transmit FIFO priority? */
-                 sjw,
-                 ts1,
-                 ts2,
-                 brp,/* BRP+1: Baud rate prescaler */
-                 loopback,/* loopback mode */
-                 silent))/* silent mode */
+    if (can_init(CAN, TTCM, ABOM, AWUM, NART, RFLM, TXFP,
+                 sjw, ts1, ts2,
+                 brp,  /* BRP+1: Baud rate prescaler */
+                 loopback,
+                 silent) != 0)
     {
         return false;
     }
@@ -188,6 +188,12 @@ bool can_read_buffer(CAN_Message* msg) {
     }
 
     return success;
+}
+
+bool can_write(CAN_Message* msg) {
+    bool ext = msg->format == CANExtended;
+    bool rtr = msg->type == CANRemote;
+    return (can_transmit(CAN, msg->id, ext, rtr, msg->len, msg->data) != -1);
 }
 
 /*
