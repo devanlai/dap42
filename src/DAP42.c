@@ -38,6 +38,8 @@
 #include "retarget.h"
 #include "console.h"
 
+extern void initialise_monitor_handles(void);
+
 static inline uint32_t millis(void) {
     return get_ticks();
 }
@@ -81,7 +83,10 @@ int main(void) {
         console_setup(DEFAULT_BAUDRATE);
     }
 
-    if (VCDC_AVAILABLE) {
+    if (SEMIHOSTING) {
+        initialise_monitor_handles();
+    }
+    else if (VCDC_AVAILABLE) {
         retarget(STDOUT_FILENO, VIRTUAL_USART);
         retarget(STDERR_FILENO, VIRTUAL_USART);
     } else if (CDC_AVAILABLE) {

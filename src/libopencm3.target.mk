@@ -38,6 +38,17 @@ DEFS		?= -DSTM32F0
 FP_FLAGS    ?= -msoft-float
 ARCH_FLAGS	?= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 
+# Semihosting support
+SEMIHOSTING ?= 0
+
+ifeq ($(SEMIHOSTING),1)
+	LDFLAGS		+= --specs=rdimon.specs
+	LDLIBS		+= -lrdimon
+	DEFS		+= -DSEMIHOSTING=1
+else
+	DEFS		+= -DSEMIHOSTING=0
+endif
+
 ################################################################################
 # OpenOCD specific variables
 

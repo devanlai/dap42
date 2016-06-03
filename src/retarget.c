@@ -39,6 +39,8 @@ void retarget(int file, uint32_t usart) {
     }
 }
 
+#if !SEMIHOSTING
+
 int _write(int file, char *ptr, int len) {
     int sent;
 
@@ -60,6 +62,8 @@ int _write(int file, char *ptr, int len) {
     errno = EIO;
     return -1;
 }
+
+#endif
 
 void print_hex(uint32_t x) {
     uint8_t i;
