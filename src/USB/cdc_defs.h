@@ -19,6 +19,15 @@
 #ifndef CDC_DEFS_H_INCLUDED
 #define CDC_DEFS_H_INCLUDED
 
+#include "cdc.h"
+
 #define USB_CDC_REQ_GET_LINE_CODING 0xA0
+
+struct cdc_acm_functional_descriptors {
+    struct usb_cdc_header_descriptor header;
+    struct usb_cdc_call_management_descriptor call_mgmt;
+    struct usb_cdc_acm_descriptor acm;
+    struct usb_cdc_union_descriptor cdc_union;
+} __attribute__ ((packed));
 
 #endif

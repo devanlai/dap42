@@ -32,6 +32,8 @@
 
 #include "hid.h"
 #include "dfu.h"
+#include "cdc.h"
+#include "vcdc.h"
 
 #include "config.h"
 
@@ -89,40 +91,6 @@ static const struct usb_endpoint_descriptor data_endpoints[] = {
     }
 };
 
-static const struct {
-    struct usb_cdc_header_descriptor header;
-    struct usb_cdc_call_management_descriptor call_mgmt;
-    struct usb_cdc_acm_descriptor acm;
-    struct usb_cdc_union_descriptor cdc_union;
-} __attribute__ ((packed)) cdcacm_functional_descriptors = {
-    .header = {
-        .bFunctionLength = sizeof(struct usb_cdc_header_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_HEADER,
-        .bcdCDC = 0x0110,
-    },
-    .call_mgmt = {
-        .bFunctionLength =
-        sizeof(struct usb_cdc_call_management_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_CALL_MANAGEMENT,
-        .bmCapabilities = 0,
-        .bDataInterface = INTF_CDC_DATA,
-    },
-    .acm = {
-        .bFunctionLength = sizeof(struct usb_cdc_acm_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_ACM,
-        .bmCapabilities = (1 << 1),
-    },
-    .cdc_union = {
-        .bFunctionLength = sizeof(struct usb_cdc_union_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_UNION,
-        .bControlInterface = INTF_CDC_COMM,
-        .bSubordinateInterface0 = INTF_CDC_DATA,
-    }
-};
 
 #endif
 
@@ -163,41 +131,6 @@ static const struct usb_endpoint_descriptor vdata_endpoints[] = {
     }
 };
 
-static const struct {
-    struct usb_cdc_header_descriptor header;
-    struct usb_cdc_call_management_descriptor call_mgmt;
-    struct usb_cdc_acm_descriptor acm;
-    struct usb_cdc_union_descriptor cdc_union;
-} __attribute__ ((packed)) vcdcacm_functional_descriptors = {
-    .header = {
-        .bFunctionLength = sizeof(struct usb_cdc_header_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_HEADER,
-        .bcdCDC = 0x0110,
-    },
-    .call_mgmt = {
-        .bFunctionLength =
-        sizeof(struct usb_cdc_call_management_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_CALL_MANAGEMENT,
-        .bmCapabilities = 0,
-        .bDataInterface = INTF_VCDC_DATA,
-    },
-    .acm = {
-        .bFunctionLength = sizeof(struct usb_cdc_acm_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_ACM,
-        .bmCapabilities = (1 << 1),
-    },
-    .cdc_union = {
-        .bFunctionLength = sizeof(struct usb_cdc_union_descriptor),
-        .bDescriptorType = CS_INTERFACE,
-        .bDescriptorSubtype = USB_CDC_TYPE_UNION,
-        .bControlInterface = INTF_VCDC_COMM,
-        .bSubordinateInterface0 = INTF_VCDC_DATA,
-    }
-};
-
 #endif
 
 #if CDC_AVAILABLE
@@ -226,8 +159,8 @@ static const struct usb_interface_descriptor comm_iface = {
 
     .endpoint = comm_endpoints,
 
-    .extra = &cdcacm_functional_descriptors,
-    .extralen = sizeof(cdcacm_functional_descriptors)
+    .extra = &cdc_acm_functional_descriptors,
+    .extralen = sizeof(cdc_acm_functional_descriptors)
 };
 
 static const struct usb_interface_descriptor data_iface = {
@@ -272,8 +205,8 @@ static const struct usb_interface_descriptor vcomm_iface = {
 
     .endpoint = vcomm_endpoints,
 
-    .extra = &vcdcacm_functional_descriptors,
-    .extralen = sizeof(vcdcacm_functional_descriptors)
+    .extra = &vcdc_acm_functional_descriptors,
+    .extralen = sizeof(vcdc_acm_functional_descriptors)
 };
 
 static const struct usb_interface_descriptor vdata_iface = {

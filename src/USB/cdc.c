@@ -29,6 +29,37 @@
 
 #if CDC_AVAILABLE
 
+/* Descriptors */
+const struct cdc_acm_functional_descriptors cdc_acm_functional_descriptors = {
+    .header = {
+        .bFunctionLength = sizeof(struct usb_cdc_header_descriptor),
+        .bDescriptorType = CS_INTERFACE,
+        .bDescriptorSubtype = USB_CDC_TYPE_HEADER,
+        .bcdCDC = 0x0110,
+    },
+    .call_mgmt = {
+        .bFunctionLength =
+        sizeof(struct usb_cdc_call_management_descriptor),
+        .bDescriptorType = CS_INTERFACE,
+        .bDescriptorSubtype = USB_CDC_TYPE_CALL_MANAGEMENT,
+        .bmCapabilities = 0,
+        .bDataInterface = INTF_CDC_DATA,
+    },
+    .acm = {
+        .bFunctionLength = sizeof(struct usb_cdc_acm_descriptor),
+        .bDescriptorType = CS_INTERFACE,
+        .bDescriptorSubtype = USB_CDC_TYPE_ACM,
+        .bmCapabilities = (1 << 1),
+    },
+    .cdc_union = {
+        .bFunctionLength = sizeof(struct usb_cdc_union_descriptor),
+        .bDescriptorType = CS_INTERFACE,
+        .bDescriptorSubtype = USB_CDC_TYPE_UNION,
+        .bControlInterface = INTF_CDC_COMM,
+        .bSubordinateInterface0 = INTF_CDC_DATA,
+    }
+};
+
 /* User callbacks */
 static HostOutFunction cdc_rx_callback = NULL;
 static HostInFunction cdc_tx_callback = NULL;

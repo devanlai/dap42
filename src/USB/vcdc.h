@@ -20,6 +20,9 @@
 #define VCDC_H_INCLUDED
 
 #include "usb_common.h"
+#include "cdc_defs.h"
+
+extern const struct cdc_acm_functional_descriptors vcdc_acm_functional_descriptors;
 
 extern void vcdc_app_setup(usbd_device* usbd_dev,
                            GenericCallback vcdc_tx_cb,
