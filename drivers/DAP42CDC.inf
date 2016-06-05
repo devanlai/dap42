@@ -1,30 +1,48 @@
-;************************************************************
-; Windows USB CDC ACM Setup File
-; Copyright (c) 2000 Microsoft Corporation
+; Windows USB CDC ACM driver setup file.
 
+; Copyright (C) 2004 Al Borchers (alborchers@steinerpoint.com)
+; Taken from Linux documentation, modified for Black Magic debug probe
+; by Gareth McMullin <gareth@blacksphere.co.nz>
+; Re-modified by for the DAP42 debug probe by Devan Lai
+
+; This provides the driver information for the GDB and UART interfaces to
+; be presented as virtual serial ports in Windows.
+
+; Common to Windows 32- and 64-bit systems
 
 [Version]
 Signature="$Windows NT$"
 Class=Ports
 ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
-Provider=%MFGNAME%
-LayoutFile=layout.inf
-CatalogFile=%MFGFILENAME%.cat
-DriverVer=11/15/2007,5.1.2600.0
+Provider=%DAP42_DISPLAY_NAME%
+DriverVer=28/12/2011,0.0.1.1
 
 [Manufacturer]
-%MFGNAME%=DeviceList, NTamd64
+%VendorName%=DeviceList, NTamd64
+
+[Strings]
+VendorName = "Devanarchy"
+DAP42UART = "DAP42 UART Port"
+DAP42SLCAN = "DAP42 SLCAN"
+DAP42_DISPLAY_NAME = "DAP42 Driver"
+
+[DeviceList]
+%DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0100&MI_01
+%DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_01
+%DAP42SLCAN%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_03
+
+[DeviceList.NTamd64]
+%DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0100&MI_01
+%DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_01
+%DAP42SLCAN%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_03
 
 [DestinationDirs]
-DefaultDestDir=12
+DefaultDestDir=10,System32\Drivers
 
-
-;------------------------------------------------------------------------------
-;  Windows 2000/XP/Vista-32bit Sections
-;------------------------------------------------------------------------------
+; Windows 32-bit sections
+;~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [DriverInstall.nt]
-include=mdmcpq.inf
 CopyFiles=DriverCopyFiles.nt
 AddReg=DriverInstall.nt.AddReg
 
@@ -33,74 +51,41 @@ usbser.sys,,,0x20
 
 [DriverInstall.nt.AddReg]
 HKR,,DevLoader,,*ntkern
-HKR,,NTMPDriver,,%DRIVERFILENAME%.sys
+HKR,,NTMPDriver,,usbser.sys
 HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
 
 [DriverInstall.nt.Services]
-AddService=usbser, 0x00000002, DriverService.nt
+AddService = usbser,0x0002,DriverService.nt
 
 [DriverService.nt]
-DisplayName=%SERVICE%
-ServiceType=1
-StartType=3
-ErrorControl=1
-ServiceBinary=%12%\%DRIVERFILENAME%.sys
+DisplayName = %DAP42_DISPLAY_NAME%
+ServiceType = 1                  ; SERVICE_KERNEL_DRIVER
+StartType = 3                    ; SERVICE_DEMAND_START
+ErrorControl = 1                 ; SERVICE_ERROR_NORMAL
+ServiceBinary = %10%\System32\Drivers\usbser.sys
+LoadOrderGroup = Base
 
-;------------------------------------------------------------------------------
-;  Vista-64bit Sections
-;------------------------------------------------------------------------------
-
+; Windows 64-bit sections
+;~~~~~~~~~~~~~~~~~~~~~~~~~
 [DriverInstall.NTamd64]
-include=mdmcpq.inf
 CopyFiles=DriverCopyFiles.NTamd64
 AddReg=DriverInstall.NTamd64.AddReg
 
 [DriverCopyFiles.NTamd64]
-%DRIVERFILENAME%.sys,,,0x20
+usbser.sys,,,0x20
 
 [DriverInstall.NTamd64.AddReg]
 HKR,,DevLoader,,*ntkern
-HKR,,NTMPDriver,,%DRIVERFILENAME%.sys
+HKR,,NTMPDriver,,usbser.sys
 HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
 
 [DriverInstall.NTamd64.Services]
-AddService=usbser, 0x00000002, DriverService.NTamd64
+AddService = usbser,0x0002,DriverService.NTamd64
 
 [DriverService.NTamd64]
-DisplayName=%SERVICE%
-ServiceType=1
-StartType=3
-ErrorControl=1
-ServiceBinary=%12%\%DRIVERFILENAME%.sys
-
-
-;------------------------------------------------------------------------------
-;  Vendor and Product ID Definitions
-;------------------------------------------------------------------------------
-; When developing your USB device, the VID and PID used in the PC side
-; application program and the firmware on the microcontroller must match.
-; Modify the below line to use your VID and PID.  Use the format as shown below.
-; Note: One INF file can be used for multiple devices with different VID and PIDs.
-; For each supported device, append ",USB\VID_xxxx&PID_yyyy" to the end of the line.
-;------------------------------------------------------------------------------
-[SourceDisksFiles]
-[SourceDisksNames]
-[DeviceList]
-%DESCRIPTION%=DriverInstall, USB\VID_1209&PID_DA42
-
-[DeviceList.NTamd64]
-%DESCRIPTION%=DriverInstall, USB\VID_1209&PID_DA42
-
-
-;------------------------------------------------------------------------------
-;  String Definitions
-;------------------------------------------------------------------------------
-;Modify these strings to customize your device
-;------------------------------------------------------------------------------
-[Strings]
-MFGFILENAME="CDC_vista"
-DRIVERFILENAME ="usbser"
-MFGNAME="https://github.com/devanlai/dap42"
-INSTDISK="DAP42 CDC Driver Installer"
-DESCRIPTION="Communications Port"
-SERVICE="USB Serial Port"
+DisplayName = %DAP42_DISPLAY_NAME%
+ServiceType = 1                  ; SERVICE_KERNEL_DRIVER
+StartType = 3                    ; SERVICE_DEMAND_START
+ErrorControl = 1                 ; SERVICE_ERROR_NORMAL
+ServiceBinary = %10%\System32\Drivers\usbser.sys
+LoadOrderGroup = Base
