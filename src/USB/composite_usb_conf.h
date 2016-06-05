@@ -56,6 +56,7 @@ enum {
 
 extern void cmp_set_usb_serial_number(const char* serial);
 extern usbd_device* cmp_usb_setup(void);
+extern bool cmp_usb_configured(void);
 extern void cmp_usb_register_control_class_callback(uint16_t interface,
                                                     usbd_control_callback callback);
 extern void cmp_usb_register_set_config_callback(usbd_set_config_callback callback);

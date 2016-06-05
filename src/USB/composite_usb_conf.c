@@ -350,15 +350,26 @@ static const char *usb_strings[] = {
     "SLCAN CDC Data",
 };
 
-/* Buffer to be used for control requests. */
-static uint8_t usbd_control_buffer[256] __attribute__ ((aligned (2)));
-
 void cmp_set_usb_serial_number(const char* serial) {
     serial_number[0] = '\0';
     if (serial) {
         strncpy(serial_number, serial, USB_SERIAL_NUM_LENGTH);
         serial_number[USB_SERIAL_NUM_LENGTH] = '\0';
     }
+}
+
+/* Buffer to be used for control requests. */
+static uint8_t usbd_control_buffer[256] __attribute__ ((aligned (2)));
+
+/* Configuration status */
+static bool configured = false;
+
+bool cmp_usb_configured(void) {
+    return configured;
+}
+
+static void cmp_usb_handle_reset(void) {
+    configured = false;
 }
 
 /* Class-specific control request handlers */
@@ -429,6 +440,9 @@ static void cmp_usb_set_config(usbd_device* usbd_dev, uint16_t wValue) {
         USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
         cmp_usb_dispatch_control_class_request);
 
+    /* Record that we're configured */
+    configured = true;
+
     /* Run registered setup handlers */
     for (i=0; i < num_set_config_callbacks; i++) {
         if (set_config_callbacks[i]) {
@@ -445,6 +459,6 @@ usbd_device* cmp_usb_setup(void) {
                                       usb_strings, num_strings,
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, cmp_usb_set_config);
-
+    usbd_register_reset_callback(usbd_dev, cmp_usb_handle_reset);
     return usbd_dev;
 }

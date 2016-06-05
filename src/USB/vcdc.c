@@ -193,7 +193,6 @@ static void vcdc_bulk_data_in(usbd_device *usbd_dev, uint8_t ep) {
     }
 }
 */
-static bool configured = false;
 
 static void vcdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
     (void)wValue;
@@ -204,8 +203,6 @@ static void vcdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
                   //vcdc_bulk_data_in);
                   NULL);
     usbd_ep_setup(usbd_dev, ENDP_VCDC_COMM_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
-
-    configured = true;
 
     usbd_register_control_callback(
         usbd_dev,
@@ -236,7 +233,7 @@ bool vcdc_app_update(void) {
         packet_len++;
     }
 
-    if (packet_len > 0 && configured) {
+    if (packet_len > 0 && cmp_usb_configured()) {
         uint16_t sent = usbd_ep_write_packet(vcdc_usbd_dev, ENDP_VCDC_DATA_IN,
                                              (const void*)packet_buffer,
                                              packet_len);
