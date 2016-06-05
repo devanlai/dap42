@@ -44,7 +44,7 @@ const struct cdc_acm_functional_descriptors vcdc_acm_functional_descriptors = {
         .bFunctionLength = sizeof(struct usb_cdc_acm_descriptor),
         .bDescriptorType = CS_INTERFACE,
         .bDescriptorSubtype = USB_CDC_TYPE_ACM,
-        .bmCapabilities = (1 << 1),
+        .bmCapabilities = 0,
     },
     .cdc_union = {
         .bFunctionLength = sizeof(struct usb_cdc_union_descriptor),
@@ -147,6 +147,23 @@ static int vcdc_control_class_request(usbd_device *usbd_dev,
              * advertise it in the ACM functional descriptor.
              */
 
+            status = USBD_REQ_HANDLED;
+            break;
+        }
+        case USB_CDC_REQ_SET_LINE_CODING: {
+            /* Accept whatever is requested */
+            status = USBD_REQ_HANDLED;
+            break;
+        }
+        case USB_CDC_REQ_GET_LINE_CODING: {
+            /* Send back a dummy default coding */
+            struct usb_cdc_line_coding *coding;
+            coding = (struct usb_cdc_line_coding*)(*buf);
+            coding->dwDTERate = DEFAULT_BAUDRATE;
+            coding->bCharFormat = USB_CDC_1_STOP_BITS;
+            coding->bParityType = USB_CDC_NO_PARITY;
+            coding->bDataBits = 8;
+            *len = sizeof(struct usb_cdc_line_coding);
             status = USBD_REQ_HANDLED;
             break;
         }
