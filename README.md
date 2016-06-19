@@ -43,7 +43,7 @@ To use the dap42 probe with LPCXpresso, you can modify the detection rules by ed
 
 Add the following line to `probetable.csv`:
 
-    0x1209, 0xDA42, 64, 1, 0, 0, 0, "CMSIS-DAP", 0, -1
+    0x1209, 0xDA42, 64, 1, 0, 0, 0, "", 0x0000, -1
 
 ### USB-serial
 #### Windows
