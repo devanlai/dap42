@@ -22,6 +22,7 @@
 #include "DAP/CMSIS_DAP_config.h"
 #include "DAP/CMSIS_DAP.h"
 
+#include "USB/composite_usb_conf.h"
 #include "USB/hid.h"
 #include "DAP/app.h"
 
@@ -74,6 +75,11 @@ uint32_t DAP_ProcessVendorCommand(uint8_t* request, uint8_t* response) {
     return 1;
 }
 
+static void DAP_app_reset(void) {
+    inbox_tail = process_head = outbox_head = 0;
+    DAP_Setup();
+}
+
 bool DAP_app_update(void) {
     bool active = false;
 
@@ -99,4 +105,6 @@ void DAP_app_setup(usbd_device* usbd_dev, GenericCallback on_dfu_request) {
     DAP_Setup();
     hid_setup(usbd_dev, &on_send_report, &on_receive_report);
     dfu_request_callback = on_dfu_request;
+
+    cmp_usb_register_reset_callback(DAP_app_reset);
 }

@@ -228,6 +228,13 @@ static void vcdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
         vcdc_control_class_request);
 }
 
+static uint16_t packet_len = 0;
+static uint8_t packet_buffer[USB_VCDC_MAX_PACKET_SIZE];
+
+static void vcdc_app_reset(void) {
+    packet_len = 0;
+}
+
 static usbd_device* vcdc_usbd_dev;
 
 void vcdc_app_setup(usbd_device* usbd_dev,
@@ -237,13 +244,12 @@ void vcdc_app_setup(usbd_device* usbd_dev,
     vcdc_tx_callback = vcdc_tx_cb;
     vcdc_rx_callback = vcdc_rx_cb;
 
-    usbd_register_set_config_callback(usbd_dev, vcdc_set_config);
+    cmp_usb_register_set_config_callback(vcdc_set_config);
+    cmp_usb_register_reset_callback(vcdc_app_reset);
 }
 
 bool vcdc_app_update(void) {
     bool active = false;
-    static uint16_t packet_len = 0;
-    static uint8_t packet_buffer[USB_VCDC_MAX_PACKET_SIZE];
 
     while (packet_len < USB_VCDC_MAX_PACKET_SIZE && !vcdc_tx_buffer_empty()) {
         packet_buffer[packet_len] = vcdc_tx_buffer_get();

@@ -361,6 +361,15 @@ void cmp_set_usb_serial_number(const char* serial) {
 /* Buffer to be used for control requests. */
 static uint8_t usbd_control_buffer[256] __attribute__ ((aligned (2)));
 
+static GenericCallback reset_callbacks[USB_MAX_RESET_CALLBACKS];
+static uint8_t num_reset_callbacks;
+
+void cmp_usb_register_reset_callback(GenericCallback callback) {
+    if (num_reset_callbacks < USB_MAX_RESET_CALLBACKS) {
+        reset_callbacks[num_reset_callbacks++] = callback;
+    }
+}
+
 /* Configuration status */
 static bool configured = false;
 
@@ -370,6 +379,14 @@ bool cmp_usb_configured(void) {
 
 static void cmp_usb_handle_reset(void) {
     configured = false;
+
+    uint8_t num_callbacks = num_reset_callbacks;
+    //num_reset_callbacks = 0;
+
+    uint8_t i;
+    for (i=0; i < num_callbacks; i++) {
+        (*reset_callbacks[i])();
+    }
 }
 
 /* Class-specific control request handlers */

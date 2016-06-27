@@ -271,6 +271,13 @@ static void cdc_uart_on_host_rx(uint8_t* data, uint16_t* len) {
     }
 }
 
+static uint16_t packet_len = 0;
+static uint8_t packet_buffer[USB_CDC_MAX_PACKET_SIZE];
+
+static void cdc_uart_app_reset(void) {
+    packet_len = 0;
+}
+
 void cdc_uart_app_setup(usbd_device* usbd_dev,
                    GenericCallback cdc_tx_cb,
                    GenericCallback cdc_rx_cb) {
@@ -279,12 +286,11 @@ void cdc_uart_app_setup(usbd_device* usbd_dev,
 
     cdc_setup(usbd_dev, &cdc_uart_on_host_rx, &cdc_uart_on_host_tx,
               NULL, &cdc_uart_set_line_coding, &cdc_uart_get_line_coding);
+    cmp_usb_register_reset_callback(cdc_uart_app_reset);
 }
 
 bool cdc_uart_app_update(void) {
     bool active = false;
-    static uint16_t packet_len = 0;
-    static uint8_t packet_buffer[USB_CDC_MAX_PACKET_SIZE];
 
     if (packet_len < USB_CDC_MAX_PACKET_SIZE) {
         uint16_t max_bytes = (USB_CDC_MAX_PACKET_SIZE- packet_len);
