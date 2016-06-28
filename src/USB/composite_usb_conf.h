@@ -27,14 +27,33 @@
 #define USB_HID_MAX_PACKET_SIZE 64
 #define USB_SERIAL_NUM_LENGTH   24
 
-#define ENDP_CDC_DATA_OUT       0x01
-#define ENDP_CDC_DATA_IN        0x82
-#define ENDP_CDC_COMM_IN        0x83
-#define ENDP_HID_REPORT_OUT     0x04
-#define ENDP_HID_REPORT_IN      0x84
-#define ENDP_VCDC_DATA_OUT       0x05
-#define ENDP_VCDC_DATA_IN        0x86
-#define ENDP_VCDC_COMM_IN        0x87
+enum {
+    ENDP_CONTROL_OUT = 0x00,
+    ENDP_HID_REPORT_OUT,
+#if CDC_AVAILABLE
+    ENDP_CDC_DATA_OUT,
+#endif
+#if VCDC_AVAILABLE
+    ENDP_VCDC_DATA_OUT,
+#endif
+
+    HIGHEST_OUT_ENDPOINT
+};
+
+enum {
+    ENDP_CONTROL_IN = 0x80,
+    ENDP_HID_REPORT_IN,
+#if CDC_AVAILABLE
+    ENDP_CDC_DATA_IN,
+    ENDP_CDC_COMM_IN,
+#endif
+#if VCDC_AVAILABLE
+    ENDP_VCDC_DATA_IN,
+    ENDP_VCDC_COMM_IN,
+#endif
+
+    HIGHEST_IN_ENDPOINT,
+};
 
 enum {
     INTF_HID,
