@@ -221,11 +221,8 @@ static void vcdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
                   NULL);
     usbd_ep_setup(usbd_dev, ENDP_VCDC_COMM_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
-    usbd_register_control_callback(
-        usbd_dev,
-        USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-        USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-        vcdc_control_class_request);
+    cmp_usb_register_control_class_callback(INTF_VCDC_DATA, vcdc_control_class_request);
+    cmp_usb_register_control_class_callback(INTF_VCDC_COMM, vcdc_control_class_request);
 }
 
 static uint16_t packet_len = 0;
