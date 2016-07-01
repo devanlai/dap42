@@ -41,7 +41,8 @@
 #define NUM_IN_ENDPOINTS (HIGHEST_IN_ENDPOINT - 0x80 - 1)
 #define TOTAL_NUM_ENDPOINTS (NUM_OUT_ENDPOINTS + NUM_IN_ENDPOINTS + 1)
 
-_Static_assert((TOTAL_NUM_ENDPOINTS <= 8), "Too many endpoints for USB core (max 8)");
+_Static_assert((1 + NUM_IN_ENDPOINTS <= 8), "Too many IN endpoints for USB core (max 8)");
+_Static_assert((1 + NUM_OUT_ENDPOINTS <= 8), "Too many OUT endpoints for USB core (max 8)");
 
 
 static const struct usb_device_descriptor dev = {
