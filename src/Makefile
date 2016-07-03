@@ -61,7 +61,6 @@ size: $(OBJS) $(BINARY).elf
 debug: $(BINARY).elf
 	-$(GDB) --tui --eval "target remote | $(OOCD) -f $(OOCD_INTERFACE) -f $(OOCD_BOARD) -f ../openocd/debug.cfg" $(BINARY).elf
 
-.PHONY += debug size dfuse-flash
 reset:
 	$(OOCD) -f $(OOCD_INTERFACE) -f $(OOCD_BOARD) -c "init; reset halt; reset; shutdown"
 
