@@ -86,7 +86,7 @@ CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
 ###############################################################################
 # C++ flags
 
-CXXFLAGS	+= -Os -g
+CXXFLAGS	+= -Os -g -std=c11
 CXXFLAGS	+= -Wextra -Wshadow -Wredundant-decls  -Weffc++
 CXXFLAGS	+= -fno-common -ffunction-sections -fdata-sections
 
