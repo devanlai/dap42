@@ -30,6 +30,7 @@
 #include "USB/cdc.h"
 #include "USB/vcdc.h"
 #include "USB/dfu.h"
+#include "USB/winusb.h"
 
 #include "DAP/app.h"
 #include "DAP/CMSIS_DAP_hal.h"
@@ -125,6 +126,9 @@ int main(void) {
 
     if (DFU_AVAILABLE) {
         dfu_setup(usbd_dev, on_dfu_request);
+        if (WINUSB_AVAILABLE) {
+            winusb_setup(usbd_dev);
+        }
     }
 
     if (CAN_RX_AVAILABLE && VCDC_AVAILABLE) {
