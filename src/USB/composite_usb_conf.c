@@ -56,9 +56,9 @@ static const struct usb_device_descriptor dev = {
     .idVendor = 0x1209,
     .idProduct = 0xDA42,
     .bcdDevice = 0x0110,
-    .iManufacturer = 1,
-    .iProduct = 2,
-    .iSerialNumber = 3,
+    .iManufacturer = STR_MANUFACTURER,
+    .iProduct = STR_PRODUCT,
+    .iSerialNumber = STR_SERIAL,
     .bNumConfigurations = 1,
 };
 
@@ -151,7 +151,7 @@ static const struct usb_iface_assoc_descriptor iface_assoc = {
     .bFunctionClass = USB_CLASS_CDC,
     .bFunctionSubClass = USB_CDC_SUBCLASS_ACM,
     .bFunctionProtocol = USB_CDC_PROTOCOL_NONE,
-    .iFunction = 4,
+    .iFunction = STR_CDC_INTF_ASSOC_DESC,
 };
 
 static const struct usb_interface_descriptor comm_iface = {
@@ -163,7 +163,7 @@ static const struct usb_interface_descriptor comm_iface = {
     .bInterfaceClass = USB_CLASS_CDC,
     .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
     .bInterfaceProtocol = USB_CDC_PROTOCOL_NONE,
-    .iInterface = 5,
+    .iInterface = STR_CDC_CONTROL_INTF,
 
     .endpoint = comm_endpoints,
 
@@ -180,7 +180,7 @@ static const struct usb_interface_descriptor data_iface = {
     .bInterfaceClass = USB_CLASS_DATA,
     .bInterfaceSubClass = 0,
     .bInterfaceProtocol = 0,
-    .iInterface = 6,
+    .iInterface = STR_CDC_DATA_INTF,
 
     .endpoint = data_endpoints,
 };
@@ -197,7 +197,7 @@ static const struct usb_iface_assoc_descriptor viface_assoc = {
     .bFunctionClass = USB_CLASS_CDC,
     .bFunctionSubClass = USB_CDC_SUBCLASS_ACM,
     .bFunctionProtocol = USB_CDC_PROTOCOL_NONE,
-    .iFunction = 4,
+    .iFunction = STR_VCDC_INTF_ASSOC_DESC,
 };
 
 static const struct usb_interface_descriptor vcomm_iface = {
@@ -209,7 +209,7 @@ static const struct usb_interface_descriptor vcomm_iface = {
     .bInterfaceClass = USB_CLASS_CDC,
     .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
     .bInterfaceProtocol = USB_CDC_PROTOCOL_NONE,
-    .iInterface = 8,
+    .iInterface = STR_VCDC_CONTROL_INTF,
 
     .endpoint = vcomm_endpoints,
 
@@ -226,7 +226,7 @@ static const struct usb_interface_descriptor vdata_iface = {
     .bInterfaceClass = USB_CLASS_DATA,
     .bInterfaceSubClass = 0,
     .bInterfaceProtocol = 0,
-    .iInterface = 9,
+    .iInterface = STR_VCDC_DATA_INTF,
 
     .endpoint = vdata_endpoints,
 };
@@ -261,7 +261,7 @@ static const struct usb_interface_descriptor hid_iface = {
     .bInterfaceClass = USB_CLASS_HID,
     .bInterfaceSubClass = 0,
     .bInterfaceProtocol = 0,
-    .iInterface = 2,
+    .iInterface = STR_HID_INTF,
 
     .endpoint = hid_endpoints,
 
@@ -280,7 +280,7 @@ static const struct usb_interface_descriptor dfu_iface = {
     .bInterfaceClass = 0xFE,
     .bInterfaceSubClass = 1,
     .bInterfaceProtocol = 1,
-    .iInterface = 7,
+    .iInterface = STR_DFU_INTF,
 
     .endpoint = NULL,
 
@@ -347,15 +347,26 @@ static const struct usb_config_descriptor config = {
 static char serial_number[USB_SERIAL_NUM_LENGTH+1] = "000000000000000000000000";
 
 static const char *usb_strings[] = {
-    "Devanarchy",
-    (PRODUCT_NAME " CMSIS-DAP"),
-    serial_number,
-    (PRODUCT_NAME " Composite CDC HID"),
-    "CDC Control",
-    "CDC Data",
-    (PRODUCT_NAME " DFU"),
-    "SLCAN CDC Control",
-    "SLCAN CDC Data",
+    [STR_MANUFACTURER-1]        = "Devanarchy",
+    [STR_PRODUCT-1]             = (PRODUCT_NAME " CMSIS-DAP"),
+    [STR_SERIAL-1]              = serial_number,
+#if CDC_AVAILABLE
+    [STR_CDC_INTF_ASSOC_DESC-1] = (PRODUCT_NAME " CDC-ACM Serial"),
+    [STR_CDC_CONTROL_INTF-1]    = "CDC Control",
+    [STR_CDC_DATA_INTF-1]       = "CDC Data",
+#endif
+#if (VCDC_AVAILABLE && CAN_RX_AVAILABLE)
+    [STR_VCDC_INTF_ASSOC_DESC-1]= (PRODUCT_NAME " SLCAN"),
+    [STR_VCDC_CONTROL_INTF-1]   = "SLCAN CDC Control",
+    [STR_VCDC_DATA_INTF-1]      = "SLCAN CDC Data",
+#elif VCDC_AVAILABLE
+    [STR_VCDC_INTF_ASSOC_DESC-1]= (PRODUCT_NAME " Virtual CDC-ACM Serial"),
+    [STR_VCDC_CONTROL_INTF-1]   = "VCDC Control",
+    [STR_VCDC_DATA_INTF-1]      = "VCDC Data",
+#endif
+#if DFU_AVAILABLE
+    [STR_DFU_INTF-1]            = (PRODUCT_NAME " DFU"),
+#endif
 };
 
 void cmp_set_usb_serial_number(const char* serial) {
