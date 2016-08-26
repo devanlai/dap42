@@ -27,6 +27,12 @@ To flash directly without a bootloader:
     make TARGET=STM32F103
     make TARGET=STM32F103 flash
 
+To load onto a device with the [dapboot](https://github.com/devanlai/dapboot) DFU bootloader installed:
+
+    make clean
+    make TARGET=STM32F103-DFUBOOT
+    dfu-util -d 1209:da42,1209:db42 -D DAP42.bin
+
 ## Usage
 ### OpenOCD
 The dap42 firmware has been tested with gdb and OpenOCD on STM32F042 (of course), STM32F103, and LPC11C14 targets.
