@@ -40,6 +40,13 @@ ifeq ($(TARGET),STM32F103-DFUBOOT)
 	DEFS				+= -DDFU_AVAILABLE=1
 	ARCH				= STM32F1
 endif
+ifeq ($(TARGET),STM32F103-HIGHBOOT)
+	TARGET_COMMON_DIR	:= ./stm32f103
+	TARGET_SPEC_DIR		:= ./stm32f103
+	LDSCRIPT			?= ./stm32f103/stm32f103x8-highboot.ld
+	DEFS				+= -DDFU_AVAILABLE=1
+	ARCH				= STM32F1
+endif
 ifndef ARCH
 $(error Unknown target $(TARGET))
 endif
