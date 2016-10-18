@@ -133,8 +133,13 @@ Provides definitions about:
 #define PIN_nRESET_BITPOS       (4)
 #define PIN_nRESET              (1<<PIN_nRESET_BITPOS)
 
-#define PIN_LED_RUN_BITPOS      (5)
+#define PIN_LED_CON_BITPOS      (5)
+#define PIN_LED_CON             (1<<PIN_LED_CON_BITPOS)
+#define PIN_LED_RUN_BITPOS      (6)
 #define PIN_LED_RUN             (1<<PIN_LED_RUN_BITPOS)
+
+#define PIN_LED_ACT_BITPOS      (7)
+#define PIN_LED_ACT             (1<<PIN_LED_ACT_BITPOS)
 
 /*
 SWD functionality
@@ -255,19 +260,27 @@ static __inline void PIN_nRESET_OUT (uint32_t bit) {
 }
 
 static __inline void LED_CONNECTED_OUT (uint32_t bit) {
-  (void)bit;
+  if (bit & 0x1) {
+    GPIOA_BSRR = PIN_LED_CON;
+  } else {
+    GPIOA_BRR = PIN_LED_CON;
+  }
 }
 
 static __inline void LED_RUNNING_OUT (uint32_t bit) {
   if (bit & 0x1) {
-    GPIOA_BRR = PIN_LED_RUN;
-  } else {
     GPIOA_BSRR = PIN_LED_RUN;
+  } else {
+    GPIOA_BRR = PIN_LED_RUN;
   }
 }
 
 static __inline void LED_ACTIVITY_OUT (uint32_t bit) {
-  (void)bit;
+  if (bit & 0x1) {
+    GPIOA_BSRR = PIN_LED_ACT;
+  } else {
+    GPIOA_BRR = PIN_LED_ACT;
+  }
 }
 
 static __inline void DAP_SETUP (void) {

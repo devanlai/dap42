@@ -34,9 +34,8 @@ void clock_setup(void) {
 
 void gpio_setup(void) {
     /*
-      Button on PB8
-      LED0 on PA5
-      RX (MCU-side) on PA3
+      LED0, 1, 2 on PA5, PA6, PA7
+      TX, RX (MCU-side) on PA2, PA3
       TGT_RST on PA4
       TGT_SWDIO, TGT_SWCLK on PA0, PA1
     */
@@ -46,12 +45,12 @@ void gpio_setup(void) {
     rcc_periph_clock_enable(RCC_GPIOB);
 
 
-    /* Setup the LED as an output */
+    /* Setup LEDs as outputs */
     gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_LOW,
-                            GPIO5);
+                            GPIO5 | GPIO6 | GPIO7);
 
     gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
-                    GPIO5);
+                    GPIO5 | GPIO6 | GPIO7);
 }
 
 void target_console_init(void) {
@@ -67,6 +66,10 @@ void led_bit(uint8_t position, bool state) {
     uint32_t gpio = 0xFFFFFFFFU;
     if (position == 0) {
         gpio = GPIO5;
+    } else if (position == 1) {
+        gpio = GPIO6;
+    } else if (position == 2) {
+        gpio = GPIO7;
     }
 
     if (gpio != 0xFFFFFFFFU) {
@@ -79,9 +82,19 @@ void led_bit(uint8_t position, bool state) {
 }
 
 void led_num(uint8_t value) {
-    if (value & 0x1) {
+    if (value & 0x4) {
         gpio_set(GPIOA, GPIO5);
     } else {
-        gpio_clear(GPIOA, GPIO4);
+        gpio_clear(GPIOA, GPIO5);
+    }
+    if (value & 0x2) {
+        gpio_set(GPIOA, GPIO6);
+    } else {
+        gpio_clear(GPIOA, GPIO6);
+    }
+    if (value & 0x1) {
+        gpio_set(GPIOA, GPIO7);
+    } else {
+        gpio_clear(GPIOA, GPIO7);
     }
 }
