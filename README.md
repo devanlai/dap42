@@ -33,6 +33,15 @@ To load onto a device with the [dapboot](https://github.com/devanlai/dapboot) DF
     make TARGET=STM32F103-DFUBOOT
     dfu-util -d 1209:da42,1209:db42 -D DAP42.bin
 
+To flash a pre-built binary onto an STLink/v2:
+
+    openocd -f interface/cmsis-dap.cfg -f target/stm32f1x.cfg \
+        -c "init; reset halt" \
+        -c "stm32f1x unlock 0; reset halt" \
+        -c "flash erase_sector 0 0 last" \
+        -c "program DAP103-dapboot-combined-stlink.bin verify reset exit 0x08000000"
+
+
 ## Usage
 ### OpenOCD
 The dap42 firmware has been tested with gdb and OpenOCD on STM32F042 (of course), STM32F103, and LPC11C14 targets.
