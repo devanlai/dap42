@@ -16,44 +16,28 @@
 
 -include local.mk
 
-BINARY = DAP42
-OPENCM3_DIR = ../libopencm3
+BINARY          = DAP42
+OPENCM3_DIR     = ../libopencm3
 
-TARGET ?= STM32F042
+TARGET         ?= STM32F042
 include targets.mk
 
-DFU_UTIL = dfu-util
-DFUSE_VID_PID := 0483:df11
-DAP42_VID_PID := 1209:da42
+DFU_UTIL       ?= dfu-util
+DFUSE_VID_PID  := 0483:df11
+DAP42_VID_PID  := 1209:da42
+DFU_VID_PID    ?= DFUSE_VID_PID
+APP_VID_PID    ?= DAP42_VID_PID
+.DEFAULT_GOAL  := $(BINARY).bin
 
-SRCS := $(wildcard *.c)
-SRCS += $(wildcard DAP/*.c)
-SRCS += $(wildcard USB/*.c)
-SRCS += $(wildcard DFU/*.c)
-SRCS += $(wildcard $(TARGET_COMMON_DIR)/*.c)
-SRCS += $(wildcard $(TARGET_COMMON_DIR)/DAP/*.c)
-SRCS += $(wildcard $(TARGET_COMMON_DIR)/USB/*.c)
-SRCS += $(wildcard $(TARGET_COMMON_DIR)/DFU/*.c)
-SRCS += $(wildcard $(TARGET_SPEC_DIR)/*.c)
-SRCS += $(wildcard $(TARGET_SPEC_DIR)/DAP/*.c)
-SRCS += $(wildcard $(TARGET_SPEC_DIR)/USB/*.c)
-SRCS += $(wildcard $(TARGET_SPEC_DIR)/DFU/*.c)
-
-OBJS += $(SRCS:.c=.o)
-DEPS  = $(SRCS:.c=.d)
-
-.DEFAULT_GOAL := $(BINARY).bin
+%.dfu-flash: %.bin
+	$(DFU-UTIL) -d $(APP_VID_PID),$(DFU_VID_PID) -D $(<)
 
 %.dfuse-flash: %.bin
-	$(DFU_UTIL) -d $(DAP42_VID_PID),$(DFUSE_VID_PID) -a 0 -s 0x08000000:leave -D $(<)
+	$(DFU_UTIL) -d $(APP_VID_PID),$(DFUSE_VID_PID) -a 0 -s 0x08000000:leave -D $(<)
 
 dfuse-flash: $(BINARY).dfuse-flash
 
-clean::
-	@rm -f $(OBJS)
-	@rm -f $(DEPS)
-
-include libopencm3.target.mk
+dfu-flash: $(BINARY).dfu-flash
 
 size: $(OBJS) $(BINARY).elf
 	@$(PREFIX)-size $(OBJS) $(BINARY).elf
@@ -64,13 +48,35 @@ debug: $(BINARY).elf
 reset:
 	$(OOCD) -f $(OOCD_INTERFACE) -f $(OOCD_BOARD) -c "init; reset halt; reset; shutdown"
 
-.PHONY += debug size dfuse-flash reset
+clean::
+	@rm -f $(OBJS)
+	@rm -f $(DEPS)
 
-OBJS := $(sort $(OBJS))
+SRCS           := $(wildcard *.c)
+SRCS           += $(wildcard DAP/*.c)
+SRCS           += $(wildcard USB/*.c)
+SRCS           += $(wildcard DFU/*.c)
+SRCS           += $(wildcard $(TARGET_COMMON_DIR)/*.c)
+SRCS           += $(wildcard $(TARGET_COMMON_DIR)/DAP/*.c)
+SRCS           += $(wildcard $(TARGET_COMMON_DIR)/USB/*.c)
+SRCS           += $(wildcard $(TARGET_COMMON_DIR)/DFU/*.c)
+SRCS           += $(wildcard $(TARGET_SPEC_DIR)/*.c)
+SRCS           += $(wildcard $(TARGET_SPEC_DIR)/DAP/*.c)
+SRCS           += $(wildcard $(TARGET_SPEC_DIR)/USB/*.c)
+SRCS           += $(wildcard $(TARGET_SPEC_DIR)/DFU/*.c)
+
+OBJS           += $(SRCS:.c=.o)
+DEPS            = $(SRCS:.c=.d)
+
+include rules.mk
+
+OBJS           := $(sort $(OBJS))
 
 # Add the base directory to the header search path
-CPPFLAGS += -I.
+CPPFLAGS       += -I.
 
 # Add target config directory to the header search path
-CPPFLAGS += -I$(TARGET_COMMON_DIR)/
-CPPFLAGS += -I$(TARGET_SPEC_DIR)/
+CPPFLAGS       += -I$(TARGET_COMMON_DIR)/
+CPPFLAGS       += -I$(TARGET_SPEC_DIR)/
+
+.PHONY         += debug size dfuse-flash dfu-flash reset
