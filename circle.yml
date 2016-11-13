@@ -1,0 +1,15 @@
+machine:
+  environment:
+    PREFIX: ~/toolchains/gcc-arm-embedded/bin/arm-none-eabi
+dependencies:
+  override:
+    - ./util/install-toolchain.sh
+  cache_directories:
+    - "~/toolchains/"
+test:
+  override:
+    - make -k all
+
+general:
+  artifacts:
+    - build/
