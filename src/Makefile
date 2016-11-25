@@ -25,12 +25,12 @@ include targets.mk
 DFU_UTIL       ?= dfu-util
 DFUSE_VID_PID  := 0483:df11
 DAP42_VID_PID  := 1209:da42
-DFU_VID_PID    ?= DFUSE_VID_PID
-APP_VID_PID    ?= DAP42_VID_PID
+DFU_VID_PID    ?= $(DFUSE_VID_PID)
+APP_VID_PID    ?= $(DAP42_VID_PID)
 .DEFAULT_GOAL  := $(BINARY).bin
 
 %.dfu-flash: %.bin
-	$(DFU-UTIL) -d $(APP_VID_PID),$(DFU_VID_PID) -D $(<)
+	$(DFU_UTIL) -d $(APP_VID_PID),$(DFU_VID_PID) -D $(<)
 
 %.dfuse-flash: %.bin
 	$(DFU_UTIL) -d $(APP_VID_PID),$(DFUSE_VID_PID) -a 0 -s 0x08000000:leave -D $(<)

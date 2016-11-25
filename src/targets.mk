@@ -39,6 +39,7 @@ ifeq ($(TARGET),STM32F103-DFUBOOT)
 	LDSCRIPT           ?= ./stm32f103/stm32f103x8-dfuboot.ld
 	DEFS               += -DDFU_AVAILABLE=1
 	ARCH                = STM32F1
+	DFU_VID_PID        := 1209:db42
 endif
 ifeq ($(TARGET),STM32F103-HIGHBOOT)
 	TARGET_COMMON_DIR  := ./stm32f103
