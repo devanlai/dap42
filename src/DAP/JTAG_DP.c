@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "DAP/CMSIS_DAP_config.h"
+#include "DAP/CMSIS_DAP_hal.h"
 #include "DAP/CMSIS_DAP.h"
 
 

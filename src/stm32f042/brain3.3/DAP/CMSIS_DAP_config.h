@@ -109,37 +109,37 @@ Provides definitions about:
 /// This configuration settings is used to optimized the communication performance with the
 /// debugger and depends on the USB peripheral. For devices with limited RAM or USB buffer the
 /// setting can be reduced (valid range is 1 .. 255). Change setting to 4 for High-Speed USB.
-#define DAP_PACKET_COUNT        4              ///< Buffers: 64 = Full-Speed, 4 = High-Speed.
+#define DAP_PACKET_COUNT        12              ///< Buffers: 64 = Full-Speed, 4 = High-Speed.
 
-#define DAP_PACKET_QUEUE_SIZE (DAP_PACKET_COUNT+4)
+#define DAP_PACKET_QUEUE_SIZE (DAP_PACKET_COUNT+8)
 
 /// Debug Unit is connected to fixed Target Device.
 /// The Debug Unit may be part of an evaluation board and always connected to a fixed
 /// known device.  In this case a Device Vendor and Device Name string is stored which
 /// may be used by the debugger or IDE to configure device parameters.
-#define TARGET_DEVICE_FIXED     0               ///< Target Device: 1 = known, 0 = unknown;
+#define TARGET_DEVICE_FIXED     1               ///< Target Device: 1 = known, 0 = unknown;
 
 #if TARGET_DEVICE_FIXED
-#define TARGET_DEVICE_VENDOR    ""              ///< String indicating the Silicon Vendor
-#define TARGET_DEVICE_NAME      ""              ///< String indicating the Target Device
+#define TARGET_DEVICE_VENDOR    "NXP"           ///< String indicating the Silicon Vendor
+#define TARGET_DEVICE_NAME      "LPC1549"       ///< String indicating the Target Device
 #endif
 
 ///@}
 
-#define SWCLK_GPIO_PORT         GPIOB
-#define SWCLK_GPIO_PIN          GPIO14
-#define SWDIO_GPIO_PORT         GPIOB
-#define SWDIO_GPIO_PIN          GPIO15
-#define nRESET_GPIO_PORT        GPIOB
-#define nRESET_GPIO_PIN         GPIO13
+#define SWCLK_GPIO_PORT         GPIOA
+#define SWCLK_GPIO_PIN          GPIO1
+#define SWDIO_GPIO_PORT         GPIOA
+#define SWDIO_GPIO_PIN          GPIO0
+#define nRESET_GPIO_PORT        GPIOA
+#define nRESET_GPIO_PIN         GPIO4
 
 #define LED_CON_GPIO_PORT       GPIOA
-#define LED_CON_GPIO_PIN        GPIO4
+#define LED_CON_GPIO_PIN        GPIO5
 #define LED_RUN_GPIO_PORT       GPIOA
-#define LED_RUN_GPIO_PIN        GPIO5
-#define LED_ACT_GPIO_PORT       GPIOC
-#define LED_ACT_GPIO_PIN        GPIO13
+#define LED_RUN_GPIO_PIN        GPIO6
+#define LED_ACT_GPIO_PORT       GPIOA
+#define LED_ACT_GPIO_PIN        GPIO7
 
-#define SWDIO_GPIO_PIN_NUM      15
+#define SWDIO_GPIO_PIN_NUM      0
 
 #endif
