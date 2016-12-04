@@ -59,7 +59,7 @@ Provides definitions about:
  - Optional information about a connected Target Device (for Evaluation Boards).
 */
 
-#include <libopencm3/stm32/gpio.h>
+#include "config.h"
 
 // Board configuration options
 
@@ -126,176 +126,20 @@ Provides definitions about:
 
 ///@}
 
-#define PIN_SWCLK_BITPOS        (1)
-#define PIN_SWCLK               (1<<PIN_SWCLK_BITPOS)
-#define PIN_SWDIO_BITPOS        (0)
-#define PIN_SWDIO               (1<<PIN_SWDIO_BITPOS)
-#define PIN_nRESET_BITPOS       (4)
-#define PIN_nRESET              (1<<PIN_nRESET_BITPOS)
+#define SWCLK_GPIO_PORT         GPIOA
+#define SWCLK_GPIO_PIN          GPIO1
+#define SWDIO_GPIO_PORT         GPIOA
+#define SWDIO_GPIO_PIN          GPIO0
+#define nRESET_GPIO_PORT        GPIOA
+#define nRESET_GPIO_PIN         GPIO4
 
-#define PIN_LED_CON_BITPOS      (5)
-#define PIN_LED_CON             (1<<PIN_LED_CON_BITPOS)
-#define PIN_LED_RUN_BITPOS      (6)
-#define PIN_LED_RUN             (1<<PIN_LED_RUN_BITPOS)
+#define LED_CON_GPIO_PORT       GPIOA
+#define LED_CON_GPIO_PIN        GPIO5
+#define LED_RUN_GPIO_PORT       GPIOA
+#define LED_RUN_GPIO_PIN        GPIO6
+#define LED_ACT_GPIO_PORT       GPIOA
+#define LED_ACT_GPIO_PIN        GPIO7
 
-#define PIN_LED_ACT_BITPOS      (7)
-#define PIN_LED_ACT             (1<<PIN_LED_ACT_BITPOS)
-
-/*
-SWD functionality
-*/
-
-static __inline void PORT_SWD_SETUP (void)
-{
-  GPIOA_BSRR = PIN_SWDIO;
-  GPIOA_BSRR = PIN_SWCLK;
-  
-  GPIOA_MODER   &= ~( (0x3 << (PIN_SWDIO_BITPOS << 1)) );
-  GPIOA_MODER   &= ~( (0x3 << (PIN_SWCLK_BITPOS << 1)) );
-  
-  GPIOA_MODER   |=  ( (0x1 << (PIN_SWDIO_BITPOS << 1)) );
-  GPIOA_MODER   |=  ( (0x1 << (PIN_SWCLK_BITPOS << 1)) );
-
-  GPIOA_OTYPER  &= ~( PIN_SWDIO );
-  GPIOA_OTYPER  &= ~( PIN_SWCLK );
-  
-  GPIOA_OSPEEDR &= ~( (0x3 << (PIN_SWDIO_BITPOS << 1)) );
-  GPIOA_OSPEEDR &= ~( (0x3 << (PIN_SWCLK_BITPOS << 1)));
-
-  GPIOA_OSPEEDR |=  ( (0x3 << (PIN_SWDIO_BITPOS << 1)) );
-  GPIOA_OSPEEDR |=  ( (0x3 << (PIN_SWCLK_BITPOS << 1)) );
-}
-
-static __inline void PORT_OFF (void)
-{
-  GPIOA_BRR = PIN_SWDIO;
-  GPIOA_BRR = PIN_SWCLK;
-  GPIOA_MODER &= ~( (0x3 << (PIN_SWDIO_BITPOS << 1)) );
-  GPIOA_MODER &= ~( (0x3 << (PIN_SWCLK_BITPOS << 1)) );
-}
-
-static __inline void PIN_SWCLK_TCK_SET (void)
-{
-  GPIOA_BSRR = PIN_SWCLK;
-}
-
-static __inline void PIN_SWCLK_TCK_CLR (void)
-{
-  GPIOA_BRR = PIN_SWCLK;
-}
-
-static __inline uint32_t PIN_SWDIO_TMS_IN  (void)
-{
-  return (GPIOA_IDR & PIN_SWDIO) ? 0x1 : 0x0;
-}
-
-static __inline void PIN_SWDIO_TMS_SET (void)
-{
-  GPIOA_BSRR = PIN_SWDIO;
-}
-
-static __inline void PIN_SWDIO_TMS_CLR (void)
-{
-  GPIOA_BRR = PIN_SWDIO;
-}
-
-static __inline uint32_t PIN_SWDIO_IN (void)
-{
-  return (GPIOA_IDR & PIN_SWDIO) ? 0x1 : 0x0;
-}
-
-static __inline void PIN_SWDIO_OUT (uint32_t bit)
-{
-  if (bit & 1) {
-    GPIOA_BSRR = PIN_SWDIO;
-  } else {
-    GPIOA_BRR = PIN_SWDIO;
-  }
-}
-
-static __inline void     PIN_SWDIO_OUT_ENABLE  (void)
-{
-  GPIOA_MODER &= ~( (0x3 << (PIN_SWDIO_BITPOS << 1)) );
-  GPIOA_MODER |=  ( (0x1 << (PIN_SWDIO_BITPOS << 1)) );
-}
-
-static __inline void     PIN_SWDIO_OUT_DISABLE (void)
-{
-  GPIOA_MODER &= ~( (0x3 << (PIN_SWDIO_BITPOS << 1)) );
-}
-
-/*
-JTAG-only functionality (not used in this application)
-*/
-
-static __inline void PORT_JTAG_SETUP (void) {}
-
-static __inline uint32_t PIN_TDI_IN  (void) {  return 0; }
-
-static __inline void     PIN_TDI_OUT (uint32_t bit) { (void)bit; }
-
-static __inline uint32_t PIN_TDO_IN (void) {  return 0; }
-
-static __inline uint32_t PIN_nTRST_IN (void) {  return 0; }
-
-static __inline void     PIN_nTRST_OUT  (uint32_t bit) { (void)bit; }
-
-/*
-other functionality not applicable to this application
-*/
-static __inline uint32_t PIN_SWCLK_TCK_IN  (void) {
-	return (GPIOA_IDR & PIN_SWCLK) ? 0x1 : 0x0;
-}
-
-static __inline uint32_t PIN_nRESET_IN  (void) {
-	return (GPIOA_IDR & PIN_nRESET) ? 0x1 : 0x0;
-}
-
-static __inline void PIN_nRESET_OUT (uint32_t bit) {
-  if (bit & 0x1) {
-    GPIOA_BSRR = PIN_nRESET;
-  } else {
-    GPIOA_BRR = PIN_nRESET;
-  }
-}
-
-static __inline void LED_CONNECTED_OUT (uint32_t bit) {
-  if (bit & 0x1) {
-    GPIOA_BSRR = PIN_LED_CON;
-  } else {
-    GPIOA_BRR = PIN_LED_CON;
-  }
-}
-
-static __inline void LED_RUNNING_OUT (uint32_t bit) {
-  if (bit & 0x1) {
-    GPIOA_BSRR = PIN_LED_RUN;
-  } else {
-    GPIOA_BRR = PIN_LED_RUN;
-  }
-}
-
-static __inline void LED_ACTIVITY_OUT (uint32_t bit) {
-  if (bit & 0x1) {
-    GPIOA_BSRR = PIN_LED_ACT;
-  } else {
-    GPIOA_BRR = PIN_LED_ACT;
-  }
-}
-
-static __inline void DAP_SETUP (void) {
-  LED_ACTIVITY_OUT(0);
-  LED_RUNNING_OUT(0);
-  LED_CONNECTED_OUT(0);
-
-  // Configure nRESET as an open-drain output
-  GPIOA_OTYPER |= PIN_nRESET;
-  GPIOA_BSRR   = PIN_nRESET;
-
-  GPIOA_MODER &= ~( (0x3 << (PIN_nRESET_BITPOS << 1)) );
-  GPIOA_MODER |=  ( (0x1 << (PIN_nRESET_BITPOS << 1)) );
-}
-
-static __inline uint32_t RESET_TARGET (void) { return 0; }
+#define SWDIO_GPIO_PIN_NUM      0
 
 #endif

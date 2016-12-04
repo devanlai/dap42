@@ -31,7 +31,7 @@
 #include "USB/dfu.h"
 
 #include "DAP/app.h"
-#include "DAP/CMSIS_DAP_config.h"
+#include "DAP/CMSIS_DAP_hal.h"
 #include "DFU/DFU.h"
 
 #include "tick.h"

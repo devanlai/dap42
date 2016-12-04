@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "DAP/CMSIS_DAP_config.h"
+#include "DAP/CMSIS_DAP_hal.h"
 #include "DAP/CMSIS_DAP.h"
 
 #include "USB/composite_usb_conf.h"
