@@ -74,6 +74,7 @@ int main(void) {
         DFU_maybe_jump_to_bootloader();
     }
 
+    cpu_setup();
     clock_setup();
     tick_setup(1000);
     gpio_setup();

@@ -17,7 +17,6 @@
  */
 
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/crs.h>
 #include <libopencm3/stm32/gpio.h>
 
 #include "target.h"
@@ -28,57 +27,50 @@ void cpu_setup(void) {
 
 }
 
-/* Set STM32 to 48 MHz. */
+/* Set STM32 to 72 MHz. */
 void clock_setup(void) {
-    rcc_clock_setup_in_hsi48_out_48mhz();
-
-    // Trim from USB sync frame
-    crs_autotrim_usb_enable();
-    rcc_set_usbclk_source(RCC_HSI48);
+    rcc_clock_setup_in_hse_8mhz_out_72mhz();
 }
 
 void gpio_setup(void) {
     /*
-      LED0, 1, 2 on PA5, PA6, PA7
-      TX, RX (MCU-side) on PA2, PA3
-      TGT_RST on PA4
-      TGT_SWDIO, TGT_SWCLK on PA0, PA1
+      LED0, 1, 2 on PA9, 
+      RX (MCU-side) on PB11
+      TGT_RST on PB6
+      TGT_SWDIO, TGT_SWCLK on PB14, PB13
+      TGT_SWO on PB11
     */
 
-    /* Enable GPIOA and GPIOB clocks. */
+    /* Enable GPIOA, GPIOB, and GPIOC clocks. */
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOB);
 
-
-    /* Setup LEDs as outputs */
-    gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_LOW,
-                            GPIO5 | GPIO6 | GPIO7);
-
-    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
-                    GPIO5 | GPIO6 | GPIO7);
+    /* Setup LEDs as open-drain outputs */
+    const uint8_t mode = GPIO_MODE_OUTPUT_10_MHZ;
+    const uint8_t conf = (LED_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
+                                         : GPIO_CNF_OUTPUT_PUSHPULL);
+    gpio_set_mode(GPIOA, mode, conf, GPIO9);
 }
 
-void target_console_init(void) {
+void target_console_init(void){
     /* Enable UART clock */
     rcc_periph_clock_enable(CONSOLE_USART_CLOCK);
 
-    /* Setup GPIO pins for UART2 */
-    gpio_mode_setup(CONSOLE_USART_GPIO_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, CONSOLE_USART_GPIO_PINS);
-    gpio_set_af(CONSOLE_USART_GPIO_PORT, CONSOLE_USART_GPIO_AF, CONSOLE_USART_GPIO_PINS);
+    /* Setup GPIO pins */
+    gpio_set_mode(CONSOLE_USART_GPIO_PORT, GPIO_MODE_OUTPUT_50_MHZ,
+                  GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, CONSOLE_USART_GPIO_TX);
+    gpio_set_mode(CONSOLE_USART_GPIO_PORT, GPIO_MODE_INPUT,
+                  GPIO_CNF_INPUT_FLOAT, CONSOLE_USART_GPIO_RX);
 }
 
 void led_bit(uint8_t position, bool state) {
     uint32_t gpio = 0xFFFFFFFFU;
     if (position == 0) {
-        gpio = GPIO5;
-    } else if (position == 1) {
-        gpio = GPIO6;
-    } else if (position == 2) {
-        gpio = GPIO7;
+        gpio = GPIO9;
     }
 
     if (gpio != 0xFFFFFFFFU) {
-        if (state) {
+        if (state ^ LED_OPEN_DRAIN) {
             gpio_set(GPIOA, gpio);
         } else {
             gpio_clear(GPIOA, gpio);
@@ -87,19 +79,9 @@ void led_bit(uint8_t position, bool state) {
 }
 
 void led_num(uint8_t value) {
-    if (value & 0x4) {
-        gpio_set(GPIOA, GPIO5);
+    if ((value & 0x1) ^ LED_OPEN_DRAIN) {
+        gpio_set(GPIOA, GPIO9);
     } else {
-        gpio_clear(GPIOA, GPIO5);
-    }
-    if (value & 0x2) {
-        gpio_set(GPIOA, GPIO6);
-    } else {
-        gpio_clear(GPIOA, GPIO6);
-    }
-    if (value & 0x1) {
-        gpio_set(GPIOA, GPIO7);
-    } else {
-        gpio_clear(GPIOA, GPIO7);
+        gpio_clear(GPIOA, GPIO9);
     }
 }

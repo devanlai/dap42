@@ -16,14 +16,17 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef TARGET_H_INCLUDED
-#define TARGET_H_INCLUDED
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/st_usbfs.h>
 
-extern void cpu_setup(void);
-extern void clock_setup(void);
-extern void gpio_setup(void);
-extern void target_console_init(void);
-extern void led_num(uint8_t value);
-extern void led_bit(uint8_t position, bool state);
+#include "USB/usb_setup.h"
 
-#endif
+const usbd_driver* target_usb_init(void) {
+    rcc_periph_reset_pulse(RST_USB);
+
+    /* Enable the USB pullup transistor */
+    gpio_set(GPIOA, GPIO15);
+
+    return &st_usbfs_v1_usb_driver;
+}

@@ -16,14 +16,16 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef TARGET_H_INCLUDED
-#define TARGET_H_INCLUDED
+#include <libopencm3/cm3/scb.h>
 
-extern void cpu_setup(void);
-extern void clock_setup(void);
-extern void gpio_setup(void);
-extern void target_console_init(void);
-extern void led_num(uint8_t value);
-extern void led_bit(uint8_t position, bool state);
+#include "DFU/DFU.h"
 
-#endif
+void DFU_reset_and_jump_to_bootloader(void) {
+    /* Trigger the STLink/v2-1 bootloader via software reset */
+    scb_reset_system();
+    while (1);
+}
+
+void DFU_maybe_jump_to_bootloader(void) {
+
+}

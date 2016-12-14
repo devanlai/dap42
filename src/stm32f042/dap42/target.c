@@ -23,6 +23,11 @@
 #include "target.h"
 #include "config.h"
 
+/* Reconfigure processor settings */
+void cpu_setup(void) {
+
+}
+
 /* Set STM32 to 48 MHz. */
 void clock_setup(void) {
     rcc_clock_setup_in_hsi48_out_48mhz();

@@ -26,6 +26,7 @@ BUILD_DIR      ?= ./build
 
 all: DAP42.bin KITCHEN42.bin \
      DAP103.bin DAP103-DFU.bin \
+     DAP103-NUCLEO-STBOOT.bin \
      BRAINv3.3.bin
 clean:
 	$(Q)$(RM) $(BUILD_DIR)/*.bin
@@ -64,4 +65,10 @@ BRAINv3.3.bin: | $(BUILD_DIR)
 	@printf "  BUILD $(@)\n"
 	$(Q)$(MAKE) TARGET=BRAINV3.3 -C src/ clean
 	$(Q)$(MAKE) TARGET=BRAINV3.3 -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
+DAP103-NUCLEO-STBOOT.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=STLINKV2-1-STBOOT -C src/ clean
+	$(Q)$(MAKE) TARGET=STLINKV2-1-STBOOT -C src/
 	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
