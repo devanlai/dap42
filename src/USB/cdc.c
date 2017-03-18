@@ -205,6 +205,8 @@ static struct usb_cdc_line_coding current_line_coding = {
     .bDataBits = 8
 };
 
+void cdc_uart_app_reset(void);
+
 static bool cdc_uart_set_line_coding(const struct usb_cdc_line_coding* line_coding) {
     uint32_t databits;
     if (line_coding->bDataBits == 7 || line_coding->bDataBits == 8) {
@@ -243,6 +245,9 @@ static bool cdc_uart_set_line_coding(const struct usb_cdc_line_coding* line_codi
             return false;
     }
 
+    // Reset the output packet buffer
+    cdc_uart_app_reset();
+
     console_reconfigure(line_coding->dwDTERate, databits, stopbits, parity);
     memcpy(&current_line_coding, (const void*)line_coding, sizeof(current_line_coding));
 
@@ -274,7 +279,7 @@ static void cdc_uart_on_host_rx(uint8_t* data, uint16_t* len) {
 static uint16_t packet_len = 0;
 static uint8_t packet_buffer[USB_CDC_MAX_PACKET_SIZE];
 
-static void cdc_uart_app_reset(void) {
+void cdc_uart_app_reset(void) {
     packet_len = 0;
 }
 

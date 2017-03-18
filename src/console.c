@@ -29,18 +29,28 @@ void console_setup(uint32_t baudrate) {
     usart_set_databits(CONSOLE_USART, 8);
     usart_set_parity(CONSOLE_USART, USART_PARITY_NONE);
     usart_set_stopbits(CONSOLE_USART, USART_STOPBITS_1);
-    usart_set_mode(CONSOLE_USART, CONSOLE_USART_MODE);
+
+    // Only enable TX for logging by default
+    usart_set_mode(CONSOLE_USART, CONSOLE_USART_MODE & ~USART_MODE_RX);
     usart_set_flow_control(CONSOLE_USART, USART_FLOWCONTROL_NONE);
 
     usart_enable(CONSOLE_USART);
-    usart_enable_rx_interrupt(CONSOLE_USART);
-
     nvic_enable_irq(CONSOLE_USART_NVIC_LINE);
 }
 
+void console_tx_buffer_clear(void);
+void console_rx_buffer_clear(void);
+
 void console_reconfigure(uint32_t baudrate, uint32_t databits, uint32_t stopbits,
                          uint32_t parity) {
+    // Disable the UART and clear buffers
     usart_disable(CONSOLE_USART);
+    usart_disable_rx_interrupt(CONSOLE_USART);
+    usart_disable_tx_interrupt(CONSOLE_USART);
+    nvic_disable_irq(CONSOLE_USART_NVIC_LINE);
+
+    console_tx_buffer_clear();
+    console_rx_buffer_clear();
 
     if (parity != USART_PARITY_NONE) {
         /* usart_set_databits counts parity bits as "data" bits */
@@ -51,8 +61,12 @@ void console_reconfigure(uint32_t baudrate, uint32_t databits, uint32_t stopbits
     usart_set_databits(CONSOLE_USART, databits);
     usart_set_stopbits(CONSOLE_USART, stopbits);
     usart_set_parity(CONSOLE_USART, parity);
+    usart_set_mode(CONSOLE_USART, CONSOLE_USART_MODE);
 
+    // Re-enable the UART with the new settings
     usart_enable(CONSOLE_USART);
+    usart_enable_rx_interrupt(CONSOLE_USART);
+    nvic_enable_irq(CONSOLE_USART_NVIC_LINE);    
 }
 
 static volatile uint8_t console_tx_buffer[CONSOLE_TX_BUFFER_SIZE];
@@ -83,6 +97,11 @@ static uint8_t console_tx_buffer_get(void) {
     return data;
 }
 
+void console_tx_buffer_clear(void) {
+    console_tx_head = 0;
+    console_tx_tail = 0;
+}
+
 static bool console_rx_buffer_empty(void) {
     return console_rx_head == console_rx_tail;
 }
@@ -100,6 +119,11 @@ static uint8_t console_rx_buffer_get(void) {
     uint8_t data = console_rx_buffer[console_rx_head];
     console_rx_head = (console_rx_head + 1) % CONSOLE_RX_BUFFER_SIZE;
     return data;
+}
+
+void console_rx_buffer_clear(void) {
+    console_rx_head = 0;
+    console_rx_tail = 0;
 }
 
 size_t console_send_buffered(const uint8_t* data, size_t num_bytes) {
