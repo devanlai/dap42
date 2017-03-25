@@ -80,9 +80,21 @@ static bool parse_dec_digit(const char* input, uint8_t* value_out) {
 
 static bool slcan_process_config_command(const char* command, size_t len) {
     bool success = false;
-    if (len != 1 && command[0] != 'S') {
-        return false;
-    } else if (command[0] == 'S' && len != 2) {
+
+    // Validate command length
+    if (command[0] == 'M' || command[0] == 'm') {
+        if (len != 9) {
+            return false;
+        }
+    } else if (command[0] == 's') {
+        if (!((len == 5) || (len == 7))) {
+            return false;
+        }
+    } else if (command[0] == 'S' || command[0] == 'Z') {
+        if (len != 2) {
+            return false;
+        }
+    } else if (len != 1) {
         return false;
     }
 
@@ -141,6 +153,23 @@ static bool slcan_process_config_command(const char* command, size_t len) {
             success = can_reconfigure(slcan_baudrate, slcan_mode);
             break;
         }
+        // Dummy commands for compatibility
+        case 's': {
+            // TODO: implement direct BTR control
+            success = true;
+            break;
+        }
+        case 'M':
+        case 'm': {
+            // TODO: implement filtering
+            success = true;
+            break;
+        }
+        case 'Z': {
+            // TODO: implement timestamping
+            success = true;
+            break;
+        }
         default: {
             success = false;
             break;
@@ -186,7 +215,65 @@ static bool slcan_process_transmit_command(const char* command, size_t len) {
     }
 
     if (valid_message) {
+        if (command[0] == 'r' || command[0] == 't') {
+            vcdc_putchar('z');
+        } else {
+            vcdc_putchar('Z');
+        }
         success = can_write(&msg);
+    }
+
+    return success;
+}
+
+static bool slcan_process_diagnostic_command(const char* command, size_t len) {
+    bool success = false;
+
+    // Validate command length
+    if (command[0] == 'W') {
+        if (len != 5) {
+            return false;
+        }
+    } else {
+        if (len != 1) {
+            return false;
+        }
+    }
+
+    switch (command[0]) {
+        case 'V': {
+            // Hardware and firmware version
+            success = true;
+            vcdc_print("V1111");
+            break;
+        }
+        case 'v': {
+            // Firmware version
+            success = true;
+            vcdc_print("v11");
+            break;
+        }
+        case 'N': {
+            // Serial number
+            success = true;
+            vcdc_print("C254");
+            break;
+        }
+        case 'F': {
+            // Internal status register
+            success = true;
+            vcdc_print("F00");
+            break;
+        }
+        case 'W': {
+            // Ignore the MCP2515 register write
+            success = true;
+            break;
+        }
+        default: {
+            success = false;
+            break;
+        }
     }
 
     return success;
@@ -201,7 +288,11 @@ bool slcan_exec_command(const char* command, size_t len) {
         case 'O':
         case 'L':
         case 'l':
-        case 'C': {
+        case 'C':
+        case 's':
+        case 'M':
+        case 'm':
+        case 'Z': {
             success = slcan_process_config_command(command, len);
             break;
         }
@@ -211,6 +302,15 @@ bool slcan_exec_command(const char* command, size_t len) {
         case 'r':
         case 'R': {
             success = slcan_process_transmit_command(command, len);
+            break;
+        }
+        // Diagnostic commands
+        case 'V':
+        case 'v':
+        case 'N':
+        case 'F':
+        case 'W': {
+            success = slcan_process_diagnostic_command(command, len);
             break;
         }
         default: {
@@ -258,9 +358,6 @@ void slcan_app_setup(uint32_t baudrate, CanMode mode) {
 
 bool slcan_app_update(void) {
     bool active = false;
-    if (slcan_output_messages()) {
-        active = true;
-    }
 
     static char command_buffer[SLCAN_MAX_MESSAGE_LEN+1];
     static size_t command_len = 0;
@@ -307,6 +404,11 @@ bool slcan_app_update(void) {
         overflow = true;
         command_len = 0;
     }
+
+    if (slcan_output_messages()) {
+        active = true;
+    }
+
 
     return active;
 }
