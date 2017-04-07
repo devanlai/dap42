@@ -50,6 +50,13 @@
 #define nBOOT0_GPIO_PORT GPIOB
 #define nBOOT0_GPIO_PIN  GPIO8
 
+/* Make the target reset button do double duty as a DFU button */
+#define SOFT_DFU_AVAILABLE  1
+#define SOFT_DFU_GPIO_CLOCK RCC_GPIOA
+#define SOFT_DFU_GPIO_PORT  GPIOA
+#define SOFT_DFU_GPIO_PIN   GPIO4
+#define SOFT_DFU_ACTIVE_HIGH 0
+
 #include <libopencm3/stm32/usart.h>
 /* Workaround for non-commonalized STM32F0 USART code */
 #ifndef USART_STOPBITS_1

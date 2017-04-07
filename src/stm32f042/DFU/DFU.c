@@ -101,5 +101,15 @@ void DFU_maybe_jump_to_bootloader(void) {
 
         /* Jump to the ROM bootloader */
         jump_to_bootloader();
+    } else {
+#if defined(SOFT_DFU_AVAILABLE) && SOFT_DFU_AVAILABLE
+        rcc_periph_clock_enable(SOFT_DFU_GPIO_CLOCK);
+
+        uint32_t pull_mode = SOFT_DFU_ACTIVE_HIGH ? GPIO_PUPD_PULLDOWN : GPIO_PUPD_PULLUP;
+        gpio_mode_setup(SOFT_DFU_GPIO_PORT, GPIO_MODE_INPUT, pull_mode, SOFT_DFU_GPIO_PIN);
+        if ((gpio_get(SOFT_DFU_GPIO_PORT, SOFT_DFU_GPIO_PIN) == 0) ^ SOFT_DFU_ACTIVE_HIGH) {
+            DFU_reset_and_jump_to_bootloader();
+        }
+#endif
     }
 }
