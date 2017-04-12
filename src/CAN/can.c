@@ -29,8 +29,8 @@
 #if CAN_RX_AVAILABLE
 
 static volatile CAN_Message can_rx_buffer[CAN_RX_BUFFER_SIZE];
-static uint8_t can_rx_head = 0;
-static uint8_t can_rx_tail = 0;
+static volatile uint8_t can_rx_head = 0;
+static volatile uint8_t can_rx_tail = 0;
 
 bool can_rx_buffer_empty(void) {
     return can_rx_head == can_rx_tail;
@@ -67,6 +67,8 @@ void can_rx_buffer_get(CAN_Message* msg) {
 }
 
 bool can_reconfigure(uint32_t baudrate, CanMode mode) {
+    nvic_disable_irq(CAN_NVIC_LINE);
+    can_disable_irq(CAN, CAN_IER_FMPIE0 | CAN_IER_FMPIE1);
     can_reset(CAN);
 
     if (mode == MODE_RESET) {
@@ -129,6 +131,9 @@ bool can_reconfigure(uint32_t baudrate, CanMode mode) {
                                       0,     /* FIFO assignment (here: FIFO0) */
                                       true); /* Enable the filter. */
     }
+
+    can_enable_irq(CAN, CAN_IER_FMPIE0 | CAN_IER_FMPIE1);
+    nvic_enable_irq(CAN_NVIC_LINE);
     return true;
 }
 
@@ -147,6 +152,8 @@ bool can_setup(uint32_t baudrate, CanMode mode) {
 
     return can_reconfigure(baudrate, mode);
 }
+
+
 
 bool can_read(CAN_Message* msg) {
     bool success = false;
@@ -187,7 +194,7 @@ bool can_write(CAN_Message* msg) {
     return (can_transmit(CAN, msg->id, ext, rtr, msg->len, msg->data) != -1);
 }
 
-/*
+
 void cec_can_isr(void) {
     while (!can_rx_buffer_full()) {
         CAN_Message msg;
@@ -198,6 +205,6 @@ void cec_can_isr(void) {
         can_rx_buffer_put(&msg);
     }
 }
-*/
+
 
 #endif

@@ -328,7 +328,7 @@ bool slcan_output_messages(void) {
     }
     bool read = false;
     CAN_Message msg;
-    while (can_read(&msg)) {
+    while (can_read_buffer(&msg)) {
         read = true;
         if (msg.format == CANStandard) {
             vcdc_print(msg.type == CANData ? "t" : "r");
