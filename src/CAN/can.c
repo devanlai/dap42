@@ -68,7 +68,7 @@ void can_rx_buffer_get(CAN_Message* msg) {
 
 bool can_reconfigure(uint32_t baudrate, CanMode mode) {
     nvic_disable_irq(CAN_NVIC_LINE);
-    can_disable_irq(CAN, CAN_IER_FMPIE0 | CAN_IER_FMPIE1);
+    can_disable_irq(CAN, CAN_IER_FMPIE0);
     can_reset(CAN);
 
     if (mode == MODE_RESET) {
@@ -132,7 +132,7 @@ bool can_reconfigure(uint32_t baudrate, CanMode mode) {
                                       true); /* Enable the filter. */
     }
 
-    can_enable_irq(CAN, CAN_IER_FMPIE0 | CAN_IER_FMPIE1);
+    can_enable_irq(CAN, CAN_IER_FMPIE0);
     nvic_enable_irq(CAN_NVIC_LINE);
     return true;
 }
@@ -158,18 +158,19 @@ bool can_setup(uint32_t baudrate, CanMode mode) {
 bool can_read(CAN_Message* msg) {
     bool success = false;
 
-    uint8_t fifo = 0xFF;
-    if ((CAN_RF0R(CAN) & CAN_RF0R_FMP0_MASK) != 0) {
-        fifo = 0;
-    } else if ((CAN_RF1R(CAN) & CAN_RF1R_FMP1_MASK) != 0) {
-        fifo = 1;
+    uint8_t fifo_depth = (CAN_RF0R(CAN) & CAN_RF0R_FMP0_MASK);
+    // Account for one fifo entry possibly going away
+    if (CAN_RF0R(CAN) & CAN_RF0R_RFOM0) {
+        fifo_depth = fifo_depth > 0 ? (fifo_depth - 1) : 0;
     }
 
-    if (fifo != 0xFF) {
+    if (fifo_depth > 0) {
+        // Wait for the previous message to be released
+        while (CAN_RF0R(CAN) & CAN_RF0R_RFOM0);
+
         uint32_t fmi;
         bool ext, rtr;
-        can_receive(CAN, fifo, true, &msg->id, &ext, &rtr, &fmi, &msg->len, msg->data);
-
+        can_receive(CAN, 0, true, &msg->id, &ext, &rtr, &fmi, &msg->len, msg->data);
         msg->format = ext ? CANExtended : CANStandard;
         msg->type = rtr ? CANRemote : CANData;
         success = true;
@@ -198,11 +199,11 @@ bool can_write(CAN_Message* msg) {
 void cec_can_isr(void) {
     while (!can_rx_buffer_full()) {
         CAN_Message msg;
-        bool read = can_read(&msg);
-        if (!read) {
+        if (can_read(&msg)) {
+            can_rx_buffer_put(&msg);
+        } else {
             break;
         }
-        can_rx_buffer_put(&msg);
     }
 }
 
