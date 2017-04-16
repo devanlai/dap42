@@ -62,7 +62,6 @@ const struct cdc_acm_functional_descriptors cdc_acm_functional_descriptors = {
 
 /* User callbacks */
 static HostOutFunction cdc_rx_callback = NULL;
-static HostInFunction cdc_tx_callback = NULL;
 static SetControlLineStateFunction cdc_set_control_line_state_callback = NULL;
 static SetLineCodingFunction cdc_set_line_coding_callback = NULL;
 static GetLineCodingFunction cdc_get_line_coding_callback = NULL;
@@ -167,13 +166,11 @@ static void cdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
 static usbd_device* cdc_usbd_dev;
 
 void cdc_setup(usbd_device* usbd_dev,
-               HostInFunction cdc_tx_cb,
                HostOutFunction cdc_rx_cb,
                SetControlLineStateFunction set_control_line_state_cb,
                SetLineCodingFunction set_line_coding_cb,
                GetLineCodingFunction get_line_coding_cb) {
     cdc_usbd_dev = usbd_dev;
-    cdc_tx_callback = cdc_tx_cb;
     cdc_rx_callback = cdc_rx_cb;
     cdc_set_control_line_state_callback = set_control_line_state_cb,
     cdc_set_line_coding_callback = set_line_coding_cb;
@@ -269,13 +266,6 @@ static void cdc_uart_on_host_tx(uint8_t* data, uint16_t len) {
     }
 }
 
-static void cdc_uart_on_host_rx(uint8_t* data, uint16_t* len) {
-    *len = (uint16_t)console_recv_buffered(data, USB_CDC_MAX_PACKET_SIZE);
-    if (cdc_uart_tx_callback) {
-        cdc_uart_tx_callback();
-    }
-}
-
 static uint16_t packet_len = 0;
 static uint8_t packet_buffer[USB_CDC_MAX_PACKET_SIZE];
 
@@ -289,8 +279,10 @@ void cdc_uart_app_setup(usbd_device* usbd_dev,
     cdc_uart_tx_callback = cdc_tx_cb;
     cdc_uart_rx_callback = cdc_rx_cb;
 
-    cdc_setup(usbd_dev, &cdc_uart_on_host_rx, &cdc_uart_on_host_tx,
-              NULL, &cdc_uart_set_line_coding, &cdc_uart_get_line_coding);
+    cdc_setup(usbd_dev,
+              &cdc_uart_on_host_tx,
+              NULL,
+              &cdc_uart_set_line_coding, &cdc_uart_get_line_coding);
     cmp_usb_register_reset_callback(cdc_uart_app_reset);
 }
 

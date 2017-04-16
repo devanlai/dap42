@@ -31,7 +31,6 @@ typedef bool (*GetLineCodingFunction)(struct usb_cdc_line_coding* line_coding);
 extern const struct cdc_acm_functional_descriptors cdc_acm_functional_descriptors;
 
 extern void cdc_setup(usbd_device* usbd_dev,
-                      HostInFunction cdc_tx_cb,
                       HostOutFunction cdc_rx_cb,
                       SetControlLineStateFunction set_control_line_state_cb,
                       SetLineCodingFunction set_line_coding_cb,

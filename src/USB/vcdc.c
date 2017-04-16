@@ -191,33 +191,12 @@ static void vcdc_bulk_data_out(usbd_device *usbd_dev, uint8_t ep) {
     }
 }
 
-/* Send (more) data to the host */
-/*
-static void vcdc_bulk_data_in(usbd_device *usbd_dev, uint8_t ep) {
-    uint8_t buf[USB_VCDC_MAX_PACKET_SIZE];
-
-    size_t i;
-    for (i=0; i < sizeof(buf) && !vcdc_tx_buffer_empty(); i++) {
-        buf[i] = vcdc_tx_buffer_get();
-    }
-
-    if (i > 0) {
-        vcdc_send_data(buf, i);
-    
-        if (vcdc_rx_callback != NULL) {
-            vcdc_tx_callback();
-        }
-    }
-}
-*/
-
 static void vcdc_set_config(usbd_device *usbd_dev, uint16_t wValue) {
     (void)wValue;
 
     usbd_ep_setup(usbd_dev, ENDP_VCDC_DATA_OUT, USB_ENDPOINT_ATTR_BULK, 64,
                   vcdc_bulk_data_out);
     usbd_ep_setup(usbd_dev, ENDP_VCDC_DATA_IN, USB_ENDPOINT_ATTR_BULK, 64,
-                  //vcdc_bulk_data_in);
                   NULL);
     usbd_ep_setup(usbd_dev, ENDP_VCDC_COMM_IN, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 

@@ -149,12 +149,6 @@ size_t console_recv_buffered(uint8_t* data, size_t max_bytes) {
     return bytes_read;
 }
 
-static bool console_echo_input = false;
-
-void console_set_echo(bool enable) {
-    console_echo_input = enable;
-}
-
 void console_send_blocking(uint8_t data) {
     usart_send_blocking(CONSOLE_USART, data);
 }
@@ -168,14 +162,6 @@ void CONSOLE_USART_IRQ_NAME(void) {
         uint8_t received_byte = (uint8_t)usart_recv(CONSOLE_USART);
         if (!console_rx_buffer_full()) {
             console_rx_buffer_put(received_byte);
-        }
-
-        if (console_echo_input) {
-            if (received_byte == '\r') {
-                console_send_buffered((const uint8_t*)"\r\n", 2);
-            } else {
-                console_send_buffered(&received_byte, 1);
-            }
         }
     }
 

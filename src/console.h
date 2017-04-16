@@ -33,6 +33,4 @@ extern uint8_t console_recv_blocking(void);
 extern size_t console_send_buffered(const uint8_t* data, size_t num_bytes);
 extern size_t console_recv_buffered(uint8_t* data, size_t max_bytes);
 
-extern void console_set_echo(bool enable);
-
 #endif
