@@ -38,6 +38,12 @@ ifeq ($(TARGET),KITCHEN42)
 	LDSCRIPT           ?= ./stm32f042/stm32f042x6.ld
 	ARCH                = STM32F0
 endif
+ifeq ($(TARGET),DAP42K6U)
+	TARGET_COMMON_DIR  := ./stm32f042
+	TARGET_SPEC_DIR    := ./stm32f042/dap42k6u
+	LDSCRIPT           ?= ./stm32f042/stm32f042x6.ld
+	ARCH                = STM32F0
+endif
 ifeq ($(TARGET),STM32F103)
 	TARGET_COMMON_DIR  := ./stm32f103
 	TARGET_SPEC_DIR    := ./stm32f103/stlinkv2-dongle
