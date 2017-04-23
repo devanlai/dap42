@@ -26,6 +26,7 @@
 #include "cdc.h"
 
 #include "console.h"
+#include "tick.h"
 
 #if CDC_AVAILABLE
 
@@ -268,9 +269,14 @@ static void cdc_uart_on_host_tx(uint8_t* data, uint16_t len) {
 
 static uint16_t packet_len = 0;
 static uint8_t packet_buffer[USB_CDC_MAX_PACKET_SIZE];
+static uint32_t packet_timeout = 0;
+static uint32_t packet_timestamp = 0;
+static bool need_zlp = false;
 
 void cdc_uart_app_reset(void) {
     packet_len = 0;
+    packet_timestamp = get_ticks();
+    need_zlp = false;
 }
 
 void cdc_uart_app_setup(usbd_device* usbd_dev,
@@ -286,7 +292,11 @@ void cdc_uart_app_setup(usbd_device* usbd_dev,
     cmp_usb_register_reset_callback(cdc_uart_app_reset);
 }
 
-bool cdc_uart_app_update(void) {
+void cdc_uart_app_set_timeout(uint32_t timeout_ms) {
+    packet_timeout = timeout_ms;
+}
+
+bool cdc_uart_app_update() {
     bool active = false;
 
     if (packet_len < USB_CDC_MAX_PACKET_SIZE) {
@@ -294,10 +304,22 @@ bool cdc_uart_app_update(void) {
         packet_len += console_recv_buffered(&packet_buffer[packet_len], max_bytes);
     }
 
-    if (packet_len > 0 && cmp_usb_configured()) {
-        if (cdc_send_data(packet_buffer, packet_len)) {
-            active = true;
+    uint32_t now = get_ticks();
+    bool flush = false;
+    bool timeout = (now - packet_timestamp) >= packet_timeout;
+    if (packet_len == USB_CDC_MAX_PACKET_SIZE) {
+        flush = true;
+    } else if (timeout && (packet_len > 0 || need_zlp)) {
+        flush = true;
+    }
+    
+    if (flush && cmp_usb_configured()) {
+        if (cdc_send_data(packet_buffer, packet_len) || (packet_len == 0)) {
+            active = (packet_len > 0);
+            need_zlp = (packet_len == USB_CDC_MAX_PACKET_SIZE);
             packet_len = 0;
+            packet_timestamp = now;
+
             if (cdc_uart_tx_callback) {
                 cdc_uart_tx_callback();
             }

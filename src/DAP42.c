@@ -108,6 +108,7 @@ int main(void) {
 
     if (CDC_AVAILABLE) {
         cdc_uart_app_setup(usbd_dev, &on_usb_activity, &on_usb_activity);
+        cdc_uart_app_set_timeout(1);
     }
 
     if (VCDC_AVAILABLE) {

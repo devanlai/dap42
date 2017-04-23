@@ -44,4 +44,6 @@ extern void cdc_uart_app_setup(usbd_device* usbd_dev,
 
 extern bool cdc_uart_app_update(void);
 
+extern void cdc_uart_app_set_timeout(uint32_t timeout_ms);
+
 #endif
