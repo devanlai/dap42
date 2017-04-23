@@ -72,7 +72,7 @@ DAP42K6U.bin: | $(BUILD_DIR)
 	@printf "  BUILD $(@)\n"
 	$(Q)$(MAKE) TARGET=DAP42K6U -C src/ clean
 	$(Q)$(MAKE) TARGET=DAP42K6U -C src/
-	$(Q)cp src/DAP42K6U.bin $(BUILD_DIR)/$(@)
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
 
 DAP103-NUCLEO-STBOOT.bin: | $(BUILD_DIR)
 	@printf "  BUILD $(@)\n"
