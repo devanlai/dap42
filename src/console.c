@@ -83,23 +83,27 @@ static bool console_tx_buffer_empty(void) {
 }
 
 static bool console_tx_buffer_full(void) {
-    return console_tx_head == ((console_tx_tail + 1) % CONSOLE_TX_BUFFER_SIZE);
+    return (uint16_t)(console_tx_tail - console_tx_head) == CONSOLE_TX_BUFFER_SIZE;
 }
 
 static void console_tx_buffer_put(uint8_t data) {
-    console_tx_buffer[console_tx_tail] = data;
-    console_tx_tail = (console_tx_tail + 1) % CONSOLE_TX_BUFFER_SIZE;
+    console_tx_buffer[console_tx_tail % CONSOLE_TX_BUFFER_SIZE] = data;
+    console_tx_tail++;
 }
 
 static uint8_t console_tx_buffer_get(void) {
-    uint8_t data = console_tx_buffer[console_tx_head];
-    console_tx_head = (console_tx_head + 1) % CONSOLE_TX_BUFFER_SIZE;
+    uint8_t data = console_tx_buffer[console_tx_head % CONSOLE_TX_BUFFER_SIZE];
+    console_tx_head++;
     return data;
 }
 
 void console_tx_buffer_clear(void) {
     console_tx_head = 0;
     console_tx_tail = 0;
+}
+
+size_t console_send_buffer_space(void) {
+    return CONSOLE_TX_BUFFER_SIZE - (uint16_t)(console_tx_tail - console_tx_head);
 }
 
 static bool console_rx_buffer_empty(void) {

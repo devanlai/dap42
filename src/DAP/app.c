@@ -35,9 +35,11 @@ static uint8_t outbox_head;
 
 static GenericCallback dfu_request_callback = NULL;
 
-static void on_receive_report(uint8_t* data, uint16_t len) {
+static bool on_receive_report(uint8_t* data, uint16_t len) {
     memcpy((void*)request_buffers[inbox_tail], (const void*)data, len);
     inbox_tail = (inbox_tail + 1) % DAP_PACKET_QUEUE_SIZE;
+
+    return ((inbox_tail + 1) % DAP_PACKET_QUEUE_SIZE) != outbox_head;
 }
 
 static void on_send_report(uint8_t* data, uint16_t* len) {

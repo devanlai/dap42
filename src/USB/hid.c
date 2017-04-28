@@ -126,6 +126,7 @@ static int hid_control_class_request(usbd_device *usbd_dev,
         case USB_HID_REQ_SET_REPORT: {
             if ((hid_report_out_callback != NULL) && (*len > 0))
             {
+                // TODO: flow control
                 hid_report_out_callback(*buf, *len);
                 status = USBD_REQ_HANDLED;
             }
@@ -156,6 +157,7 @@ static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
 static void hid_interrupt_out(usbd_device *usbd_dev, uint8_t ep) {
     uint8_t buf[USB_HID_MAX_PACKET_SIZE];
     uint16_t len = usbd_ep_read_packet(usbd_dev, ep, (void*)buf, sizeof(buf));
+    // TODO: flow control
     if (len > 0 && (hid_report_out_callback != NULL)) {
         hid_report_out_callback(buf, len);
     }
