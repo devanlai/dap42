@@ -31,6 +31,8 @@ extern bool vcdc_app_update(void);
 extern size_t vcdc_recv_buffered(uint8_t* data, size_t max_bytes);
 extern size_t vcdc_send_buffered(const uint8_t* data, size_t num_bytes);
 
+extern size_t vcdc_send_buffer_space(void);
+
 extern void vcdc_putchar(const char c);
 extern void vcdc_print(const char* s);
 extern void vcdc_println(const char* s);

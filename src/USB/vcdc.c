@@ -70,17 +70,17 @@ static bool vcdc_tx_buffer_empty(void) {
 }
 
 static bool vcdc_tx_buffer_full(void) {
-    return vcdc_tx_head == ((vcdc_tx_tail + 1) % VCDC_TX_BUFFER_SIZE);
+    return (uint16_t)(vcdc_tx_tail - vcdc_tx_head) == VCDC_TX_BUFFER_SIZE;
 }
 
 static void vcdc_tx_buffer_put(uint8_t data) {
-    vcdc_tx_buffer[vcdc_tx_tail] = data;
-    vcdc_tx_tail = (vcdc_tx_tail + 1) % VCDC_TX_BUFFER_SIZE;
+    vcdc_tx_buffer[vcdc_tx_tail % VCDC_TX_BUFFER_SIZE] = data;
+    vcdc_tx_tail++;
 }
 
 static uint8_t vcdc_tx_buffer_get(void) {
-    uint8_t data = vcdc_tx_buffer[vcdc_tx_head];
-    vcdc_tx_head = (vcdc_tx_head + 1) % VCDC_TX_BUFFER_SIZE;
+    uint8_t data = vcdc_tx_buffer[vcdc_tx_head % VCDC_TX_BUFFER_SIZE];
+    vcdc_tx_head++;
     return data;
 }
 
@@ -89,17 +89,17 @@ static bool vcdc_rx_buffer_empty(void) {
 }
 
 static bool vcdc_rx_buffer_full(void) {
-    return vcdc_rx_head == ((vcdc_rx_tail + 1) % VCDC_RX_BUFFER_SIZE);
+    return (uint16_t)(vcdc_rx_tail - vcdc_rx_head) == VCDC_RX_BUFFER_SIZE;
 }
 
 static void vcdc_rx_buffer_put(uint8_t data) {
-    vcdc_rx_buffer[vcdc_rx_tail] = data;
-    vcdc_rx_tail = (vcdc_rx_tail + 1) % VCDC_RX_BUFFER_SIZE;
+    vcdc_rx_buffer[vcdc_rx_tail % VCDC_RX_BUFFER_SIZE] = data;
+    vcdc_rx_tail++;
 }
 
 static uint8_t vcdc_rx_buffer_get(void) {
-    uint8_t data = vcdc_rx_buffer[vcdc_rx_head];
-    vcdc_rx_head = (vcdc_rx_head + 1) % VCDC_RX_BUFFER_SIZE;
+    uint8_t data = vcdc_rx_buffer[vcdc_rx_head % VCDC_RX_BUFFER_SIZE];
+    vcdc_rx_head++;
     return data;
 }
 
@@ -119,6 +119,10 @@ size_t vcdc_send_buffered(const uint8_t* data, size_t num_bytes) {
     }
 
     return bytes_queued;
+}
+
+size_t vcdc_send_buffer_space(void) {
+    return VCDC_TX_BUFFER_SIZE - (uint16_t)(vcdc_tx_tail - vcdc_tx_head);
 }
 
 /* User callbacks */

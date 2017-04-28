@@ -37,33 +37,43 @@ bool can_rx_buffer_empty(void) {
 }
 
 bool can_rx_buffer_full(void) {
-    return can_rx_head == ((can_rx_tail + 1) % CAN_RX_BUFFER_SIZE);
+    return (uint8_t)(can_rx_tail - can_rx_head) == CAN_RX_BUFFER_SIZE;
 }
 
-static volatile const CAN_Message* can_rx_buffer_peek(void) {
-    return &can_rx_buffer[can_rx_head];
+CAN_Message* can_rx_buffer_peek(void) {
+    if (!can_rx_buffer_empty()) {
+        return (CAN_Message*)(&can_rx_buffer[(can_rx_head % CAN_RX_BUFFER_SIZE)]);
+    } else {
+        return NULL;
+    }
 }
 
-static void can_rx_buffer_pop(void) {
-    can_rx_head = (can_rx_head + 1) % CAN_RX_BUFFER_SIZE;
+void can_rx_buffer_pop(void) {
+    can_rx_head++;
+
+    // Re-enable the ISR since we made space
+    nvic_enable_irq(CAN_NVIC_LINE);
 }
 
-static volatile CAN_Message* can_rx_buffer_tail(void) {
-    return &can_rx_buffer[can_rx_tail];
+static CAN_Message* can_rx_buffer_tail(void) {
+    return (CAN_Message*)&can_rx_buffer[(can_rx_tail % CAN_RX_BUFFER_SIZE)];
 }
 
 static void can_rx_buffer_extend(void) {
-    can_rx_tail = (can_rx_tail + 1) % CAN_RX_BUFFER_SIZE;
+    can_rx_tail++;
 }
 
 void can_rx_buffer_put(const CAN_Message* msg) {
-    memcpy((void*)&can_rx_buffer[can_rx_tail], (const void*)msg, sizeof(CAN_Message));
-    can_rx_tail = (can_rx_tail + 1) % CAN_RX_BUFFER_SIZE;
+    memcpy((void*)&can_rx_buffer[(can_rx_tail % CAN_RX_BUFFER_SIZE)], (const void*)msg, sizeof(CAN_Message));
+    can_rx_tail++;
 }
 
 void can_rx_buffer_get(CAN_Message* msg) {
-    memcpy((void*)msg, (const void*)&can_rx_buffer[can_rx_head], sizeof(CAN_Message));
-    can_rx_head = (can_rx_head + 1) % CAN_RX_BUFFER_SIZE;
+    memcpy((void*)msg, (const void*)&can_rx_buffer[(can_rx_head % CAN_RX_BUFFER_SIZE)], sizeof(CAN_Message));
+    can_rx_head++;
+
+    // Re-enable the ISR since we made space
+    nvic_enable_irq(CAN_NVIC_LINE);
 }
 
 bool can_reconfigure(uint32_t baudrate, CanMode mode) {
@@ -153,18 +163,20 @@ bool can_setup(uint32_t baudrate, CanMode mode) {
     return can_reconfigure(baudrate, mode);
 }
 
-
-
-bool can_read(CAN_Message* msg) {
-    bool success = false;
-
+static uint8_t can_fifo_depth(void) {
     uint8_t fifo_depth = (CAN_RF0R(CAN) & CAN_RF0R_FMP0_MASK);
     // Account for one fifo entry possibly going away
     if (CAN_RF0R(CAN) & CAN_RF0R_RFOM0) {
         fifo_depth = fifo_depth > 0 ? (fifo_depth - 1) : 0;
     }
 
-    if (fifo_depth > 0) {
+    return fifo_depth;
+}
+
+bool can_read(CAN_Message* msg) {
+    bool success = false;
+
+    if (can_fifo_depth() > 0) {
         // Wait for the previous message to be released
         while (CAN_RF0R(CAN) & CAN_RF0R_RFOM0);
 
@@ -195,15 +207,23 @@ bool can_write(CAN_Message* msg) {
     return (can_transmit(CAN, msg->id, ext, rtr, msg->len, msg->data) != -1);
 }
 
-
 void cec_can_isr(void) {
-    while (!can_rx_buffer_full()) {
-        CAN_Message msg;
-        if (can_read(&msg)) {
-            can_rx_buffer_put(&msg);
+    uint8_t messages_queued = 0;
+    uint8_t fifo_depth = can_fifo_depth();
+    while (!can_rx_buffer_full() && messages_queued < fifo_depth) {
+        CAN_Message* msg = can_rx_buffer_tail();
+        if (can_read(msg)) {
+            can_rx_buffer_extend();
+            messages_queued++;
         } else {
             break;
         }
+    }
+
+    // If the software buffer is full, disable the ISR so that
+    // the main loop can drain the buffer over USB.
+    if (messages_queued == 0) {
+        nvic_disable_irq(CAN_NVIC_LINE);
     }
 }
 

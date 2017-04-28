@@ -322,29 +322,55 @@ bool slcan_exec_command(const char* command, size_t len) {
     return success;
 }
 
+static size_t slcan_calc_message_length(const CAN_Message* msg) {
+    size_t len;
+    if (msg->format == CANStandard) {
+        len = 1 + 3 + 1 + (2 * msg->len) + 1;
+    } else {
+        len = 1 + 8 + 1 + (2 * msg->len) + 1;
+    }
+
+    return len;
+}
+
 bool slcan_output_messages(void) {
     if (slcan_mode == MODE_RESET) {
         return false;
     }
     bool read = false;
-    CAN_Message msg;
-    while (can_read_buffer(&msg)) {
+
+    size_t avail_buf_len = vcdc_send_buffer_space();
+    while (!can_rx_buffer_empty()) {
+        // Examine the current message without dequeuing it
+        CAN_Message* msg = can_rx_buffer_peek();
+
+        // Stop processing messages if there's no more room
+        size_t msg_len = slcan_calc_message_length(msg);
+        if (msg_len > avail_buf_len) {
+            break;
+        }
+        
         read = true;
-        if (msg.format == CANStandard) {
-            vcdc_print(msg.type == CANData ? "t" : "r");
-            vcdc_print_hex_nibble((uint8_t)(msg.id >> 8));
-            vcdc_print_hex_byte((uint8_t)(msg.id & 0xFF));
-            vcdc_putchar('0' + msg.len);
+        if (msg->format == CANStandard) {
+            vcdc_print(msg->type == CANData ? "t" : "r");
+            vcdc_print_hex_nibble((uint8_t)(msg->id >> 8));
+            vcdc_print_hex_byte((uint8_t)(msg->id & 0xFF));
+            vcdc_putchar('0' + msg->len);
         } else {
-            vcdc_print(msg.type == CANData ? "T" : "R");
-            vcdc_print_hex(msg.id);
-            vcdc_putchar('0' + msg.len);
+            vcdc_print(msg->type == CANData ? "T" : "R");
+            vcdc_print_hex(msg->id);
+            vcdc_putchar('0' + msg->len);
         }
         uint8_t i = 0;
-        for (i=0; i < msg.len; i++) {
-            vcdc_print_hex_byte(msg.data[i]);
+        for (i=0; i < msg->len; i++) {
+            vcdc_print_hex_byte(msg->data[i]);
         }
         vcdc_putchar('\r');
+
+        avail_buf_len -= msg_len;
+
+        // Release the message now that it's been processed
+        can_rx_buffer_pop();
     }
 
     return read;
