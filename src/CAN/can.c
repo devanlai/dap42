@@ -28,6 +28,12 @@
 
 #if CAN_RX_AVAILABLE
 
+#define IS_POW_OF_TWO(X) (((X) & ((X)-1)) == 0)
+_Static_assert(IS_POW_OF_TWO(CAN_RX_BUFFER_SIZE),
+               "Unmasked circular buffer size must be a power of two");
+_Static_assert(CAN_RX_BUFFER_SIZE <= UINT8_MAX/2,
+               "Buffer size too big for unmasked circular buffer");
+
 static volatile CAN_Message can_rx_buffer[CAN_RX_BUFFER_SIZE];
 static volatile uint8_t can_rx_head = 0;
 static volatile uint8_t can_rx_tail = 0;

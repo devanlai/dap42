@@ -30,6 +30,9 @@
 
 #if CDC_AVAILABLE
 
+_Static_assert((CONSOLE_TX_BUFFER_SIZE >= USB_CDC_MAX_PACKET_SIZE),
+               "TX buffer too small");
+
 /* Descriptors */
 const struct cdc_acm_functional_descriptors cdc_acm_functional_descriptors = {
     .header = {

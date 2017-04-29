@@ -65,6 +65,19 @@ static uint16_t vcdc_tx_tail = 0;
 static uint16_t vcdc_rx_head = 0;
 static uint16_t vcdc_rx_tail = 0;
 
+_Static_assert((VCDC_RX_BUFFER_SIZE >= USB_VCDC_MAX_PACKET_SIZE),
+               "RX buffer too small");
+
+#define IS_POW_OF_TWO(X) (((X) & ((X)-1)) == 0)
+_Static_assert(IS_POW_OF_TWO(VCDC_RX_BUFFER_SIZE),
+               "Unmasked circular buffer size must be a power of two");
+_Static_assert(IS_POW_OF_TWO(VCDC_TX_BUFFER_SIZE),
+               "Unmasked circular buffer size must be a power of two");
+_Static_assert(VCDC_TX_BUFFER_SIZE <= UINT16_MAX/2,
+               "Buffer size too big for unmasked circular buffer");
+_Static_assert(VCDC_RX_BUFFER_SIZE <= UINT16_MAX/2,
+               "Buffer size too big for unmasked circular buffer");
+
 static bool vcdc_tx_buffer_empty(void) {
     return vcdc_tx_head == vcdc_tx_tail;
 }
