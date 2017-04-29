@@ -29,12 +29,14 @@ DAP42_DISPLAY_NAME = "DAP42 Driver"
 [DeviceList]
 %DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0100&MI_01
 %DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_01
-%DAP42SLCAN%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_03
+%DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0120&MI_01
+;%DAP42SLCAN%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_03
 
 [DeviceList.NTamd64]
 %DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0100&MI_01
 %DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_01
-%DAP42SLCAN%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_03
+%DAP42UART%=DriverInstall, USB\VID_1209&PID_da42&Rev_0120&MI_01
+;%DAP42SLCAN%=DriverInstall, USB\VID_1209&PID_da42&Rev_0110&MI_03
 
 [DestinationDirs]
 DefaultDestDir=10,System32\Drivers
