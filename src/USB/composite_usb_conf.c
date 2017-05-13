@@ -66,7 +66,13 @@ _Static_assert((1 + NUM_OUT_ENDPOINTS <= 8), "Too many OUT endpoints for USB cor
                        + CDC_PMA_USAGE \
                        + VCDC_PMA_USAGE)
 
-_Static_assert((TOTAL_PMA_USAGE <= USB_PMA_SIZE), "USB packet memory area overallocated");
+#if CAN_RX_AVAILABLE && VCDC_AVAILABLE
+#define MAX_USB_PMA_SIZE USB_PMA_SIZE_WITH_CAN
+#else
+#define MAX_USB_PMA_SIZE USB_PMA_SIZE
+#endif
+
+_Static_assert((TOTAL_PMA_USAGE <= MAX_USB_PMA_SIZE), "USB packet memory area overallocated");
 
 static const struct usb_device_descriptor dev = {
     .bLength = USB_DT_DEVICE_SIZE,
