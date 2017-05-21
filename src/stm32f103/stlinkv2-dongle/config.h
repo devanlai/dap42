@@ -33,7 +33,7 @@
 
 #define CONSOLE_USART USART3
 #define CONSOLE_TX_BUFFER_SIZE 128
-#define CONSOLE_RX_BUFFER_SIZE 128
+#define CONSOLE_RX_BUFFER_SIZE 4096
 
 #define CONSOLE_USART_GPIO_PORT GPIOB
 #define CONSOLE_USART_GPIO_TX   0
@@ -45,11 +45,17 @@
 
 #define CONSOLE_USART_IRQ_NAME  usart3_isr
 #define CONSOLE_USART_NVIC_LINE NVIC_USART3_IRQ
+#define CONSOLE_RX_DMA_CONTROLLER DMA1
+#define CONSOLE_RX_DMA_CLOCK RCC_DMA1
+#define CONSOLE_RX_DMA_CHANNEL DMA_CHANNEL3
 
 #define TARGET_DFU_AVAILABLE 0
 
 /* Word size for usart_recv and usart_send */
 typedef uint16_t usart_word_t;
+
+/* Workaround for non-commonalized STM32F0 USART code */
+#define USART_RDR(usart_base) USART_DR(usart_base)
 
 #define LED_OPEN_DRAIN         0
 

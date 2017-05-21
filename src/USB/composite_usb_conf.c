@@ -412,6 +412,22 @@ void cmp_usb_register_reset_callback(GenericCallback callback) {
     }
 }
 
+static GenericCallback sof_callbacks[USB_MAX_SOF_CALLBACKS];
+static uint8_t num_sof_callbacks;
+
+void cmp_usb_register_sof_callback(GenericCallback callback) {
+    if (num_sof_callbacks < USB_MAX_SOF_CALLBACKS) {
+        sof_callbacks[num_sof_callbacks++] = callback;
+    }
+}
+
+static void cmp_usb_handle_sof(void) {
+    uint8_t i;
+    for (i=0; i < num_sof_callbacks; i++) {
+        (*sof_callbacks[i])();
+    }
+}
+
 /* Configuration status */
 static bool configured = false;
 
@@ -429,6 +445,9 @@ static void cmp_usb_handle_reset(void) {
     for (i=0; i < num_callbacks; i++) {
         (*reset_callbacks[i])();
     }
+
+    // Unregister all SOF callbacks
+    num_sof_callbacks = 0;
 }
 
 /* Class-specific control request handlers */
@@ -519,5 +538,6 @@ usbd_device* cmp_usb_setup(void) {
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, cmp_usb_set_config);
     usbd_register_reset_callback(usbd_dev, cmp_usb_handle_reset);
+    usbd_register_sof_callback(usbd_dev, cmp_usb_handle_sof);
     return usbd_dev;
 }
