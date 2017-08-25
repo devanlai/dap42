@@ -65,22 +65,35 @@ static uint16_t vcdc_tx_tail = 0;
 static uint16_t vcdc_rx_head = 0;
 static uint16_t vcdc_rx_tail = 0;
 
+_Static_assert((VCDC_RX_BUFFER_SIZE >= USB_VCDC_MAX_PACKET_SIZE),
+               "RX buffer too small");
+
+#define IS_POW_OF_TWO(X) (((X) & ((X)-1)) == 0)
+_Static_assert(IS_POW_OF_TWO(VCDC_RX_BUFFER_SIZE),
+               "Unmasked circular buffer size must be a power of two");
+_Static_assert(IS_POW_OF_TWO(VCDC_TX_BUFFER_SIZE),
+               "Unmasked circular buffer size must be a power of two");
+_Static_assert(VCDC_TX_BUFFER_SIZE <= UINT16_MAX/2,
+               "Buffer size too big for unmasked circular buffer");
+_Static_assert(VCDC_RX_BUFFER_SIZE <= UINT16_MAX/2,
+               "Buffer size too big for unmasked circular buffer");
+
 static bool vcdc_tx_buffer_empty(void) {
     return vcdc_tx_head == vcdc_tx_tail;
 }
 
 static bool vcdc_tx_buffer_full(void) {
-    return vcdc_tx_head == ((vcdc_tx_tail + 1) % VCDC_TX_BUFFER_SIZE);
+    return (uint16_t)(vcdc_tx_tail - vcdc_tx_head) == VCDC_TX_BUFFER_SIZE;
 }
 
 static void vcdc_tx_buffer_put(uint8_t data) {
-    vcdc_tx_buffer[vcdc_tx_tail] = data;
-    vcdc_tx_tail = (vcdc_tx_tail + 1) % VCDC_TX_BUFFER_SIZE;
+    vcdc_tx_buffer[vcdc_tx_tail % VCDC_TX_BUFFER_SIZE] = data;
+    vcdc_tx_tail++;
 }
 
 static uint8_t vcdc_tx_buffer_get(void) {
-    uint8_t data = vcdc_tx_buffer[vcdc_tx_head];
-    vcdc_tx_head = (vcdc_tx_head + 1) % VCDC_TX_BUFFER_SIZE;
+    uint8_t data = vcdc_tx_buffer[vcdc_tx_head % VCDC_TX_BUFFER_SIZE];
+    vcdc_tx_head++;
     return data;
 }
 
@@ -89,17 +102,17 @@ static bool vcdc_rx_buffer_empty(void) {
 }
 
 static bool vcdc_rx_buffer_full(void) {
-    return vcdc_rx_head == ((vcdc_rx_tail + 1) % VCDC_RX_BUFFER_SIZE);
+    return (uint16_t)(vcdc_rx_tail - vcdc_rx_head) == VCDC_RX_BUFFER_SIZE;
 }
 
 static void vcdc_rx_buffer_put(uint8_t data) {
-    vcdc_rx_buffer[vcdc_rx_tail] = data;
-    vcdc_rx_tail = (vcdc_rx_tail + 1) % VCDC_RX_BUFFER_SIZE;
+    vcdc_rx_buffer[vcdc_rx_tail % VCDC_RX_BUFFER_SIZE] = data;
+    vcdc_rx_tail++;
 }
 
 static uint8_t vcdc_rx_buffer_get(void) {
-    uint8_t data = vcdc_rx_buffer[vcdc_rx_head];
-    vcdc_rx_head = (vcdc_rx_head + 1) % VCDC_RX_BUFFER_SIZE;
+    uint8_t data = vcdc_rx_buffer[vcdc_rx_head % VCDC_RX_BUFFER_SIZE];
+    vcdc_rx_head++;
     return data;
 }
 
@@ -119,6 +132,10 @@ size_t vcdc_send_buffered(const uint8_t* data, size_t num_bytes) {
     }
 
     return bytes_queued;
+}
+
+size_t vcdc_send_buffer_space(void) {
+    return VCDC_TX_BUFFER_SIZE - (uint16_t)(vcdc_tx_tail - vcdc_tx_head);
 }
 
 /* User callbacks */
@@ -247,6 +264,53 @@ bool vcdc_app_update(void) {
     }
     
     return active;
+}
+
+void vcdc_putchar(const char c) {
+    if (!vcdc_tx_buffer_full()) {
+        vcdc_tx_buffer_put(c);
+    }
+}
+
+void vcdc_print(const char* s) {
+    while (*s != '\0') {
+        vcdc_putchar(*s++);
+    }
+}
+
+void vcdc_println(const char* s) {
+    while (*s != '\0') {
+        vcdc_putchar(*s++);
+    }
+    vcdc_putchar('\r');
+    vcdc_putchar('\n');
+}
+
+void vcdc_print_hex_nibble(uint8_t x) {
+    uint8_t nibble = x & 0x0F;
+    char nibble_char;
+    if (nibble < 10) {
+        nibble_char = '0' + nibble;
+    } else {
+        nibble_char = 'A' + (nibble - 10);
+    }
+    vcdc_putchar(nibble_char);
+}
+
+void vcdc_print_hex_byte(uint8_t x) {
+    vcdc_print_hex_nibble(x >> 4);
+    vcdc_print_hex_nibble(x);
+}
+
+void vcdc_print_hex(uint32_t x) {
+    vcdc_print_hex_nibble((uint8_t)(x >> 28));
+    vcdc_print_hex_nibble((uint8_t)(x >> 24));
+    vcdc_print_hex_nibble((uint8_t)(x >> 20));
+    vcdc_print_hex_nibble((uint8_t)(x >> 16));
+    vcdc_print_hex_nibble((uint8_t)(x >> 12));
+    vcdc_print_hex_nibble((uint8_t)(x >> 8));
+    vcdc_print_hex_nibble((uint8_t)(x >> 4));
+    vcdc_print_hex_nibble((uint8_t)(x >> 0));
 }
 
 #endif

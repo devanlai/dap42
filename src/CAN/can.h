@@ -16,21 +16,25 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RETARGET_H_INCLUDED
-#define RETARGET_H_INCLUDED
+#ifndef CAN_H
+#define CAN_H
 
-#include <unistd.h>
+#include "can_helper.h"
 
-#define NO_USART 0xFFFFFFFFU
-#define VIRTUAL_USART 0xFFFFFFFEU
+#define CAN_RX_BUFFER_SIZE 16
 
-extern void retarget(int file, uint32_t usart);
-extern int _write(int file, char *ptr, int len);
+extern bool can_setup(uint32_t baudrate, CanMode mode);
+extern bool can_reconfigure(uint32_t baudrate, CanMode mode);
+extern bool can_read(CAN_Message* msg);
+extern bool can_read_buffer(CAN_Message* msg);
 
-extern void print_hex(uint32_t x);
-extern void print_hex_nibble(uint8_t x);
-extern void print_hex_byte(uint8_t x);
-extern void print(const char* s);
-extern void println(const char* s);
+extern bool can_write(CAN_Message* msg);
+
+extern bool can_rx_buffer_empty(void);
+extern bool can_rx_buffer_full(void);
+extern void can_rx_buffer_put(const CAN_Message* msg);
+extern void can_rx_buffer_get(CAN_Message* msg);
+extern CAN_Message* can_rx_buffer_peek(void);
+extern void can_rx_buffer_pop(void);
 
 #endif

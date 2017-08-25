@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Devan Lai
+ * Copyright (c) 2016, Devan Lai
  *
  * Permission to use, copy, modify, and/or distribute this software
  * for any purpose with or without fee is hereby granted, provided
@@ -16,21 +16,19 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RETARGET_H_INCLUDED
-#define RETARGET_H_INCLUDED
+#ifndef SLCAN_H_INCLUDED
+#define SLCAN_H_INCLUDED
 
-#include <unistd.h>
+#include "can.h"
 
-#define NO_USART 0xFFFFFFFFU
-#define VIRTUAL_USART 0xFFFFFFFEU
+#define SLCAN_MAX_MESSAGE_LEN 27
 
-extern void retarget(int file, uint32_t usart);
-extern int _write(int file, char *ptr, int len);
+#define SLCAN_OK    '\r'
+#define SLCAN_ERROR '\a'
 
-extern void print_hex(uint32_t x);
-extern void print_hex_nibble(uint8_t x);
-extern void print_hex_byte(uint8_t x);
-extern void print(const char* s);
-extern void println(const char* s);
+extern bool slcan_output_messages(void);
+extern bool slcan_exec_command(const char* command, size_t len);
+extern void slcan_app_setup(uint32_t baudrate, CanMode mode);
+extern bool slcan_app_update(void);
 
 #endif

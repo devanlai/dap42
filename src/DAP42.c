@@ -34,6 +34,8 @@
 #include "DAP/CMSIS_DAP_hal.h"
 #include "DFU/DFU.h"
 
+#include "CAN/slcan.h"
+
 #include "tick.h"
 #include "retarget.h"
 #include "console.h"
@@ -119,6 +121,10 @@ int main(void) {
         dfu_setup(usbd_dev, &on_dfu_request);
     }
 
+    if (CAN_RX_AVAILABLE && VCDC_AVAILABLE) {
+        slcan_app_setup(500000, MODE_RESET);
+    }
+
     tick_start();
 
     /* Enable the watchdog to enable DFU recovery from bad firmware images */
@@ -133,9 +139,14 @@ int main(void) {
             cdc_uart_app_update();
         }
 
+        if (CAN_RX_AVAILABLE && VCDC_AVAILABLE) {
+            slcan_app_update();
+        }
+
         if (VCDC_AVAILABLE) {
             vcdc_app_update();
         }
+
 
         // Handle DAP
         bool dap_active = DAP_app_update();
