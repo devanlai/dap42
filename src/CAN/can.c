@@ -84,8 +84,8 @@ void can_rx_buffer_get(CAN_Message* msg) {
 
 bool can_reconfigure(uint32_t baudrate, CanMode mode) {
     nvic_disable_irq(CAN_NVIC_LINE);
-    can_disable_irq(CAN, CAN_IER_FMPIE0);
-    can_reset(CAN);
+    can_disable_irq(CAN1, CAN_IER_FMPIE0);
+    can_reset(CAN1);
 
     if (mode == MODE_RESET) {
         // Just stop after resetting the CAN controller.
@@ -133,14 +133,14 @@ bool can_reconfigure(uint32_t baudrate, CanMode mode) {
     bool TXFP = false; /* TXFP: Transmit FIFO priority? */
 
     /* CAN cell init. */
-    if (can_init(CAN, TTCM, ABOM, AWUM, NART, RFLM, TXFP,
+    if (can_init(CAN1, TTCM, ABOM, AWUM, NART, RFLM, TXFP,
                  sjw, ts1, ts2,
                  brp,  /* BRP+1: Baud rate prescaler */
                  loopback,
                  silent) != 0) {
         return false;
     } else {
-        can_filter_id_mask_32bit_init(CAN,
+        can_filter_id_mask_32bit_init(CAN1,
                                       0,     /* Filter ID */
                                       0,     /* CAN ID */
                                       0,     /* CAN ID mask */
@@ -148,7 +148,7 @@ bool can_reconfigure(uint32_t baudrate, CanMode mode) {
                                       true); /* Enable the filter. */
     }
 
-    can_enable_irq(CAN, CAN_IER_FMPIE0);
+    can_enable_irq(CAN1, CAN_IER_FMPIE0);
     nvic_enable_irq(CAN_NVIC_LINE);
     return true;
 }
@@ -170,9 +170,9 @@ bool can_setup(uint32_t baudrate, CanMode mode) {
 }
 
 static uint8_t can_fifo_depth(void) {
-    uint8_t fifo_depth = (CAN_RF0R(CAN) & CAN_RF0R_FMP0_MASK);
+    uint8_t fifo_depth = (CAN_RF0R(CAN1) & CAN_RF0R_FMP0_MASK);
     // Account for one fifo entry possibly going away
-    if (CAN_RF0R(CAN) & CAN_RF0R_RFOM0) {
+    if (CAN_RF0R(CAN1) & CAN_RF0R_RFOM0) {
         fifo_depth = fifo_depth > 0 ? (fifo_depth - 1) : 0;
     }
 
@@ -184,11 +184,11 @@ bool can_read(CAN_Message* msg) {
 
     if (can_fifo_depth() > 0) {
         // Wait for the previous message to be released
-        while (CAN_RF0R(CAN) & CAN_RF0R_RFOM0);
+        while (CAN_RF0R(CAN1) & CAN_RF0R_RFOM0);
 
-        uint32_t fmi;
+        uint8_t fmi;
         bool ext, rtr;
-        can_receive(CAN, 0, true, &msg->id, &ext, &rtr, &fmi, &msg->len, msg->data);
+        can_receive(CAN1, 0, true, &msg->id, &ext, &rtr, &fmi, &msg->len, msg->data, NULL);
         msg->format = ext ? CANExtended : CANStandard;
         msg->type = rtr ? CANRemote : CANData;
         success = true;
@@ -210,7 +210,7 @@ bool can_read_buffer(CAN_Message* msg) {
 bool can_write(CAN_Message* msg) {
     bool ext = msg->format == CANExtended;
     bool rtr = msg->type == CANRemote;
-    return (can_transmit(CAN, msg->id, ext, rtr, msg->len, msg->data) != -1);
+    return (can_transmit(CAN1, msg->id, ext, rtr, msg->len, msg->data) != -1);
 }
 
 void cec_can_isr(void) {

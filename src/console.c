@@ -205,7 +205,7 @@ uint8_t console_recv_blocking(void) {
 }
 
 void CONSOLE_USART_IRQ_NAME(void) {
-    if (usart_get_interrupt_source(CONSOLE_USART, USART_SR_TXE)) {
+    if (usart_get_flag(CONSOLE_USART, USART_SR_TXE)) {
         if (!console_tx_buffer_empty()) {
             usart_word_t buffered_byte = console_tx_buffer_get();
             usart_send(CONSOLE_USART, buffered_byte);

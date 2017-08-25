@@ -67,7 +67,7 @@ void gpio_setup(void) {
     gpio_clear(GPIOB, GPIO15);
 
     /* Enable MCO output */
-    rcc_set_mco(RCC_CFGR_MCO_HSECLK);
+    rcc_set_mco(RCC_CFGR_MCO_HSE);
     gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO8);
 
     /* Setup LEDs as open-drain outputs */
