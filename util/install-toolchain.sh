@@ -4,11 +4,11 @@ URL=https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm
 TOOLCHAIN=gcc-arm-none-eabi-5_2-2015q4
 TOOLCHAINS=$HOME/toolchains
 TOOLCHAIN_MISSING=0
-
+GCC=${TOOLCHAINS}/gcc-arm-embedded/bin/arm-none-eabi-gcc
 if [[ ! -d "${TOOLCHAINS}/gcc-arm-embedded" ]]; then
     TOOLCHAIN_MISSING=1
 fi;
-if [[ ! -f "${TOOLCHAINS}/gcc-arm-embedded/bin/arm-none-eabi-gcc" ]]; then
+if [[ ! -f ${GCC} ]]; then
     TOOLCHAIN_MISSING=1
 fi;
 
@@ -23,5 +23,10 @@ fi;
 EXISTING_TOOLCHAIN=`readlink -f "${TOOLCHAINS}/gcc-arm-embedded"`
 echo "Current toolchain is $EXISTING_TOOLCHAIN"
 
-TOOLCHAIN_VER=`${TOOLCHAINS}/gcc-arm-embedded/bin/arm-none-eabi-gcc --version | head -n 1`
+if ! ldd ${GCC} >/dev/null; then
+    echo "${GCC} does not appear to be executable on this machine"
+    exit 1
+fi;
+
+TOOLCHAIN_VER=`${GCC} --version | head -n 1`
 echo "Installed toolchain version is $TOOLCHAIN_VER"
