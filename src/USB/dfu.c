@@ -38,10 +38,11 @@ const struct usb_dfu_descriptor dfu_function = {
 /* User callbacks */
 static GenericCallback dfu_detach_request_callback = NULL;
 
-static int dfu_control_class_request(usbd_device *usbd_dev,
-                                     struct usb_setup_data *req,
-                                     uint8_t **buf, uint16_t *len,
-                                     usbd_control_complete_callback* complete) {
+static enum usbd_request_return_codes
+dfu_control_class_request(usbd_device *usbd_dev,
+                          struct usb_setup_data *req,
+                          uint8_t **buf, uint16_t *len,
+                          usbd_control_complete_callback* complete) {
     (void)complete;
     (void)buf;
     (void)len;
@@ -50,7 +51,7 @@ static int dfu_control_class_request(usbd_device *usbd_dev,
         return USBD_REQ_NEXT_CALLBACK;
     }
 
-    int status = USBD_REQ_NOTSUPP;
+    enum usbd_request_return_codes status = USBD_REQ_NOTSUPP;
     switch (req->bRequest) {
         case DFU_DETACH: {
             if (dfu_detach_request_callback != NULL) {

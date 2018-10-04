@@ -100,17 +100,18 @@ bool cdc_send_data(const uint8_t* data, size_t len) {
     return (sent != 0);
 }
 
-static int cdc_control_class_request(usbd_device *usbd_dev,
-                                     struct usb_setup_data *req,
-                                     uint8_t **buf, uint16_t *len,
-                                     usbd_control_complete_callback* complete) {
+static enum usbd_request_return_codes
+cdc_control_class_request(usbd_device *usbd_dev,
+                          struct usb_setup_data *req,
+                          uint8_t **buf, uint16_t *len,
+                          usbd_control_complete_callback* complete) {
     (void)complete;
     (void)usbd_dev;
 
     if (req->wIndex != INTF_CDC_DATA && req->wIndex != INTF_CDC_COMM) {
         return USBD_REQ_NEXT_CALLBACK;
     }
-    int status = USBD_REQ_NOTSUPP;
+    enum usbd_request_return_codes status = USBD_REQ_NOTSUPP;
 
     switch (req->bRequest) {
         case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {

@@ -65,10 +65,11 @@ static HostInFunction hid_report_in_callback = NULL;
 
 static usbd_device* hid_usbd_dev = NULL;
 
-static int hid_control_standard_request(usbd_device *usbd_dev,
-                                        struct usb_setup_data *req,
-                                        uint8_t **buf, uint16_t *len,
-                                        usbd_control_complete_callback* complete) {
+static enum usbd_request_return_codes
+hid_control_standard_request(usbd_device *usbd_dev,
+                             struct usb_setup_data *req,
+                             uint8_t **buf, uint16_t *len,
+                             usbd_control_complete_callback* complete) {
     (void)complete;
     (void)usbd_dev;
 
@@ -103,10 +104,11 @@ static int hid_control_standard_request(usbd_device *usbd_dev,
     return status;
 }
 
-static int hid_control_class_request(usbd_device *usbd_dev,
-                                     struct usb_setup_data *req,
-                                     uint8_t **buf, uint16_t *len,
-                                     usbd_control_complete_callback* complete) {
+static enum usbd_request_return_codes
+hid_control_class_request(usbd_device *usbd_dev,
+                          struct usb_setup_data *req,
+                          uint8_t **buf, uint16_t *len,
+                          usbd_control_complete_callback* complete) {
     (void)complete;
     (void)usbd_dev;
 
@@ -114,7 +116,7 @@ static int hid_control_class_request(usbd_device *usbd_dev,
         return USBD_REQ_NEXT_CALLBACK;
     }
 
-    int status = USBD_REQ_NOTSUPP;
+    enum usbd_request_return_codes status = USBD_REQ_NOTSUPP;
     switch (req->bRequest) {
         case USB_HID_REQ_GET_REPORT: {
             if ((hid_report_in_callback != NULL) && (*buf != NULL)) {

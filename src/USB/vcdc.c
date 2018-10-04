@@ -142,10 +142,11 @@ size_t vcdc_send_buffer_space(void) {
 static GenericCallback vcdc_rx_callback = NULL;
 static GenericCallback vcdc_tx_callback = NULL;
 
-static int vcdc_control_class_request(usbd_device *usbd_dev,
-                                     struct usb_setup_data *req,
-                                     uint8_t **buf, uint16_t *len,
-                                     usbd_control_complete_callback* complete) {
+static enum usbd_request_return_codes
+vcdc_control_class_request(usbd_device *usbd_dev,
+                           struct usb_setup_data *req,
+                           uint8_t **buf, uint16_t *len,
+                           usbd_control_complete_callback* complete) {
     (void)complete;
     (void)usbd_dev;
     (void)buf;
@@ -154,7 +155,7 @@ static int vcdc_control_class_request(usbd_device *usbd_dev,
     if (req->wIndex != INTF_VCDC_DATA && req->wIndex != INTF_VCDC_COMM) {
         return USBD_REQ_NEXT_CALLBACK;
     }
-    int status = USBD_REQ_NOTSUPP;
+    enum usbd_request_return_codes status = USBD_REQ_NOTSUPP;
 
     switch (req->bRequest) {
         case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {

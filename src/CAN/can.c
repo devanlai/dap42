@@ -140,8 +140,7 @@ bool can_reconfigure(uint32_t baudrate, CanMode mode) {
                  silent) != 0) {
         return false;
     } else {
-        can_filter_id_mask_32bit_init(CAN1,
-                                      0,     /* Filter ID */
+        can_filter_id_mask_32bit_init(0,     /* Filter ID */
                                       0,     /* CAN ID */
                                       0,     /* CAN ID mask */
                                       0,     /* FIFO assignment (here: FIFO0) */

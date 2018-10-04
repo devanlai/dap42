@@ -478,12 +478,13 @@ void cmp_usb_register_control_class_callback(uint16_t interface,
     }
 }
 
-static int cmp_usb_dispatch_control_class_request(usbd_device *usbd_dev,
-                                                  struct usb_setup_data *req,
-                                                  uint8_t **buf, uint16_t *len,
-                                                  usbd_control_complete_callback* complete) {
+static enum usbd_request_return_codes
+cmp_usb_dispatch_control_class_request(usbd_device *usbd_dev,
+                                       struct usb_setup_data *req,
+                                       uint8_t **buf, uint16_t *len,
+                                       usbd_control_complete_callback* complete) {
 
-    int result = USBD_REQ_NEXT_CALLBACK;
+    enum usbd_request_return_codes result = USBD_REQ_NEXT_CALLBACK;
 
     uint8_t i;
     uint16_t interface = req->wIndex;

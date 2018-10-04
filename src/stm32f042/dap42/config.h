@@ -54,24 +54,6 @@
 #define nBOOT0_GPIO_PORT GPIOB
 #define nBOOT0_GPIO_PIN  GPIO8
 
-#include <libopencm3/stm32/usart.h>
-/* Workaround for non-commonalized STM32F0 USART code */
-#ifndef USART_STOPBITS_1
-#define USART_STOPBITS_1 USART_CR2_STOP_1_0BIT
-#endif
-
-#ifndef USART_STOPBITS_2
-#define USART_STOPBITS_2 USART_CR2_STOP_2_0BIT
-#endif
-
-#ifndef USART_SR_RXNE
-#define USART_SR_RXNE USART_ISR_RXNE
-#endif
-
-#ifndef USART_SR_TXE
-#define USART_SR_TXE USART_ISR_TXE
-#endif
-
 /* Word size for usart_recv and usart_send */
 typedef uint8_t usart_word_t;
 
