@@ -1,7 +1,7 @@
 # dap42
 The dap42 project is an open-source firmware and [hardware design](https://github.com/devanlai/dap42-hardware) for an inexpensive, minimalist CMSIS-DAP based debug probe based on the [STM32F042F6](http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1574/LN1823/PF259617) in a TSSOP-20 package.
 
-This project is currently in alpha - features generally do 80% of what's needed, but the last 20% is generally untested.
+This project is stable - it has been proven in the field by a few dozen users and all core functionality has been tested.
 
 ## Current features
 ### Firmware
@@ -18,7 +18,7 @@ To flash via another debugger, use `make flash`.
 For detailed flashing instructions, see [FLASHING.md](./FLASHING.md)
 
 ### STM32F103
-The dap42 firmware can experimentally also target the STM32F103 chip. The CDC UART is connected to `PB11` (the `SWIM` pin on certain STLink/v2 knockoff designs) as an RX-only input.
+The dap42 firmware can also target the STM32F103 chip. The CDC UART is connected to `PB11` (the `SWIM` pin on certain STLink/v2 knockoff designs) as an RX-only input.
 
 ## Usage
 ### OpenOCD
@@ -59,11 +59,12 @@ To prevent this, you can define a custom udev rule to ensure that the modem mana
 * CMSIS-DAP 1.10 support
  * Command queueing (command level, not packet level)
  * [Serial Wire Output](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0314h/Chdfgefg.html) (SWO) trace support
-* [Media Transfer Protocol](https://en.wikipedia.org/wiki/Media_Transfer_Protocol) (MTP) interface or [Mass Storage Device](https://en.wikipedia.org/wiki/USB_mass_storage_device_class) (MSD) interface for drag-n-drop target firmware flashing
+* CMSIS-DAP 2.0 support
+ * Bulk endpoints for higher throughput
+ * WebUSB compatibility
 
 ### Hardware
 * Simultaneous USB-serial bridge and SWO trace using an STM32F042K6 in an LQFP-32 package with both UARTs pinned out.
-* ESD protection
 * Level-shifting/protective tri-state buffer between the probe and target SWD port.
 
 ## Acknowledgements
