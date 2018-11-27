@@ -149,39 +149,51 @@ static __inline uint32_t PIN_SWCLK_TCK_IN  (void) {
 }
 
 static __inline uint32_t PIN_nRESET_IN  (void) {
+#if defined(nRESET_GPIO_PORT) && defined(nRESET_GPIO_PIN)
 	return (GPIO_IDR(nRESET_GPIO_PORT) & nRESET_GPIO_PIN) ? 0x1 : 0x0;
+#else
+    return 1;
+#endif
 }
 
 static __inline void PIN_nRESET_OUT (uint32_t bit) {
+#if defined(nRESET_GPIO_PORT) && defined(nRESET_GPIO_PIN)
     if (bit & 0x1) {
         GPIO_BSRR(nRESET_GPIO_PORT) = nRESET_GPIO_PIN;
     } else {
         GPIO_BRR(nRESET_GPIO_PORT) = nRESET_GPIO_PIN;
     }
+#endif
 }
 
 static __inline void LED_CONNECTED_OUT (uint32_t bit) {
+#if defined(LED_CON_GPIO_PORT) && defined(LED_CON_GPIO_PIN)
     if ((bit & 0x1) ^ LED_OPEN_DRAIN) {
         gpio_set(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
     } else {
         gpio_clear(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
     }
+#endif
 }
 
 static __inline void LED_RUNNING_OUT (uint32_t bit) {
+#if defined(LED_RUN_GPIO_PORT) && defined(LED_RUN_GPIO_PIN)
     if ((bit & 0x1) ^ LED_OPEN_DRAIN) {
         gpio_set(LED_RUN_GPIO_PORT, LED_RUN_GPIO_PIN);
     } else {
         gpio_clear(LED_RUN_GPIO_PORT, LED_RUN_GPIO_PIN);
     }
+#endif
 }
 
 static __inline void LED_ACTIVITY_OUT (uint32_t bit) {
+#if defined(LED_ACT_GPIO_PORT) && defined(LED_ACT_GPIO_PIN)
     if ((bit & 0x1) ^ LED_OPEN_DRAIN) {
         gpio_set(LED_ACT_GPIO_PORT, LED_ACT_GPIO_PIN);
     } else {
         gpio_clear(LED_ACT_GPIO_PORT, LED_ACT_GPIO_PIN);
     }
+#endif
 }
 
 static __inline void DAP_SETUP (void) {
@@ -189,12 +201,14 @@ static __inline void DAP_SETUP (void) {
     LED_RUNNING_OUT(0);
     LED_CONNECTED_OUT(0);
 
+#if defined(nRESET_GPIO_PORT) && defined(nRESET_GPIO_PIN)
     // Configure nRESET as an open-drain output
     GPIO_BSRR(nRESET_GPIO_PORT) = nRESET_GPIO_PIN;
 
     gpio_set_output_options(nRESET_GPIO_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_LOW, nRESET_GPIO_PIN);
 
     gpio_mode_setup(nRESET_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, nRESET_GPIO_PIN);
+#endif
 }
 
 static __inline uint32_t RESET_TARGET (void) { return 0; }

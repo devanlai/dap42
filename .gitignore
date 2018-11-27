@@ -14,3 +14,6 @@ GTAGS
 
 # ignore local makefile settings
 src/local.mk
+
+# Ignore macOS crap
+.DS_Store
