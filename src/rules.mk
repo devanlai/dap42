@@ -30,6 +30,7 @@ endif
 # Target Architecture flags
 ifeq ($(ARCH),STM32F0)
 	LIBNAME     = opencm3_stm32f0
+	LOCM3_TARGET= stm32/f0
 	DEFS       += -DSTM32F0
 	FP_FLAGS   ?= -msoft-float
 	ARCH_FLAGS  = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
@@ -37,6 +38,7 @@ ifeq ($(ARCH),STM32F0)
 endif
 ifeq ($(ARCH),STM32F1)
 	LIBNAME     = opencm3_stm32f1
+	LOCM3_TARGET= stm32/f1
 	DEFS       += -DSTM32F1
 	FP_FLAGS   ?= -msoft-float
 	ARCH_FLAGS  = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
@@ -44,6 +46,7 @@ ifeq ($(ARCH),STM32F1)
 endif
 
 LIBNAME        ?= opencm3_stm32f0
+LOCM3_TARGET   ?= stm32/f0
 DEFS           ?= -DSTM32F0
 FP_FLAGS       ?= -msoft-float
 ARCH_FLAGS     ?= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
@@ -156,7 +159,7 @@ $(OPENCM3_DIR)/Makefile:
 	$(Q)git submodule update --init $(OPENCM3_DIR)
 
 $(LIB_DIR)/lib$(LIBNAME).a: $(OPENCM3_DIR)/Makefile
-	$(Q)$(MAKE) -C $(OPENCM3_DIR)
+	$(Q)$(MAKE) -C $(OPENCM3_DIR) TARGETS=$(LOCM3_TARGET)
 
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
 
