@@ -26,6 +26,7 @@ BUILD_DIR      ?= ./build
 
 all: DAP42.bin DAP42DC.bin KITCHEN42.bin \
      DAP103.bin DAP103-DFU.bin \
+     DAP103-BLUEPILL.bin \
      DAP103-NUCLEO-STBOOT.bin \
      BRAINv3.3.bin \
      DAP42K6U.bin
@@ -66,6 +67,12 @@ DAP103-DFU.bin: | $(BUILD_DIR)
 	@printf "  BUILD $(@)\n"
 	$(Q)$(MAKE) TARGET=STM32F103-DFUBOOT -C src/ clean
 	$(Q)$(MAKE) TARGET=STM32F103-DFUBOOT -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
+DAP103-BLUEPILL.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=STM32F103-BLUEPILL -C src/ clean
+	$(Q)$(MAKE) TARGET=STM32F103-BLUEPILL -C src/
 	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
 
 BRAINv3.3.bin: | $(BUILD_DIR)
