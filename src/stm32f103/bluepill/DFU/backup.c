@@ -16,21 +16,26 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "DFU/DFU.h"
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/rtc.h>
+#include <libopencm3/stm32/pwr.h>
+
 #include "backup.h"
 
-#include <libopencm3/cm3/scb.h>
+#define RTC_BKP_DR(reg)  MMIO16(BACKUP_REGS_BASE + 4 + (4 * (reg)))
 
-/* Boot command for DAPBoot bootloader */
-static const uint32_t CMD_BOOT_VIA_DAPBOOT = 0x544F4F42UL;
+void backup_write(enum BackupRegister reg, uint32_t value) {
+    rcc_periph_clock_enable(RCC_PWR);
+    rcc_periph_clock_enable(RCC_BKP);
 
-/* Writes a DFU command to the backup register and resets */
-void DFU_reset_and_jump_to_bootloader(void) {
-    backup_write(BKP0, CMD_BOOT_VIA_DAPBOOT);
-    scb_reset_system();
-    while (1);
+    pwr_disable_backup_domain_write_protect();
+    RTC_BKP_DR((int)reg*2) = value & 0xFFFFUL;
+    RTC_BKP_DR((int)reg*2+1) = (value & 0xFFFF0000UL) >> 16;
+    pwr_enable_backup_domain_write_protect();
 }
 
-void DFU_maybe_jump_to_bootloader(void) {
-
+uint32_t backup_read(enum BackupRegister reg) {
+    uint32_t value = ((uint32_t)RTC_BKP_DR((int)reg*2+1) << 16)
+                   | ((uint32_t)RTC_BKP_DR((int)reg*2) << 0);
+    return value;
 }

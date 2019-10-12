@@ -16,21 +16,20 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "DFU/DFU.h"
-#include "backup.h"
+#ifndef BACKUP_H_INCLUDED
+#define BACKUP_H_INCLUDED
 
-#include <libopencm3/cm3/scb.h>
+#include <stdint.h>
 
-/* Boot command for DAPBoot bootloader */
-static const uint32_t CMD_BOOT_VIA_DAPBOOT = 0x544F4F42UL;
+enum BackupRegister {
+    BKP0 = 0,
+    BKP1,
+    BKP2,
+    BKP3,
+    BKP4,
+};
 
-/* Writes a DFU command to the backup register and resets */
-void DFU_reset_and_jump_to_bootloader(void) {
-    backup_write(BKP0, CMD_BOOT_VIA_DAPBOOT);
-    scb_reset_system();
-    while (1);
-}
+extern void backup_write(enum BackupRegister reg, uint32_t value);
+extern uint32_t backup_read(enum BackupRegister reg);
 
-void DFU_maybe_jump_to_bootloader(void) {
-
-}
+#endif
