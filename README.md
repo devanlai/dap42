@@ -18,7 +18,21 @@ To flash via another debugger, use `make flash`.
 For detailed flashing instructions, see [FLASHING.md](./FLASHING.md)
 
 ### STM32F103
-The dap42 firmware can also target the STM32F103 chip. The CDC UART is connected to `PB11` (the `SWIM` pin on certain STLink/v2 knockoff designs) as an RX-only input.
+The dap42 firmware can also target the STM32F103 chip.
+
+To build firmware for STLink/v2 knockoff designs, use the `STM32F103` target or `STM32F103-DFUBOOT` target when using the [dapboot](https://github.com/devanlai/dapboot) bootloader. The CDC UART is connected to the `SWIM` pin (`PB11`) as an RX-only input.
+
+To build firmware for the "bluepill" dev board, use the `STM32F103-BLUEPILL` or `STM32F103-BLUEPILL-DFUBOOT` targets.
+
+The pin mapping is as follows:
+
+| Signal | Pin  |
+| ------ | ---- |
+| SWDIO  | PB14 |
+| SWCLK  | PB13 |
+| RESET  | PB0  |
+| TX     | PA2  |
+| RX     | PA3  |
 
 ## Usage
 ### OpenOCD
