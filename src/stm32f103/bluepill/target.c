@@ -51,6 +51,10 @@ void gpio_setup(void) {
     const uint8_t conf = (LED_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
                                          : GPIO_CNF_OUTPUT_PUSHPULL);
     gpio_set_mode(GPIOC, mode, conf, GPIO13);
+
+    /* Remap SWD pins as GPIO (so we can drive them) */
+    rcc_periph_clock_enable(RCC_AFIO);
+    gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_OFF, 0);
 }
 
 void target_console_init(void){
