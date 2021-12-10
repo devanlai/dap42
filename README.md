@@ -44,11 +44,15 @@ In general, the probe can be used with OpenOCD just by specifying the cmsis-dap 
 
 Example OpenOCD configurations can be found under the [openocd/](openocd/) folder.
 
-### LPCXpresso
-As of LPCXpresso 8.0.0, the default probe detection rules will not auto-discover generic CMSIS-DAP probes.
-To use the dap42 probe with LPCXpresso, you can modify the detection rules by editing `lpcxpresso/bin/Scripts/probetable.csv` in your LPCXpresso installation.
+### MCUXpresso
+The default probe detection rules used by MCUXpresso (formerly LPCXpresso) will not auto-discover generic CMSIS-DAP probes.
+To use the dap42 probe with MCUXpresso, you can modify the detection rules by editing `probetable.csv` in your MCUXpresso installation.
 
-Add the following line to `probetable.csv`:
+For MCUXpresso version 11.4 or newer, edit `probetable.csv` under `ide/plugins/com.mcuxpresso.tools.bin.<...>/binaries/Scripts`:
+
+    0x1209, 0xDA42, 64, 1, 0, 0, 0, "", 0x0000, -1, -1
+
+In older versions, the CSV format has one fewer entry at the end:
 
     0x1209, 0xDA42, 64, 1, 0, 0, 0, "", 0x0000, -1
 
