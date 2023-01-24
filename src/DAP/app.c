@@ -54,7 +54,7 @@ static void on_send_report(uint8_t* data, uint16_t* len) {
     }
 }
 
-uint32_t DAP_ProcessVendorCommand(uint8_t* request, uint8_t* response) {
+uint32_t DAP_ProcessVendorCommand(const uint8_t* request, uint8_t* response) {
     if (request[0] == ID_DAP_Vendor31) {
         if (request[1] == 'D' && request[2] == 'F' && request[3] == 'U') {
             response[0] = request[0];

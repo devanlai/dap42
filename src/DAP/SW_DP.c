@@ -51,18 +51,18 @@
 //   data:   pointer to sequence bit data
 //   return: none
 #if ((DAP_SWD != 0) || (DAP_JTAG != 0))
-void SWJ_Sequence (uint32_t count, uint8_t *data) {
+void SWJ_Sequence (uint32_t count, const uint8_t *data) {
   uint32_t val;
   uint32_t n;
 
-  val = 0;
-  n = 0;
+  val = 0U;
+  n = 0U;
   while (count--) {
-    if (n == 0) {
+    if (n == 0U) {
       val = *data++;
-      n = 8;
+      n = 8U;
     }
-    if (val & 1) {
+    if (val & 1U) {
       PIN_SWDIO_TMS_SET();
     } else {
       PIN_SWDIO_TMS_CLR();
@@ -92,8 +92,8 @@ static uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {         
   uint32_t n;                                                                   \
                                                                                 \
   /* Packet Request */                                                          \
-  parity = 0;                                                                   \
-  SW_WRITE_BIT(1);                      /* Start Bit */                         \
+  parity = 0U;                                                                  \
+  SW_WRITE_BIT(1U);                     /* Start Bit */                         \
   bit = request >> 0;                                                           \
   SW_WRITE_BIT(bit);                    /* APnDP Bit */                         \
   parity += bit;                                                                \
@@ -107,8 +107,8 @@ static uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {         
   SW_WRITE_BIT(bit);                    /* A3 Bit */                            \
   parity += bit;                                                                \
   SW_WRITE_BIT(parity);                 /* Parity Bit */                        \
-  SW_WRITE_BIT(0);                      /* Stop Bit */                          \
-  SW_WRITE_BIT(1);                      /* Park Bit */                          \
+  SW_WRITE_BIT(0U);                     /* Stop Bit */                          \
+  SW_WRITE_BIT(1U);                     /* Park Bit */                          \
                                                                                 \
   /* Turnaround */                                                              \
   PIN_SWDIO_OUT_DISABLE();                                                      \
@@ -128,19 +128,19 @@ static uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {         
     /* Data transfer */                                                         \
     if (request & DAP_TRANSFER_RnW) {                                           \
       /* Read data */                                                           \
-      val = 0;                                                                  \
-      parity = 0;                                                               \
-      for (n = 32; n; n--) {                                                    \
+      val = 0U;                                                                 \
+      parity = 0U;                                                              \
+      for (n = 32U; n; n--) {                                                   \
         SW_READ_BIT(bit);               /* Read RDATA[0:31] */                  \
         parity += bit;                                                          \
         val >>= 1;                                                              \
         val  |= bit << 31;                                                      \
       }                                                                         \
       SW_READ_BIT(bit);                 /* Read Parity */                       \
-      if ((parity ^ bit) & 1) {                                                 \
+      if ((parity ^ bit) & 1U) {                                                \
         ack = DAP_TRANSFER_ERROR;                                               \
       }                                                                         \
-      if (data) *data = val;                                                    \
+      if (data) { *data = val; }                                                \
       /* Turnaround */                                                          \
       for (n = DAP_Data.swd_conf.turnaround; n; n--) {                          \
         SW_CLOCK_CYCLE();                                                       \
@@ -154,8 +154,8 @@ static uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {         
       PIN_SWDIO_OUT_ENABLE();                                                   \
       /* Write data */                                                          \
       val = *data;                                                              \
-      parity = 0;                                                               \
-      for (n = 32; n; n--) {                                                    \
+      parity = 0U;                                                              \
+      for (n = 32U; n; n--) {                                                   \
         SW_WRITE_BIT(val);              /* Write WDATA[0:31] */                 \
         parity += val;                                                          \
         val >>= 1;                                                              \
@@ -165,19 +165,19 @@ static uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {         
     /* Idle cycles */                                                           \
     n = DAP_Data.transfer.idle_cycles;                                          \
     if (n) {                                                                    \
-      PIN_SWDIO_OUT(0);                                                         \
+      PIN_SWDIO_OUT(0U);                                                        \
       for (; n; n--) {                                                          \
         SW_CLOCK_CYCLE();                                                       \
       }                                                                         \
     }                                                                           \
-    PIN_SWDIO_OUT(1);                                                           \
-    return (ack);                                                               \
+    PIN_SWDIO_OUT(1U);                                                          \
+    return ((uint8_t)ack);                                                      \
   }                                                                             \
                                                                                 \
   if ((ack == DAP_TRANSFER_WAIT) || (ack == DAP_TRANSFER_FAULT)) {              \
     /* WAIT or FAULT response */                                                \
-    if (DAP_Data.swd_conf.data_phase && ((request & DAP_TRANSFER_RnW) != 0)) {  \
-      for (n = 32+1; n; n--) {                                                  \
+    if (DAP_Data.swd_conf.data_phase && ((request & DAP_TRANSFER_RnW) != 0U)) { \
+      for (n = 32U+1U; n; n--) {                                                \
         SW_CLOCK_CYCLE();               /* Dummy Read RDATA[0:31] + Parity */   \
       }                                                                         \
     }                                                                           \
@@ -186,22 +186,22 @@ static uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {         
       SW_CLOCK_CYCLE();                                                         \
     }                                                                           \
     PIN_SWDIO_OUT_ENABLE();                                                     \
-    if (DAP_Data.swd_conf.data_phase && ((request & DAP_TRANSFER_RnW) == 0)) {  \
-      PIN_SWDIO_OUT(0);                                                         \
-      for (n = 32+1; n; n--) {                                                  \
+    if (DAP_Data.swd_conf.data_phase && ((request & DAP_TRANSFER_RnW) == 0U)) { \
+      PIN_SWDIO_OUT(0U);                                                        \
+      for (n = 32U+1U; n; n--) {                                                \
         SW_CLOCK_CYCLE();               /* Dummy Write WDATA[0:31] + Parity */  \
       }                                                                         \
     }                                                                           \
-    PIN_SWDIO_OUT(1);                                                           \
-    return (ack);                                                               \
+    PIN_SWDIO_OUT(1U);                                                          \
+    return ((uint8_t)ack);                                                      \
   }                                                                             \
                                                                                 \
   /* Protocol error */                                                          \
-  for (n = DAP_Data.swd_conf.turnaround + 32 + 1; n; n--) {                     \
+  for (n = DAP_Data.swd_conf.turnaround + 32U + 1U; n; n--) {                   \
     SW_CLOCK_CYCLE();                   /* Back off data phase */               \
   }                                                                             \
-  PIN_SWDIO_OUT(1);                                                             \
-  return (ack);                                                                 \
+  PIN_SWDIO_OUT(1U);                                                            \
+  return ((uint8_t)ack);                                                        \
 }
 
 
