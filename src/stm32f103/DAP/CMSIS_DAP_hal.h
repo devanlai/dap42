@@ -58,13 +58,10 @@
  * TIMESTAMP SUPPORT
  */
 
-// Get current timestamp value, in micro-seconds:
+// Get current timestamp value, in milliseconds:
 // Use SYSTICK value and timer ticks, assume 1ms counter.
 static __inline uint32_t TIMESTAMP_GET (void) {
-  uint32_t reload = STK_RVR;
-  uint32_t current = STK_CVR;
-  uint32_t tick = get_ticks();
-  return tick * 1000U + (reload - current) / (CPU_CLOCK / TIMESTAMP_CLOCK);
+  return get_ticks();
 }
 
 /*
