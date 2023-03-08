@@ -29,7 +29,8 @@ void cpu_setup(void) {
 
 /* Set STM32 to 72 MHz. */
 void clock_setup(void) {
-    rcc_clock_setup_in_hse_8mhz_out_72mhz();
+    // rcc_clock_setup_in_hse_8mhz_out_72mhz();
+    rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 }
 
 void gpio_setup(void) {
