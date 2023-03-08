@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
-URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/6-2016q4/gcc-arm-none-eabi-6_2-2016q4-20161216-linux.tar.bz2
-TOOLCHAIN=gcc-arm-none-eabi-6_2-2016q4
+URL=https://developer.arm.com/-/media/Files/downloads/gnu/12.2.rel1/binrel/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi.tar.xz
+TOOLCHAIN=arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi
 TOOLCHAINS=$HOME/toolchains
 TOOLCHAIN_MISSING=0
 GCC=${TOOLCHAINS}/gcc-arm-embedded/bin/arm-none-eabi-gcc
@@ -15,7 +15,7 @@ fi;
 if [ $TOOLCHAIN_MISSING -eq 1 ]; then
     echo "Installing $TOOLCHAIN from $URL to ${TOOLCHAINS}"
     mkdir -p ${TOOLCHAINS}
-    wget -qO- $URL | tar xj -C ${TOOLCHAINS}
+    wget -qO- $URL | tar xJ -C ${TOOLCHAINS}
     rm -rf ${TOOLCHAINS}/gcc-arm-embedded
     ln -s $TOOLCHAIN ${TOOLCHAINS}/gcc-arm-embedded
 fi;
