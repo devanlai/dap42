@@ -73,16 +73,16 @@ OOCD_BOARD     ?= target/stm32f0x.cfg
 ####################################################################
 # Executables
 
-PREFIX         ?= arm-none-eabi
+PREFIX         ?= arm-none-eabi-
 
-CC             := $(PREFIX)-gcc
-CXX            := $(PREFIX)-g++
-LD             := $(PREFIX)-gcc
-AR             := $(PREFIX)-ar
-AS             := $(PREFIX)-as
-OBJCOPY        := $(PREFIX)-objcopy
-OBJDUMP        := $(PREFIX)-objdump
-GDB            := $(PREFIX)-gdb
+CC             := $(PREFIX)gcc
+CXX            := $(PREFIX)g++
+LD             := $(PREFIX)gcc
+AR             := $(PREFIX)ar
+AS             := $(PREFIX)as
+OBJCOPY        := $(PREFIX)objcopy
+OBJDUMP        := $(PREFIX)objdump
+GDB            := $(PREFIX)gdb
 STFLASH         = $(shell which st-flash)
 
 ####################################################################
