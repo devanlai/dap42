@@ -5,10 +5,10 @@ This project is stable - it has been proven in the field by a few dozen users an
 
 ## Current features
 ### Firmware
-* [Serial Wire Debug](http://www.arm.com/products/system-ip/debug-trace/coresight-soc-components/serial-wire-debug.php) (SWD) access over [CMSIS-DAP 1.0](http://www.arm.com/products/processors/cortex-m/cortex-microcontroller-software-interface-standard.php) HID interface (tested with [OpenOCD](http://openocd.org) and [LPCXpresso](https://www.lpcware.com/lpcxpresso))
+* [Serial Wire Debug](https://developer.arm.com/documentation/ihi0031/a/The-Serial-Wire-Debug-Port--SW-DP-/Introduction-to-the-ARM-Serial-Wire-Debug--SWD--protocol) (SWD) access over [CMSIS-DAP 2.0](https://arm-software.github.io/CMSIS_5/DAP/html/index.html) protocol via HID interface (tested with [OpenOCD](https://openocd.org), [LPCXpresso](http://www.nxp.com/pages/:LPCXPRESSO) and [pyOCD](https://pyocd.io/)).
 * CDC-ACM USB-serial bridge
-* [Device Firmware Upgrade](http://www.usb.org/developers/docs/devclass_docs/DFU_1.1.pdf) (DFU) over USB (detach-only, switches to on-chip [DFuSe](http://dfu-util.sourceforge.net/dfuse.html) bootloader).
-* [Serial Line CAN](http://lxr.free-electrons.com/source/drivers/net/can/slcan.c) (SLCAN) interface - Silent mode, RX only.
+* [Device Firmware Upgrade](https://www.usb.org/sites/default/files/DFU_1.1.pdf) (DFU) over USB (detach-only, switches to on-chip [DFuSe](http://dfu-util.sourceforge.net/dfuse.html) bootloader).
+* [Serial Line CAN](https://elixir.bootlin.com/linux/latest/source/drivers/net/can/slcan/slcan-core.c) (SLCAN) interface - Silent mode, RX only.
 
 ## Flash instructions
 The default method to upload new firmware is via [dfu-util](http://dfu-util.sourceforge.net/). The Makefile includes the `dfuse-flash` target to invoke dfu-util. dfu-util automatically detaches the dap42 firmware and uploads the firmware through the on-chip bootloader.
@@ -74,10 +74,9 @@ To prevent this, you can define a custom udev rule to ensure that the modem mana
 
 ## Planned features
 ### Firmware
-* CMSIS-DAP 1.10 support
- * Command queueing (command level, not packet level)
- * [Serial Wire Output](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0314h/Chdfgefg.html) (SWO) trace support
-* CMSIS-DAP 2.0 support
+* Additional CMSIS-DAP 1.10 features
+ * [Serial Wire Output](https://developer.arm.com/documentation/ddi0314/h/Serial-Wire-Output) (SWO) trace support
+* Additional CMSIS-DAP 2.0 features
  * Bulk endpoints for higher throughput
  * WebUSB compatibility
 
