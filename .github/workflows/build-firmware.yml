@@ -15,7 +15,6 @@ jobs:
         env:
           cache-name: cache-toolchain
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/toolchains/
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('util/install-toolchain.sh') }}
           restore-keys: |
@@ -23,7 +22,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+      - if: ${{ steps.cache-toolchain.outputs.cache-hit != 'true' }}
         name: Download toolchain
         run: ./util/install-toolchain.sh
 
