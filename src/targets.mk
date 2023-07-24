@@ -109,6 +109,14 @@ ifeq ($(TARGET),STLINKV2-1-STBOOT)
 	DEFS               += -DDFU_AVAILABLE=1
 	ARCH                = STM32F1
 endif
+ifeq ($(TARGET),DAPLINK_F103C6-DFUBOOT)
+	TARGET_COMMON_DIR  := ./stm32f103
+	TARGET_SPEC_DIR    := ./stm32f103/daplink_f103c6
+	LDSCRIPT           ?= ./stm32f103/stm32f103x6-dfuboot.ld
+	DEFS               += -DDFU_AVAILABLE=1
+	ARCH                = STM32F1
+	DFU_VID_PID        := 1209:db42
+endif
 ifndef ARCH
 $(error Unknown target $(TARGET))
 endif
