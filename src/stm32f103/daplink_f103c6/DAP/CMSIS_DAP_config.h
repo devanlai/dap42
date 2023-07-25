@@ -166,10 +166,12 @@ static inline uint8_t DAP_GetSerNumString (char *str) {
 #define nRESET_GPIO_PORT        GPIOA
 #define nRESET_GPIO_PIN         GPIO6
 
+#define LED_CON_INVERT
 #define LED_CON_GPIO_PORT       GPIOB
 #define LED_CON_GPIO_PIN        GPIO8
+#define LED_RUN_DISABLE
 #define LED_RUN_GPIO_PORT       GPIOB
-#define LED_RUN_GPIO_PIN        GPIO12
+#define LED_RUN_GPIO_PIN        GPIO8
 #define LED_ACT_GPIO_PORT       GPIOB
 #define LED_ACT_GPIO_PIN        GPIO12
 

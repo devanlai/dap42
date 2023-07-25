@@ -21,6 +21,7 @@
 
 #include "target.h"
 #include "config.h"
+#include "DAP/CMSIS_DAP_config.h"
 
 /* Reconfigure processor settings */
 void cpu_setup(void) {
@@ -51,7 +52,15 @@ void gpio_setup(void) {
     const uint8_t mode = GPIO_MODE_OUTPUT_10_MHZ;
     const uint8_t conf = (LED_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
                                          : GPIO_CNF_OUTPUT_PUSHPULL);
-    gpio_set_mode(GPIOC, mode, conf, GPIO13);
+#ifndef LED_CON_DISABLE
+    gpio_set_mode(LED_CON_GPIO_PORT, mode, conf, LED_CON_GPIO_PIN);
+#endif
+#ifndef LED_RUN_DISABLE
+    gpio_set_mode(LED_RUN_GPIO_PORT, mode, conf, LED_RUN_GPIO_PIN);
+#endif
+#ifndef LED_ACT_DISABLE
+    gpio_set_mode(LED_ACT_GPIO_PORT, mode, conf, LED_ACT_GPIO_PIN);
+#endif
 }
 
 void target_console_init(void){
@@ -65,6 +74,7 @@ void target_console_init(void){
                   GPIO_CNF_INPUT_FLOAT, CONSOLE_USART_GPIO_RX);
 }
 
+/*
 void led_bit(uint8_t position, bool state) {
     uint32_t gpio = 0xFFFFFFFFU;
     if (position == 0) {
@@ -82,8 +92,19 @@ void led_bit(uint8_t position, bool state) {
 
 void led_num(uint8_t value) {
     if ((value & 0x1) ^ LED_OPEN_DRAIN) {
-        gpio_set(GPIOC, GPIO13);
+        gpio_set(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
     } else {
-        gpio_clear(GPIOC, GPIO13);
+        gpio_clear(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
+    }
+    if (( (value>>1) & 0x1) ^ LED_OPEN_DRAIN) {
+        gpio_set(LED_RUN_GPIO_PORT, LED_RUN_GPIO_PIN);
+    } else {
+        gpio_clear(LED_RUN_GPIO_PORT, LED_RUN_GPIO_PIN);
+    }
+    if (( (value>>2) & 0x1) ^ LED_OPEN_DRAIN) {
+        gpio_set(LED_ACT_GPIO_PORT, LED_ACT_GPIO_PIN);
+    } else {
+        gpio_clear(LED_ACT_GPIO_PORT, LED_ACT_GPIO_PIN);
     }
 }
+*/
