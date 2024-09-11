@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
-URL=https://developer.arm.com/-/media/Files/downloads/gnu/12.2.rel1/binrel/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi.tar.xz
-TOOLCHAIN=arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi
+URL=https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi.tar.xz
+TOOLCHAIN=arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi
 TOOLCHAINS=$HOME/toolchains
 TOOLCHAIN_MISSING=0
 GCC=${TOOLCHAINS}/gcc-arm-embedded/bin/arm-none-eabi-gcc
