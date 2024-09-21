@@ -80,7 +80,7 @@ int main(void) {
     clock_setup();
     tick_setup(1000);
     gpio_setup();
-    led_num(0);
+    LED_CONNECTED_OUT(0);
 
     if (CDC_AVAILABLE) {
         console_setup(DEFAULT_BAUDRATE);
@@ -97,7 +97,7 @@ int main(void) {
         retarget(STDERR_FILENO, CONSOLE_USART);
     }
     
-    led_num(1);
+    LED_CONNECTED_OUT(1);
 
     {
         char serial[USB_SERIAL_NUM_LENGTH+1];
@@ -157,9 +157,15 @@ int main(void) {
             int x;
             for (x=0; x < 3; x++) {
                 iwdg_reset();
-                led_num(7);
+    		LED_CONNECTED_OUT(1);
+                LED_ACTIVITY_OUT(1);
+                LED_RUNNING_OUT(1);
+//                led_num(1);
                 wait_ms(150);
-                led_num(0);
+    		LED_CONNECTED_OUT(0);
+                LED_ACTIVITY_OUT(0);
+                LED_RUNNING_OUT(0);
+//                led_num(0);
                 wait_ms(150);
                 iwdg_reset();
             }
