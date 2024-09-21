@@ -129,7 +129,7 @@ endif
 # Used libraries
 
 LDLIBS     += -l$(LIBNAME)
-LDLIBS     += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
+LDLIBS     += -Wl,--start-group -lc -lgcc -Wl,--end-group
 
 ####################################################################
 ####################################################################
