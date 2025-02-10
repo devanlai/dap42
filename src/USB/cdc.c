@@ -191,6 +191,10 @@ static void cdc_clear_nak(void) {
     }
 }
 
+static bool cdc_get_nak(void) {
+    return cdc_rx_stalled;
+}
+
 /* Receive data from the host */
 static void cdc_bulk_data_out(usbd_device *usbd_dev, uint8_t ep) {
     // Force NAK to prevent the USB controller from accepting a second
@@ -383,8 +387,10 @@ bool cdc_uart_app_update() {
     bool active = false;
 
     // Handle flow control for data received from the host
-    if (console_send_buffer_space() >= USB_CDC_MAX_PACKET_SIZE) {
-        cdc_clear_nak();
+    if (cdc_get_nak()) {
+        if (console_send_buffer_space() >= USB_CDC_MAX_PACKET_SIZE) {
+            cdc_clear_nak();
+        }
     }
 
     return active;

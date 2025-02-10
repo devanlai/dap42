@@ -23,6 +23,8 @@
 
 #define CAN_RX_AVAILABLE 0
 #define CAN_TX_AVAILABLE 0
+#define USB_NVIC_LINE NVIC_OTG_FS_IRQ
+#define USB_IRQ_NAME otg_fs_isr
 
 #define VCDC_AVAILABLE 0
 #define VCDC_TX_BUFFER_SIZE 128
