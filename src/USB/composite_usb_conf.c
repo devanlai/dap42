@@ -262,6 +262,7 @@ static const struct usb_interface_descriptor vdata_iface = {
 
 #endif
 
+#if HID_AVAILABLE
 static const struct usb_endpoint_descriptor hid_endpoints[] = {
     {
         .bLength = USB_DT_ENDPOINT_SIZE,
@@ -297,9 +298,52 @@ static const struct usb_interface_descriptor hid_iface = {
     .extra = &hid_function,
     .extralen = sizeof(hid_function),
 };
+#endif
+
+#if BULK_AVAILABLE
+static const struct usb_endpoint_descriptor bulk_endpoints[] = {
+    {
+        .bLength = USB_DT_ENDPOINT_SIZE,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = ENDP_BULK_OUT,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = USB_BULK_MAX_PACKET_SIZE,
+        .bInterval = 1,
+    },
+    {
+        .bLength = USB_DT_ENDPOINT_SIZE,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = ENDP_BULK_IN,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = USB_BULK_MAX_PACKET_SIZE,
+        .bInterval = 1,
+    },
+    {
+        .bLength = USB_DT_ENDPOINT_SIZE,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = ENDP_BULK_IN_SWO,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = USB_BULK_MAX_PACKET_SIZE,
+        .bInterval = 1,
+    },
+};
+
+static const struct usb_interface_descriptor bulk_iface = {
+    .bLength = USB_DT_INTERFACE_SIZE,
+    .bDescriptorType = USB_DT_INTERFACE,
+    .bInterfaceNumber = INTF_BULK,
+    .bAlternateSetting = 0,
+    .bNumEndpoints = 2,
+    .bInterfaceClass = USB_CLASS_VENDOR,
+    .bInterfaceSubClass = 0,
+    .bInterfaceProtocol = 0,
+    .iInterface = STR_BULK_INTF,
+
+    .endpoint = bulk_endpoints,
+};
+#endif
 
 #if DFU_AVAILABLE
-
 static const struct usb_interface_descriptor dfu_iface = {
     .bLength = USB_DT_INTERFACE_SIZE,
     .bDescriptorType = USB_DT_INTERFACE,
@@ -316,15 +360,16 @@ static const struct usb_interface_descriptor dfu_iface = {
     .extra = &dfu_function,
     .extralen = sizeof(dfu_function),
 };
-
 #endif
 
 static const struct usb_interface interfaces[] = {
+#if HID_AVAILABLE
     /* HID interface */
     {
         .num_altsetting = 1,
         .altsetting = &hid_iface,
     },
+#endif
 #if CDC_AVAILABLE
     /* CDC Control Interface */
     {
@@ -356,7 +401,15 @@ static const struct usb_interface interfaces[] = {
     {
         .num_altsetting = 1,
         .altsetting = &dfu_iface,
-    }
+    },
+#endif
+#if BULK_AVAILABLE
+    /* Bulk interface */
+    {
+        .num_altsetting = 1,
+        .altsetting = &bulk_iface,
+        // .iface_assoc = &bulk_assoc,
+    },
 #endif
 };
 
@@ -395,6 +448,10 @@ static const char *usb_strings[] = {
 #endif
 #if DFU_AVAILABLE
     [STR_DFU_INTF-1]            = (PRODUCT_NAME " DFU"),
+#endif
+#if BULK_AVAILABLE
+    [STR_BULK_INTF_ASSOC_DESC-1]= "CMSIS-DAP Bulk",
+    [STR_BULK_INTF-1]           = "CMSIS-DAP v2",
 #endif
 };
 

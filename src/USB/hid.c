@@ -24,6 +24,10 @@
 #include "composite_usb_conf.h"
 #include "hid.h"
 
+#if HID_AVAILABLE
+
+static volatile bool needs_zlp;
+
 const uint8_t hid_report_descriptor[] = {
     0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
     0x09, 0x01,        // Usage (0x01)
@@ -64,7 +68,6 @@ static HostOutFunction hid_report_out_callback = NULL;
 static HostInFunction hid_report_in_callback = NULL;
 
 static usbd_device* hid_usbd_dev = NULL;
-static volatile bool hid_in_ep_idle = true;
 
 static enum usbd_request_return_codes
 hid_control_standard_request(usbd_device *usbd_dev,
@@ -146,17 +149,19 @@ hid_control_class_request(usbd_device *usbd_dev,
 
 /* Handle sending a report to the host */
 static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
-    if (hid_report_in_callback != NULL) {
-        uint8_t buf[USB_HID_MAX_PACKET_SIZE];
-        uint16_t len = 0;
-        hid_report_in_callback(buf, &len);
-        if (len > 0) {
-            usbd_ep_write_packet(usbd_dev, ep, (const void*)buf, len);
-            hid_in_ep_idle = true;
-        } else {
-            hid_in_ep_idle = false;
-        }
+    if (needs_zlp) {
+        const uint8_t zlp[1] = {'\0'};
+        needs_zlp = false;
+        usbd_ep_write_packet(usbd_dev, ep, (const void*)zlp, 0);
     }
+    // if (hid_report_in_callback != NULL) {
+    //     uint8_t buf[USB_HID_MAX_PACKET_SIZE];
+    //     uint16_t len = 0;
+    //     hid_report_in_callback(buf, &len);
+    //     if (len > 0) {
+    //         usbd_ep_write_packet(usbd_dev, ep, (const void*)buf, len);
+    //     }
+    // }
 }
 
 /* Receive data from the host */
@@ -173,9 +178,9 @@ static void hid_set_config(usbd_device* usbd_dev, uint16_t wValue) {
     (void)wValue;
 
     usbd_ep_setup(usbd_dev, ENDP_HID_REPORT_OUT, USB_ENDPOINT_ATTR_INTERRUPT, 64,
-                  &hid_interrupt_out);
+                  hid_interrupt_out);
     usbd_ep_setup(usbd_dev, ENDP_HID_REPORT_IN, USB_ENDPOINT_ATTR_INTERRUPT, 64,
-                  &hid_interrupt_in);
+                  hid_interrupt_in);
     usbd_register_control_callback(
         usbd_dev,
         USB_REQ_TYPE_STANDARD | USB_REQ_TYPE_INTERFACE,
@@ -185,27 +190,27 @@ static void hid_set_config(usbd_device* usbd_dev, uint16_t wValue) {
     cmp_usb_register_control_class_callback(INTF_HID, hid_control_class_request);
 }
 
-void hid_setup(usbd_device* usbd_dev,
-               HostInFunction report_send_cb,
-               HostOutFunction report_recv_cb) {
-    hid_usbd_dev = usbd_dev;
-    hid_report_out_callback = report_recv_cb;
-    hid_report_in_callback = report_send_cb;
-
-    cmp_usb_register_set_config_callback(hid_set_config);
-}
 
 bool hid_send_report(const uint8_t* report, size_t len) {
     uint16_t sent = usbd_ep_write_packet(hid_usbd_dev, ENDP_HID_REPORT_IN,
                                          (const void*)report,
                                          (uint16_t)len);
+    if (len == 64) {
+        needs_zlp = true;
+    }
     if (sent != 0) {
-        hid_in_ep_idle = false;
         return true;
     }
     return false;
 }
 
-bool hid_get_in_ep_idle(void) {
-    return hid_in_ep_idle;
+void hid_setup(usbd_device* usbd_dev,
+               HostInFunction report_send_cb,
+               HostOutFunction report_recv_cb) {
+    hid_usbd_dev = usbd_dev;
+    hid_report_out_callback = report_recv_cb;
+    // hid_report_in_callback = report_send_cb;
+
+    cmp_usb_register_set_config_callback(hid_set_config);
 }
+#endif

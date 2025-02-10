@@ -53,6 +53,9 @@
 
 #define TARGET_DFU_AVAILABLE 0
 
+#define BULK_AVAILABLE 1
+#define HID_AVAILABLE 0
+
 /* Word size for usart_recv and usart_send */
 typedef uint16_t usart_word_t;
 

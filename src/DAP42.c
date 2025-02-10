@@ -115,16 +115,16 @@ int main(void) {
     DAP_app_setup(usbd_dev, &on_dfu_request);
 
     if (CDC_AVAILABLE) {
-        cdc_uart_app_setup(usbd_dev, &on_usb_activity, &on_usb_activity);
+        cdc_uart_app_setup(usbd_dev, on_usb_activity, on_usb_activity);
         cdc_uart_app_set_timeout(1);
     }
 
     if (VCDC_AVAILABLE) {
-        vcdc_app_setup(usbd_dev, &on_usb_activity, &on_usb_activity);
+        vcdc_app_setup(usbd_dev, on_usb_activity, on_usb_activity);
     }
 
     if (DFU_AVAILABLE) {
-        dfu_setup(usbd_dev, &on_dfu_request);
+        dfu_setup(usbd_dev, on_dfu_request);
     }
 
     if (CAN_RX_AVAILABLE && VCDC_AVAILABLE) {

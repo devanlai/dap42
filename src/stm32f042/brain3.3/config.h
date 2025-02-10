@@ -63,6 +63,9 @@
 #define SOFT_DFU_GPIO_PIN   GPIO4
 #define SOFT_DFU_ACTIVE_HIGH 0
 
+#define BULK_AVAILABLE 1
+#define HID_AVAILABLE 0
+
 /* Word size for usart_recv and usart_send */
 typedef uint8_t usart_word_t;
 
