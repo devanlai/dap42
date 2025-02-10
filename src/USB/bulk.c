@@ -78,10 +78,12 @@ bool bulk_send_report(const uint8_t* report, size_t len) {
     if (len == 64) {
         needs_zlp = true;
     }
-    uint16_t sent = usbd_ep_write_packet(bulk_usbd_dev, ENDP_BULK_IN,
-                                         (const void*)report,
+    uint16_t sent = usbd_ep_write_packet(bulk_usbd_dev,
+                                         ENDP_BULK_IN,
+                                         report,
                                          (uint16_t)len);
     if (sent != 0) {
+        needs_zlp = false;
         return true;
     }
     return false;

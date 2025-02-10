@@ -21,9 +21,9 @@
 
 #include <libopencm3/usb/usbd.h>
 
-extern bool DAP_app_update(void);
+bool DAP_app_update(void);
 
 typedef void (*GenericCallback)(void);
-extern void DAP_app_setup(usbd_device* usbd_dev, GenericCallback on_dfu_request);
+void DAP_app_setup(usbd_device* usbd_dev, GenericCallback on_dfu_request);
 
 #endif

@@ -25,8 +25,8 @@
 extern const struct full_usb_hid_descriptor hid_function;
 
 void hid_setup(usbd_device* usbd_dev,
-                      HostInFunction report_send_cb,
-                      HostOutFunction report_recv_cb);
+               HostInFunction report_send_cb,
+               HostOutFunction report_recv_cb);
 
 bool hid_send_report(const uint8_t* report, size_t len);
 bool hid_get_in_ep_idle(void);

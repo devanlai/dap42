@@ -35,6 +35,7 @@ enum UsbBufferKind {
     BUFFER_KIND_EMPTY,
 #if HID_AVAILABLE
     BUFFER_KIND_HID,
+    BUFFER_KIND_HID_RESPONSE,
 #endif
 #if BULK_AVAILABLE
     BUFFER_KIND_BULK,
@@ -48,13 +49,13 @@ struct usb_buffer {
 
 static volatile struct usb_buffer buffers[DAP_PACKET_QUEUE_SIZE];
 
-
 // Incoming data is written here
 static volatile uint8_t buffer_tail;
 
 // As hid data is responded to, this value approaches the buffer head.
 #if HID_AVAILABLE
 static volatile uint8_t hid_head;
+static volatile uint8_t hid_response_head;
 #endif
 
 // As bulk data is responded to, this value approaches the buffer head.
@@ -76,12 +77,23 @@ static bool on_receive_hid_report(uint8_t* data, uint16_t len) {
     return ((buffer_tail + 1) % DAP_PACKET_QUEUE_SIZE) != hid_head;
 }
 
-// static void on_send_hid_report(uint8_t* data, uint16_t* len) {
-    // if (outbox_head != process_head) {
-    //     memcpy((void*)data, (const void*)response_buffers[outbox_head],
-    //            DAP_PACKET_SIZE);
-    //     *len = DAP_PACKET_SIZE;
-// }
+static void on_send_hid_report(uint8_t* data, uint16_t* len) {
+    *len = 0;
+    while (hid_response_head != hid_head) {
+        if (buffers[hid_response_head].buffer_kind != BUFFER_KIND_HID_RESPONSE) {
+            hid_response_head = (hid_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
+            continue;
+        }
+
+        memcpy((void*)data,
+               (const void *)buffers[hid_response_head].data,
+               DAP_PACKET_SIZE);
+        buffers[hid_response_head].buffer_kind = BUFFER_KIND_EMPTY;
+        *len = DAP_PACKET_SIZE;
+        hid_response_head = (hid_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
+        return;
+    }
+}
 #endif
 
 #if BULK_AVAILABLE
@@ -139,21 +151,25 @@ bool DAP_app_update(void) {
             continue;
         }
 
-        buffers[hid_head].buffer_kind = BUFFER_KIND_EMPTY;
+        buffers[hid_head].buffer_kind = BUFFER_KIND_HID_RESPONSE;
         memset(response_buffer, 0, DAP_PACKET_SIZE);
 
         uint32_t result = DAP_ExecuteCommand((const uint8_t *)buffers[hid_head].data,
                            response_buffer);
         uint32_t response_bytes = result & 0xffff;
-        if (response_bytes >= 64) {
+        if(response_bytes > DAP_PACKET_SIZE) {
             asm("bkpt #0");
         }
+
+        memcpy((void *)buffers[hid_head].data, response_buffer, DAP_PACKET_SIZE);
+
         if (!hid_send_report(response_buffer, response_bytes)) {
-            asm("bkpt #2");
+            asm("bkpt #3");
         }
 
         hid_head = (hid_head + 1) % DAP_PACKET_QUEUE_SIZE;
         active = true;
+        break;
     }
 #endif
 
@@ -170,7 +186,7 @@ bool DAP_app_update(void) {
         uint32_t result = DAP_ExecuteCommand((const uint8_t *)buffers[bulk_head].data,
                                              response_buffer);
         uint32_t response_bytes = result & 0xffff;
-        if (response_bytes > 64) {
+        if (response_bytes > DAP_PACKET_SIZE) {
             asm("bkpt #0");
         }
 
@@ -191,7 +207,7 @@ bool DAP_app_update(void) {
 void DAP_app_setup(usbd_device* usbd_dev, GenericCallback on_dfu_request) {
     DAP_Setup();
 #if HID_AVAILABLE
-    hid_setup(usbd_dev, NULL, on_receive_hid_report);
+    hid_setup(usbd_dev, on_send_hid_report, on_receive_hid_report);
 #endif
 #if BULK_AVAILABLE
     bulk_setup(usbd_dev, on_receive_bulk_report);
