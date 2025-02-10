@@ -135,8 +135,7 @@ int main(void) {
 
     /* Enable the watchdog to enable DFU recovery from bad firmware images */
     iwdg_set_period_ms(1000);
-#warning "Disabling watchdog timer for now"
-    // iwdg_start();
+    iwdg_start();
 
     /* Enable USB */
     nvic_enable_irq(USB_NVIC_LINE);
