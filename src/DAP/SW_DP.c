@@ -99,7 +99,19 @@ void SWD_Sequence (uint32_t info, const uint8_t *swdo, uint8_t *swdi) {
         val >>= 1;
         val  |= bit << 7;
       }
-      val >>= k;
+      // The original SWD sequence has an off-by-one error that causes
+      // all returned values to be shifted. This isn't an issue for most
+      // software, since they tend to use `SWD_Sequence()` as a write-only
+      // primitive and don't care about the return value.
+      //
+      // The Black Magic Debug Project uses this for additional checks,
+      // which works around this bug if it's detected. For details, see:
+      // https://github.com/blackmagic-debug/blackmagic/blob/31d30ada18862cdf44ae7ed798325cb7366d05e0/src/platforms/hosted/dap_command.c#L428-L458
+      //
+      // This bug is present in reference code from ARM. If this file is
+      // updated to a newer build, please ensure this fix is carried
+      // forward, or ensure the newer version no longer has this bug.
+      val >>= (k+1);
       *swdi++ = (uint8_t)val;
     }
   } else {
