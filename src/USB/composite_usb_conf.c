@@ -47,7 +47,17 @@ _Static_assert((1 + NUM_OUT_ENDPOINTS <= 8), "Too many OUT endpoints for USB cor
 
 #define CONTROL_PMA_USAGE 128
 
+#if HID_AVAILABLE
 #define HID_PMA_USAGE (2*USB_HID_MAX_PACKET_SIZE)
+#else
+#define HID_PMA_USAGE 0
+#endif
+
+#if BULK_AVAILABLE
+#define BULK_PMA_USAGE (2*USB_BULK_MAX_PACKET_SIZE)
+#else
+#define BULK_PMA_USAGE 0
+#endif
 
 #if CDC_AVAILABLE
 #define CDC_PMA_USAGE (2*USB_CDC_MAX_PACKET_SIZE+16)
@@ -63,6 +73,7 @@ _Static_assert((1 + NUM_OUT_ENDPOINTS <= 8), "Too many OUT endpoints for USB cor
 
 #define TOTAL_PMA_USAGE (CONTROL_PMA_USAGE \
                        + HID_PMA_USAGE \
+                       + BULK_PMA_USAGE \
                        + CDC_PMA_USAGE \
                        + VCDC_PMA_USAGE)
 
