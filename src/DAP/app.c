@@ -78,21 +78,19 @@ static bool on_receive_hid_report(uint8_t* data, uint16_t len) {
 }
 
 static void on_send_hid_report(uint8_t* data, uint16_t* len) {
-    *len = 0;
     while (hid_response_head != hid_head) {
         if (buffers[hid_response_head].buffer_kind != BUFFER_KIND_HID_RESPONSE) {
             hid_response_head = (hid_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
             continue;
         }
-
-        memcpy((void*)data,
-               (const void *)buffers[hid_response_head].data,
+        memcpy((void*)data, (const void*)buffers[hid_response_head].data,
                DAP_PACKET_SIZE);
-        buffers[hid_response_head].buffer_kind = BUFFER_KIND_EMPTY;
         *len = DAP_PACKET_SIZE;
+
         hid_response_head = (hid_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
         return;
     }
+    *len = 0;
 }
 #endif
 
@@ -130,11 +128,12 @@ uint32_t DAP_ProcessVendorCommand(const uint8_t* request, uint8_t* response) {
 }
 
 static void DAP_app_reset(void) {
-#if BULK_AVAILABLE
-    bulk_head = 0;
-#endif
 #if HID_AVAILABLE
     hid_head = 0;
+    hid_response_head = 0;
+#endif
+#if BULK_AVAILABLE
+    bulk_head = 0;
 #endif
     buffer_tail = 0;
     DAP_Setup();
@@ -150,24 +149,27 @@ bool DAP_app_update(void) {
             hid_head = (hid_head + 1) % DAP_PACKET_QUEUE_SIZE;
             continue;
         }
-
         buffers[hid_head].buffer_kind = BUFFER_KIND_HID_RESPONSE;
+
         memset(response_buffer, 0, DAP_PACKET_SIZE);
-
-        uint32_t result = DAP_ExecuteCommand((const uint8_t *)buffers[hid_head].data,
+        DAP_ExecuteCommand((void *)buffers[hid_head].data,
                            response_buffer);
-        uint32_t response_bytes = result & 0xffff;
-        if(response_bytes > DAP_PACKET_SIZE) {
-            asm("bkpt #0");
-        }
-
         memcpy((void *)buffers[hid_head].data, response_buffer, DAP_PACKET_SIZE);
+        hid_head = (hid_head + 1) % DAP_PACKET_QUEUE_SIZE;
+        active = true;
+        break;
+    }
 
-        if (!hid_send_report(response_buffer, response_bytes)) {
-            asm("bkpt #3");
+    while (hid_response_head != hid_head) {
+        if (buffers[hid_response_head].buffer_kind != BUFFER_KIND_HID_RESPONSE) {
+            hid_response_head = (hid_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
+            continue;
         }
 
-        hid_head = (hid_head + 1) % DAP_PACKET_QUEUE_SIZE;
+        if (hid_send_report((void *)buffers[hid_response_head].data, DAP_PACKET_SIZE)) {
+            buffers[hid_response_head].buffer_kind = BUFFER_KIND_EMPTY;
+            hid_response_head = (hid_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
+        }
         active = true;
         break;
     }
@@ -192,7 +194,8 @@ bool DAP_app_update(void) {
 
         if (!bulk_send_report(response_buffer, response_bytes)) {
             // If this fails, then the packet was dropped. This hasn't been
-            // ecnountered in testing.
+            // ecnountered in testing. The correct solution is to have a similar
+            // `BUFFER_KIND_BULK_RESPONSE` state to what we have for HID.
             asm("bkpt #1");
         }
 
