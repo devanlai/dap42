@@ -39,12 +39,14 @@ enum UsbBufferKind {
 #endif
 #if BULK_AVAILABLE
     BUFFER_KIND_BULK,
+    BUFFER_KIND_BULK_RESPONSE,
 #endif
 };
 
 struct usb_buffer {
     uint8_t buffer_kind;
     uint8_t data[DAP_PACKET_SIZE];
+    uint8_t size;
 };
 
 static volatile struct usb_buffer buffers[DAP_PACKET_QUEUE_SIZE];
@@ -61,6 +63,7 @@ static volatile uint8_t hid_response_head;
 // As bulk data is responded to, this value approaches the buffer head.
 #if BULK_AVAILABLE
 static volatile uint8_t bulk_head;
+static volatile uint8_t bulk_response_head;
 #endif
 
 static GenericCallback dfu_request_callback = NULL;
@@ -72,6 +75,7 @@ static GenericCallback dfu_request_callback = NULL;
 static bool on_receive_hid_report(uint8_t* data, uint16_t len) {
     memcpy((void*)buffers[buffer_tail].data, (const void*)data, len);
     buffers[buffer_tail].buffer_kind = BUFFER_KIND_HID;
+    buffers[buffer_tail].size = len;
     buffer_tail = (buffer_tail + 1) % DAP_PACKET_QUEUE_SIZE;
 
     return ((buffer_tail + 1) % DAP_PACKET_QUEUE_SIZE) != hid_head;
@@ -98,9 +102,26 @@ static void on_send_hid_report(uint8_t* data, uint16_t* len) {
 static bool on_receive_bulk_report(uint8_t* data, uint16_t len) {
     memcpy((void*)buffers[buffer_tail].data, (const void*)data, len);
     buffers[buffer_tail].buffer_kind = BUFFER_KIND_BULK;
+    buffers[buffer_tail].size = len;
     buffer_tail = (buffer_tail + 1) % DAP_PACKET_QUEUE_SIZE;
 
     return ((buffer_tail + 1) % DAP_PACKET_QUEUE_SIZE) != bulk_head;
+}
+
+static void on_send_bulk_report(uint8_t* data, uint16_t* len) {
+    while (bulk_response_head != bulk_head) {
+        if (buffers[bulk_response_head].buffer_kind != BUFFER_KIND_BULK_RESPONSE) {
+            bulk_response_head = (bulk_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
+            continue;
+        }
+        memcpy((void*)data, (const void*)buffers[bulk_response_head].data,
+               buffers[bulk_response_head].size);
+        *len = buffers[bulk_response_head].size;
+
+        bulk_response_head = (bulk_response_head + 1) % DAP_PACKET_QUEUE_SIZE;
+        return;
+    }
+    *len = 0;
 }
 #endif
 
@@ -193,10 +214,9 @@ bool DAP_app_update(void) {
         }
 
         if (!bulk_send_report(response_buffer, response_bytes)) {
-            // If this fails, then the packet was dropped. This hasn't been
-            // ecnountered in testing. The correct solution is to have a similar
-            // `BUFFER_KIND_BULK_RESPONSE` state to what we have for HID.
-            asm("bkpt #1");
+            buffers[bulk_head].buffer_kind = BUFFER_KIND_BULK_RESPONSE;
+            memcpy((void *)buffers[bulk_head].data, response_buffer, response_bytes);
+            buffers[bulk_head].size = response_bytes;
         }
 
         bulk_head = (bulk_head + 1) % DAP_PACKET_QUEUE_SIZE;
@@ -213,7 +233,7 @@ void DAP_app_setup(usbd_device* usbd_dev, GenericCallback on_dfu_request) {
     hid_setup(usbd_dev, on_send_hid_report, on_receive_hid_report);
 #endif
 #if BULK_AVAILABLE
-    bulk_setup(usbd_dev, on_receive_bulk_report);
+    bulk_setup(usbd_dev, on_send_bulk_report, on_receive_bulk_report);
 #endif
     dfu_request_callback = on_dfu_request;
 

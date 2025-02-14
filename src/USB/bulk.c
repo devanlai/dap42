@@ -26,35 +26,41 @@
 
 #if BULK_AVAILABLE
 
-/* `true` if we've sent a packet that's 64-bytes, which needs to
-   be followed by a Zero Length Packet. */
-static volatile bool needs_zlp;
-
 /* User callbacks */
 static HostOutFunction bulk_out_callback = NULL;
+static HostInFunction bulk_in_callback = NULL;
 
-static usbd_device* bulk_usbd_dev = NULL;
+static usbd_device *bulk_usbd_dev = NULL;
 
-/* Handle sending a zero-length packet to the host */
-static void bulk_in(usbd_device *usbd_dev, uint8_t ep) {
-    if (needs_zlp) {
-        needs_zlp = false;
-        uint8_t empty[1] = {'\0'};
-        usbd_ep_write_packet(usbd_dev, ep, empty, 0);
+/* Handle sending additional data to the host */
+static void bulk_in(usbd_device *usbd_dev, uint8_t ep)
+{
+    if ((bulk_in_callback != NULL) && (ep == (ENDP_BULK_IN & 0x7f)) && (usbd_dev == bulk_usbd_dev))
+    {
+        uint8_t buf[USB_BULK_MAX_PACKET_SIZE];
+        uint16_t len = 0;
+        bulk_in_callback(buf, &len);
+        if (len > 0)
+        {
+            bulk_send_report(buf, len);
+        }
     }
 }
 
 /* Receive data from the host */
-static void bulk_out(usbd_device *usbd_dev, uint8_t ep) {
+static void bulk_out(usbd_device *usbd_dev, uint8_t ep)
+{
     uint8_t buf[USB_BULK_MAX_PACKET_SIZE];
-    uint16_t len = usbd_ep_read_packet(usbd_dev, ep, (void*)buf, sizeof(buf));
+    uint16_t len = usbd_ep_read_packet(usbd_dev, ep, (void *)buf, sizeof(buf));
     // TODO: flow control
-    if (len > 0 && (bulk_out_callback != NULL)) {
+    if (len > 0 && (bulk_out_callback != NULL))
+    {
         bulk_out_callback(buf, len);
     }
 }
 
-static void bulk_set_config(usbd_device* usbd_dev, uint16_t wValue) {
+static void bulk_set_config(usbd_device *usbd_dev, uint16_t wValue)
+{
     (void)wValue;
 
     // OUT (host-to-device)
@@ -66,27 +72,29 @@ static void bulk_set_config(usbd_device* usbd_dev, uint16_t wValue) {
                   bulk_in);
 }
 
-void bulk_setup(usbd_device* usbd_dev,
-               HostOutFunction report_recv_cb) {
+void bulk_setup(usbd_device *usbd_dev,
+                HostInFunction report_send_cb,
+                HostOutFunction report_recv_cb)
+{
     bulk_usbd_dev = usbd_dev;
+    bulk_in_callback = report_send_cb;
     bulk_out_callback = report_recv_cb;
 
     cmp_usb_register_set_config_callback(bulk_set_config);
 }
 
-bool bulk_send_report(const uint8_t* report, size_t len) {
-    if (len == 64) {
-        needs_zlp = true;
-    }
+bool bulk_send_report(const uint8_t *report, size_t len)
+{
     uint16_t sent = usbd_ep_write_packet(bulk_usbd_dev,
                                          ENDP_BULK_IN,
                                          report,
                                          (uint16_t)len);
-    if (sent != 0) {
-        needs_zlp = false;
-        return true;
+    if (sent == 0)
+    {
+        return false;
     }
-    return false;
+
+    return true;
 }
 
 #endif

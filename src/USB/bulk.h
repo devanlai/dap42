@@ -22,6 +22,7 @@
 #include "usb_common.h"
 
 void bulk_setup(usbd_device *usbd_dev,
+                HostInFunction report_send_cb,
                 HostOutFunction report_recv_cb);
 bool bulk_send_report(const uint8_t* report, size_t len);
 
