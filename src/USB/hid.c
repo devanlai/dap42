@@ -124,8 +124,11 @@ hid_control_class_request(usbd_device *usbd_dev,
     enum usbd_request_return_codes status = USBD_REQ_NOTSUPP;
     switch (req->bRequest) {
         case USB_HID_REQ_GET_REPORT: {
-            if ((hid_report_in_callback != NULL) && (*buf != NULL)) {
-                hid_report_in_callback(*buf, len);
+            // Note: support for this request is mandatory, but in practice
+            // it is unusable since we have a dedicated IN endpoint that
+            // we push the latest report to as soon as it is available.
+            if (*buf != NULL) {
+                *len = 0;
                 status = USBD_REQ_HANDLED;
             }
             break;
