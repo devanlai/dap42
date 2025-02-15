@@ -25,5 +25,6 @@ void bulk_setup(usbd_device *usbd_dev,
                 HostInFunction report_send_cb,
                 HostOutFunction report_recv_cb);
 bool bulk_send_report(const uint8_t* report, size_t len);
+bool bulk_get_in_ep_idle(void);
 
 #endif

@@ -68,6 +68,7 @@ static HostOutFunction hid_report_out_callback = NULL;
 static HostInFunction hid_report_in_callback = NULL;
 
 static usbd_device* hid_usbd_dev = NULL;
+static volatile bool hid_in_ep_idle = true;
 
 static enum usbd_request_return_codes
 hid_control_standard_request(usbd_device *usbd_dev,
@@ -147,7 +148,8 @@ hid_control_class_request(usbd_device *usbd_dev,
     return status;
 }
 
-/* Handle sending a report to the host */
+/* After finishing sending a report to the host, possibly
+ * start sending another report to the host */
 static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
     if (hid_report_in_callback != NULL) {
         uint8_t buf[USB_HID_MAX_PACKET_SIZE];
@@ -155,6 +157,11 @@ static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
         hid_report_in_callback(buf, &len);
         if (len > 0) {
             usbd_ep_write_packet(usbd_dev, ep, (const void*)buf, len);
+            hid_in_ep_idle = false;
+        } else {
+            // No data ready to transmit now; we will not receive another
+            // interrupt until someone manually sends data via hid_send_report()
+            hid_in_ep_idle = true;
         }
     }
 }
@@ -163,7 +170,8 @@ static void hid_interrupt_in(usbd_device *usbd_dev, uint8_t ep) {
 static void hid_interrupt_out(usbd_device *usbd_dev, uint8_t ep) {
     uint8_t buf[USB_HID_MAX_PACKET_SIZE];
     uint16_t len = usbd_ep_read_packet(usbd_dev, ep, (void*)buf, sizeof(buf));
-    // TODO: flow control
+    // TODO: set NAK for flow control if the callback indicates it isn't ready
+    // to accept more packets.
     if (len > 0 && (hid_report_out_callback != NULL)) {
         hid_report_out_callback(buf, len);
     }
@@ -191,11 +199,17 @@ bool hid_send_report(const uint8_t* report, size_t len) {
                                          ENDP_HID_REPORT_IN,
                                          report,
                                          (uint16_t)len);
-    if (sent == 0) {
-        return false;
+    if (sent != 0) {
+        // The report is ready to transmit and will eventually generate an interrupt
+        hid_in_ep_idle = false;
+        return true;
     }
 
-    return true;
+    return false;
+}
+
+bool hid_get_in_ep_idle(void) {
+    return hid_in_ep_idle;
 }
 
 void hid_setup(usbd_device* usbd_dev,

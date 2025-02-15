@@ -31,18 +31,23 @@ static HostOutFunction bulk_out_callback = NULL;
 static HostInFunction bulk_in_callback = NULL;
 
 static usbd_device *bulk_usbd_dev = NULL;
+static volatile bool bulk_in_ep_idle = true;
 
 /* Handle sending additional data to the host */
 static void bulk_in(usbd_device *usbd_dev, uint8_t ep)
 {
-    if ((bulk_in_callback != NULL) && (ep == (ENDP_BULK_IN & 0x7f)) && (usbd_dev == bulk_usbd_dev))
+    if (bulk_in_callback != NULL)
     {
         uint8_t buf[USB_BULK_MAX_PACKET_SIZE];
         uint16_t len = 0;
         bulk_in_callback(buf, &len);
-        if (len > 0)
-        {
-            bulk_send_report(buf, len);
+        if (len > 0) {
+            usbd_ep_write_packet(usbd_dev, ep, (const void*)buf, len);
+            bulk_in_ep_idle = false;
+        } else {
+            // No data ready to transmit now; we will not receive another
+            // interrupt until someone manually sends data via bulk_send_report()
+            bulk_in_ep_idle = true;
         }
     }
 }
@@ -52,7 +57,8 @@ static void bulk_out(usbd_device *usbd_dev, uint8_t ep)
 {
     uint8_t buf[USB_BULK_MAX_PACKET_SIZE];
     uint16_t len = usbd_ep_read_packet(usbd_dev, ep, (void *)buf, sizeof(buf));
-    // TODO: flow control
+    // TODO: set NAK for flow control if the callback indicates it isn't ready
+    // to accept more packets.
     if (len > 0 && (bulk_out_callback != NULL))
     {
         bulk_out_callback(buf, len);
@@ -83,18 +89,22 @@ void bulk_setup(usbd_device *usbd_dev,
     cmp_usb_register_set_config_callback(bulk_set_config);
 }
 
-bool bulk_send_report(const uint8_t *report, size_t len)
-{
+bool bulk_send_report(const uint8_t* report, size_t len) {
     uint16_t sent = usbd_ep_write_packet(bulk_usbd_dev,
                                          ENDP_BULK_IN,
                                          report,
                                          (uint16_t)len);
-    if (sent == 0)
-    {
-        return false;
+    if (sent != 0) {
+        // The data is ready to transmit and will eventually generate an interrupt
+        bulk_in_ep_idle = false;
+        return true;
     }
 
-    return true;
+    return false;
+}
+
+bool bulk_get_in_ep_idle(void) {
+    return bulk_in_ep_idle;
 }
 
 #endif
