@@ -22,38 +22,69 @@
 
 #include "composite_usb_conf.h"
 
-#if DFU_AVAILABLE && WINUSB_AVAILABLE
+#if WINUSB_AVAILABLE && (DFU_AVAILABLE || BULK_AVAILABLE)
 
 static const struct winusb_simple_descriptor_set winusb_desc_set = {
     .header = {
-        .wLength = sizeof(struct winusb_descriptor_set_header),
-        .wDescriptorType = WINUSB_DT_MS_OS_20_SET_HEADER_DESCRIPTOR,
-        .dwWindowsVersion = WINUSB_WINDOWS_VERSION_8_1,
-        .wTotalLength = sizeof(winusb_desc_set),
+            .wLength = sizeof(struct winusb_descriptor_set_header),
+            .wDescriptorType = WINUSB_DT_MS_OS_20_SET_HEADER_DESCRIPTOR,
+            .dwWindowsVersion = WINUSB_WINDOWS_VERSION_8_1,
+            .wTotalLength = sizeof(winusb_desc_set),
+        },
+#if DFU_AVAILABLE
+    .dfu = {
+        .function = {
+            .wLength = sizeof(struct winusb_function_subset_header),
+            .wDescriptorType = WINUSB_DT_MS_OS_20_SUBSET_HEADER_FUNCTION,
+            .bFirstInterface = INTF_DFU,
+            .wSubsetLength = (sizeof(struct winusb_function_subset_header) +
+                            sizeof(struct winusb_20_compatible_id_feature_descriptor) +
+                            sizeof(struct winusb_20_device_interface_guids_descriptor)),
+        },
+        .wcid = {
+            .wLength = 20,
+            .wDescriptorType = WINUSB_DT_MS_OS_20_FEATURE_COMPATIBLE_ID,
+            .compatibleId = "WINUSB",
+            .subCompatibleId = ""
+        },
+        .guids = {
+            .wLength = sizeof(struct winusb_20_device_interface_guids_descriptor),
+            .wDescriptorType = WINUSB_DT_MS_OS_20_FEATURE_REG_PROPERTY,
+            .wPropertyDataType = WINUSB_PROP_DATA_TYPE_REG_MULTI_SZ,
+            .wPropertyNameLength = 42,
+            .PropertyName = u"DeviceInterfaceGUIDs",
+            .wPropertyDataLength = 80,
+            .PropertyData = u"{DA103DEF-26A6-47D9-970E-B3D561A277FA}\0"
+        },
     },
-    .function = {
-        .wLength = sizeof(struct winusb_function_subset_header),
-        .wDescriptorType = WINUSB_DT_MS_OS_20_SUBSET_HEADER_FUNCTION,
-        .bFirstInterface = INTF_DFU,
-        .wSubsetLength = (sizeof(struct winusb_function_subset_header) +
-                          sizeof(struct winusb_20_compatible_id_feature_descriptor) +
-                          sizeof(struct winusb_20_device_interface_guids_descriptor)),
+#endif
+#if BULK_AVAILABLE
+    .bulk = {
+        .function = {
+            .wLength = sizeof(struct winusb_function_subset_header),
+            .wDescriptorType = WINUSB_DT_MS_OS_20_SUBSET_HEADER_FUNCTION,
+            .bFirstInterface = INTF_BULK,
+            .wSubsetLength = (sizeof(struct winusb_function_subset_header) +
+                            sizeof(struct winusb_20_compatible_id_feature_descriptor) +
+                            sizeof(struct winusb_20_device_interface_guids_descriptor)),
+        },
+        .wcid = {
+            .wLength = 20,
+            .wDescriptorType = WINUSB_DT_MS_OS_20_FEATURE_COMPATIBLE_ID,
+            .compatibleId = "WINUSB",
+            .subCompatibleId = ""
+        },
+        .guids = {
+            .wLength = sizeof(struct winusb_20_device_interface_guids_descriptor),
+            .wDescriptorType = WINUSB_DT_MS_OS_20_FEATURE_REG_PROPERTY,
+            .wPropertyDataType = WINUSB_PROP_DATA_TYPE_REG_MULTI_SZ,
+            .wPropertyNameLength = 42,
+            .PropertyName = u"DeviceInterfaceGUIDs",
+            .wPropertyDataLength = 80,
+            .PropertyData = u"{DA103DEF-26A6-47D9-970E-B3D561A277FA}\0"
+        },
     },
-    .wcid = {
-        .wLength = 20,
-        .wDescriptorType = WINUSB_DT_MS_OS_20_FEATURE_COMPATIBLE_ID,
-        .compatibleId = "WINUSB",
-        .subCompatibleId = ""
-    },
-    .guids = {
-        .wLength = sizeof(struct winusb_20_device_interface_guids_descriptor),
-        .wDescriptorType = WINUSB_DT_MS_OS_20_FEATURE_REG_PROPERTY,
-        .wPropertyDataType = WINUSB_PROP_DATA_TYPE_REG_MULTI_SZ,
-        .wPropertyNameLength = 42,
-        .PropertyName = u"DeviceInterfaceGUIDs",
-        .wPropertyDataLength = 80,
-        .PropertyData = u"{DA103DEF-26A6-47D9-970E-B3D561A277FA}\0"
-    },
+#endif
 };
 
 const struct winusb_platform_descriptor winusb_platform_capability_descriptor = {
@@ -72,7 +103,7 @@ const struct winusb_platform_descriptor winusb_platform_capability_descriptor = 
     }
 };
 
-static int winusb_control_vendor_request(usbd_device *usbd_dev,
+static enum usbd_request_return_codes winusb_control_vendor_request(usbd_device *usbd_dev,
                                          struct usb_setup_data *req,
                                          uint8_t **buf, uint16_t *len,
                                          usbd_control_complete_callback* complete) {

@@ -126,9 +126,10 @@ int main(void) {
 
     if (DFU_AVAILABLE) {
         dfu_setup(usbd_dev, on_dfu_request);
-        if (WINUSB_AVAILABLE) {
-            winusb_setup(usbd_dev);
-        }
+    }
+
+    if (WINUSB_AVAILABLE && (DFU_AVAILABLE || BULK_AVAILABLE)) {
+        winusb_setup(usbd_dev);
     }
 
     if (CAN_RX_AVAILABLE && VCDC_AVAILABLE) {

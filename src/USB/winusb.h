@@ -20,6 +20,7 @@
 #define WINUSB_H_INCLUDED
 
 #include "winusb_defs.h"
+#include "composite_usb_conf.h"
 
 /* Arbitrary, but must be equivalent to the last character in
    the special OS descriptor string */
@@ -64,9 +65,20 @@ struct winusb_20_device_interface_guid_descriptor {
 
 struct winusb_simple_descriptor_set {
     struct winusb_descriptor_set_header header;
-    struct winusb_function_subset_header function;
-    struct winusb_20_compatible_id_feature_descriptor wcid;
-    struct winusb_20_device_interface_guids_descriptor guids;
+#if DFU_AVAILABLE
+    struct {
+        struct winusb_function_subset_header function;
+        struct winusb_20_compatible_id_feature_descriptor wcid;
+        struct winusb_20_device_interface_guids_descriptor guids;
+    } dfu;
+#endif
+#if BULK_AVAILABLE
+    struct {
+        struct winusb_function_subset_header function;
+        struct winusb_20_compatible_id_feature_descriptor wcid;
+        struct winusb_20_device_interface_guids_descriptor guids;
+    } bulk;
+#endif
 } __attribute__((packed));
 
 extern void winusb_setup(usbd_device* usbd_dev);
