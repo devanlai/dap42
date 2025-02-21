@@ -54,7 +54,7 @@ static volatile struct usb_buffer buffers[DAP_PACKET_QUEUE_SIZE];
 // Incoming data is written here
 static volatile uint8_t inbox_tail;
 // The command to execute is read from here
-static uint8_t process_head;
+static volatile uint8_t process_head;
 // Outgoing data is read from here
 static volatile uint8_t outbox_head;
 
