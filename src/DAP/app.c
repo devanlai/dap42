@@ -155,16 +155,18 @@ bool DAP_app_update(void) {
             asm("bkpt #0");
         }
         memcpy((void *)buffers[process_head].data, response_buffer, response_bytes);
-        buffers[process_head].size = response_bytes;
         switch (buffers[process_head].buffer_kind) {
 #if HID_AVAILABLE
             case BUFFER_KIND_HID:
+                // Always pad to the full size to avoid issues on Windows
                 buffers[process_head].buffer_kind = BUFFER_KIND_HID_RESPONSE;
+                buffers[process_head].size = DAP_PACKET_SIZE;
                 break;
 #endif
 #if BULK_AVAILABLE
             case BUFFER_KIND_BULK:
                 buffers[process_head].buffer_kind = BUFFER_KIND_BULK_RESPONSE;
+                buffers[process_head].size = response_bytes;
                 break;
 #endif
             default:
