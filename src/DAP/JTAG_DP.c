@@ -100,7 +100,7 @@ void JTAG_Sequence (uint32_t info, const uint8_t *tdi, uint8_t *tdo) {
 //   ir:     IR value
 //   return: none
 #define JTAG_IR_Function(speed) /**/                                            \
-void JTAG_IR_##speed (uint32_t ir) {                                            \
+static void JTAG_IR_##speed (uint32_t ir) {                                     \
   uint32_t n;                                                                   \
                                                                                 \
   PIN_TMS_SET();                                                                \
@@ -144,7 +144,7 @@ void JTAG_IR_##speed (uint32_t ir) {                                            
 //   data:    DATA[31:0]
 //   return:  ACK[2:0]
 #define JTAG_TransferFunction(speed)        /**/                                \
-uint8_t JTAG_Transfer##speed (uint32_t request, uint32_t *data) {               \
+static uint8_t JTAG_Transfer##speed (uint32_t request, uint32_t *data) {        \
   uint32_t ack;                                                                 \
   uint32_t bit;                                                                 \
   uint32_t val;                                                                 \

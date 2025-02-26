@@ -78,6 +78,16 @@ static __inline void PORT_SWD_SETUP (void)
 
     gpio_mode_setup(SWDIO_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SWDIO_GPIO_PIN);
     gpio_mode_setup(SWCLK_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SWCLK_GPIO_PIN);
+
+#if defined(JTDI_GPIO_PORT) && defined(JTDI_GPIO_PIN)
+    GPIO_BRR(JTDI_GPIO_PORT) = JTDI_GPIO_PIN;
+    gpio_mode_setup(JTDI_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, JTDI_GPIO_PIN);
+#endif
+
+#if defined(JTDO_GPIO_PORT) && defined(JTDO_GPIO_PIN)
+    GPIO_BRR(JTDO_GPIO_PORT) = JTDO_GPIO_PIN;
+    gpio_mode_setup(JTDO_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, JTDO_GPIO_PIN);
+#endif
 }
 
 static __inline void PORT_OFF (void)
@@ -86,6 +96,16 @@ static __inline void PORT_OFF (void)
     GPIO_BRR(SWCLK_GPIO_PORT) = SWCLK_GPIO_PIN;
     gpio_mode_setup(SWDIO_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, SWDIO_GPIO_PIN);
     gpio_mode_setup(SWCLK_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, SWCLK_GPIO_PIN);
+
+#if defined(JTDI_GPIO_PORT) && defined(JTDI_GPIO_PIN)
+    GPIO_BRR(JTDI_GPIO_PORT) = JTDI_GPIO_PIN;
+    gpio_mode_setup(JTDI_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, JTDI_GPIO_PIN);
+#endif
+
+#if defined(JTDO_GPIO_PORT) && defined(JTDO_GPIO_PIN)
+    GPIO_BRR(JTDO_GPIO_PORT) = JTDO_GPIO_PIN;
+    gpio_mode_setup(JTDO_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, JTDO_GPIO_PIN);
+#endif
 }
 
 static __inline void PIN_SWCLK_TCK_SET (void)
@@ -140,16 +160,57 @@ static __inline void     PIN_SWDIO_OUT_DISABLE (void)
 }
 
 /*
-  JTAG-only functionality (not used in this application)
+  JTAG-only functionality
 */
 
-static __inline void PORT_JTAG_SETUP (void) {}
+static __inline void PORT_JTAG_SETUP (void) {
+    GPIO_BSRR(SWDIO_GPIO_PORT) = SWDIO_GPIO_PIN;
+    GPIO_BSRR(SWCLK_GPIO_PORT) = SWCLK_GPIO_PIN;
 
-static __inline uint32_t PIN_TDI_IN  (void) {  return 0; }
+    gpio_set_output_options(SWDIO_GPIO_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_HIGH, SWDIO_GPIO_PIN);
+    gpio_set_output_options(SWCLK_GPIO_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_HIGH, SWCLK_GPIO_PIN);
 
-static __inline void     PIN_TDI_OUT (uint32_t bit) { (void)bit; }
+    gpio_mode_setup(SWDIO_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SWDIO_GPIO_PIN);
+    gpio_mode_setup(SWCLK_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, SWCLK_GPIO_PIN);
 
-static __inline uint32_t PIN_TDO_IN (void) {  return 0; }
+#if defined(JTDI_GPIO_PORT) && defined(JTDI_GPIO_PIN)
+    GPIO_BSRR(JTDI_GPIO_PORT) = JTDI_GPIO_PIN;
+    gpio_set_output_options(JTDI_GPIO_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_HIGH, JTDI_GPIO_PIN);
+    gpio_mode_setup(JTDI_GPIO_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, JTDI_GPIO_PIN);
+#endif
+
+#if defined(JTDO_GPIO_PORT) && defined(JTDO_GPIO_PIN)
+    GPIO_BSRR(JTDO_GPIO_PORT) = JTDO_GPIO_PIN;
+    gpio_mode_setup(JTDO_GPIO_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, JTDO_GPIO_PIN);
+#endif
+}
+
+static __inline uint32_t PIN_TDI_IN  (void) {
+#if defined(JTDI_GPIO_PORT) && defined(JTDI_GPIO_PIN)
+    return (GPIO_IDR(JTDI_GPIO_PORT) & JTDI_GPIO_PIN) ? 0x1 : 0x0;
+#else
+    return 0;
+#endif
+}
+
+static __inline void     PIN_TDI_OUT (uint32_t bit) {
+    (void)bit;
+#if defined(JTDI_GPIO_PORT) && defined(JTDI_GPIO_PIN)
+    if (bit & 1) {
+        GPIO_BSRR(JTDI_GPIO_PORT) = JTDI_GPIO_PIN;
+    } else {
+        GPIO_BRR(JTDI_GPIO_PORT) = JTDI_GPIO_PIN;
+    }
+#endif
+}
+
+static __inline uint32_t PIN_TDO_IN (void) {
+#if defined(JTDO_GPIO_PORT) && defined(JTDO_GPIO_PIN)
+    return (GPIO_IDR(JTDO_GPIO_PORT) & JTDO_GPIO_PIN) ? 0x1 : 0x0;
+#else
+    return 0;
+#endif
+}
 
 static __inline uint32_t PIN_nTRST_IN (void) {  return 0; }
 
