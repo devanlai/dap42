@@ -26,6 +26,7 @@
 
 /* Reconfigure processor settings */
 void cpu_setup(void) {
+#if DFU_AVAILABLE
     /* Disable any interrupts enabled by the bootloader */
     int i = 0;
     for (i=0; i*32 < NVIC_IRQ_COUNT; i++) {
@@ -34,6 +35,7 @@ void cpu_setup(void) {
 
     /* Relocate the vector table */
     SCB_VTOR = 0x08004000;
+#endif
 }
 
 /* Set STM32 to 72 MHz. */
