@@ -187,3 +187,12 @@ To load onto a device with the [dapboot](https://github.com/devanlai/dapboot) DF
     make TARGET=STM32F103-DFUBOOT
     make TARGET=STM32F103-DFUBOOT dfu-flash
 
+## STLINKV2-1 (Nucleo on-board debugger)
+As an experimental target, you can flash the embedded STLink/v2-1 debugger on STM32 Nucleo boards
+
+Currently, the only supported target is `TARGET=STLINKV2-1` to flash directly without a bootloader through SWD.
+Please note that the STLink/v2-1 has an encrypted, read-protected bootloader - reflash it at your own risk.
+
+    make clean
+    make TARGET=STLINKV2-1
+    make TARGET=STLINKV2-1 flash

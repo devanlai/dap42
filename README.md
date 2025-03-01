@@ -5,7 +5,7 @@ This project is stable - it has been proven in the field by a few dozen users an
 
 ## Current features
 ### Firmware
-* [Serial Wire Debug](https://developer.arm.com/documentation/ihi0031/a/The-Serial-Wire-Debug-Port--SW-DP-/Introduction-to-the-ARM-Serial-Wire-Debug--SWD--protocol) (SWD) access over [CMSIS-DAP 2.0](https://arm-software.github.io/CMSIS_5/DAP/html/index.html) protocol via HID interface (tested with [OpenOCD](https://openocd.org), [LPCXpresso](http://www.nxp.com/pages/:LPCXPRESSO) and [pyOCD](https://pyocd.io/)).
+* [Serial Wire Debug](https://developer.arm.com/documentation/ihi0031/a/The-Serial-Wire-Debug-Port--SW-DP-/Introduction-to-the-ARM-Serial-Wire-Debug--SWD--protocol) (SWD) access over [CMSIS-DAP 2.0](https://arm-software.github.io/CMSIS_5/DAP/html/index.html) protocol via HID interface or bulk interface (tested with [OpenOCD](https://openocd.org), [LPCXpresso](http://www.nxp.com/pages/:LPCXPRESSO) and [pyOCD](https://pyocd.io/)).
 * CDC-ACM USB-serial bridge
 * [Device Firmware Upgrade](https://www.usb.org/sites/default/files/DFU_1.1.pdf) (DFU) over USB (detach-only, switches to on-chip [DFuSe](http://dfu-util.sourceforge.net/dfuse.html) bootloader).
 * [Serial Line CAN](https://elixir.bootlin.com/linux/latest/source/drivers/net/can/slcan/slcan-core.c) (SLCAN) interface - Silent mode, RX only.
@@ -34,6 +34,8 @@ The pin mapping is as follows:
 | TX     | PA2  |
 | RX     | PA3  |
 
+Note: due to hardware limitations, all STM32F103 targets as implemented are limited to one of either the CMSIS-DAP v1 HID interface or the CMSIS-DAP v2 bulk interface.
+
 ## Usage
 ### OpenOCD
 The dap42 firmware has been tested with gdb and OpenOCD on STM32F042 (of course), STM32F103, and LPC11C14 targets.
@@ -56,6 +58,8 @@ In older versions, the CSV format has one fewer entry at the end:
 
     0x1209, 0xDA42, 64, 1, 0, 0, 0, "", 0x0000, -1
 
+Please note: in the most recent version of MCUXpresso, `probetable.csv` no longer exists and does not support custom CMSIS-DAP probes.
+
 ### USB-serial
 #### Windows
 On Windows 10, the serial port works without requiring additional configuration.
@@ -72,17 +76,14 @@ To prevent this, you can define a custom udev rule to ensure that the modem mana
 
     ATTRS{idVendor}=="1209" ATTRS{idProduct}=="da42", ENV{ID_MM_DEVICE_IGNORE}="1"
 
-## Planned features
-### Firmware
-* Additional CMSIS-DAP 1.10 features
- * [Serial Wire Output](https://developer.arm.com/documentation/ddi0314/h/Serial-Wire-Output) (SWO) trace support
-* Additional CMSIS-DAP 2.0 features
- * Bulk endpoints for higher throughput
- * WebUSB compatibility
+### Bulk interface
+On some targets, the CMSIS-DAP v2 bulk USB interface is now enabled by default. In general on Windows it should
+automatically bind the generic WinUSB driver through MS OS descriptors, but this may not work on very old versions
+of Windows or on machines where the USB VID/PID pair for dap42 has already been associated with an older version
+of firmware without bulk interfaces.
 
-### Hardware
-* Simultaneous USB-serial bridge and SWO trace using an STM32F042K6 in an LQFP-32 package with both UARTs pinned out.
-* Level-shifting/protective tri-state buffer between the probe and target SWD port.
+You can use [Zadig](https://zadig.akeo.ie/) to manually bind the WinUSB driver of the bulk interface (also the
+DFU runtime interface, if using a bootloader).
 
 ## Acknowledgements
 The dap42 project was inspired by the [Dapper Mime](http://dappermime.sourceforge.net/) CMSIS-DAP proof-of-concept project.
