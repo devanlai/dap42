@@ -35,6 +35,8 @@ The pin mapping is as follows:
 | RX     | PA3  |
 
 Note: due to hardware limitations, all STM32F103 targets as implemented are limited to one of either the CMSIS-DAP v1 HID interface or the CMSIS-DAP v2 bulk interface.
+By default, all STM32F103 targets use the v2 bulk interface.
+If you prefer the v1 HID interface, use the `STM32F103-HID` targets instead of `STM32F103`.
 
 ## Usage
 ### OpenOCD

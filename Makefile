@@ -27,7 +27,9 @@ BUILD_DIR      ?= ./build
 all: DAP42.bin DAP42DC.bin KITCHEN42.bin \
      DAP103.bin DAP103-DFU.bin \
      DAP103-BLUEPILL.bin DAP103-BLUEPILL-DFU.bin \
-     DAP103-NUCLEO-STBOOT.bin \
+     DAP103-HID.bin DAP103-HID-DFU.bin \
+     DAP103-HID-BLUEPILL.bin DAP103-HID-BLUEPILL-DFU.bin \
+     DAP103-NUCLEO.bin DAP103-NUCLEO-STBOOT.bin \
      BRAINv3.3.bin \
      DAP42K6U.bin
 clean:
@@ -79,6 +81,30 @@ DAP103-BLUEPILL-DFU.bin: | $(BUILD_DIR)
 	@printf "  BUILD $(@)\n"
 	$(Q)$(MAKE) TARGET=STM32F103-BLUEPILL-DFUBOOT -C src/ clean
 	$(Q)$(MAKE) TARGET=STM32F103-BLUEPILL-DFUBOOT -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
+DAP103-HID.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=STM32F103-HID -C src/ clean
+	$(Q)$(MAKE) TARGET=STM32F103-HID -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
+DAP103-HID-DFU.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=STM32F103-HID-DFUBOOT -C src/ clean
+	$(Q)$(MAKE) TARGET=STM32F103-HID-DFUBOOT -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
+DAP103-HID-BLUEPILL.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=STM32F103-HID-BLUEPILL -C src/ clean
+	$(Q)$(MAKE) TARGET=STM32F103-HID-BLUEPILL -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
+DAP103-HID-BLUEPILL-DFU.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=STM32F103-HID-BLUEPILL-DFUBOOT -C src/ clean
+	$(Q)$(MAKE) TARGET=STM32F103-HID-BLUEPILL-DFUBOOT -C src/
 	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
 
 BRAINv3.3.bin: | $(BUILD_DIR)

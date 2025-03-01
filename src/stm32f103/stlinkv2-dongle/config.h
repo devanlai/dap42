@@ -51,11 +51,19 @@
 #define CONSOLE_RX_DMA_CLOCK RCC_DMA1
 #define CONSOLE_RX_DMA_CHANNEL DMA_CHANNEL3
 
-#define TARGET_DFU_AVAILABLE 0
-
+#if PREFER_HID
 #define BULK_AVAILABLE 1
 #define HID_AVAILABLE 0
 #define WINUSB_AVAILABLE 1
+#else
+#define BULK_AVAILABLE 0
+#define HID_AVAILABLE 1
+#if DFU_AVAILABLE
+#define WINUSB_AVAILABLE 1
+#else
+#define WINUSB_AVAILABLE 0
+#endif
+#endif
 
 /* Word size for usart_recv and usart_send */
 typedef uint16_t usart_word_t;
