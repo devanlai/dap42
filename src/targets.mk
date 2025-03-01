@@ -102,10 +102,17 @@ ifeq ($(TARGET),STLINKV2-DONGLE-DAPBOOT)
 	ARCH                = STM32F1
 	DFU_VID_PID        := 1209:db42
 endif
+ifeq ($(TARGET),STLINKV2-1)
+	TARGET_COMMON_DIR  := ./stm32f103
+	TARGET_SPEC_DIR    := ./stm32f103/stlinkv2-1
+	LDSCRIPT           ?= ./stm32f103/stm32f103x8.ld
+	DEFS               += -DDFU_AVAILABLE=0
+	ARCH                = STM32F1
+endif
 ifeq ($(TARGET),STLINKV2-1-STBOOT)
 	TARGET_COMMON_DIR  := ./stm32f103
 	TARGET_SPEC_DIR    := ./stm32f103/stlinkv2-1
-	LDSCRIPT           ?= ./stm32f103/stlinkv2-1/stm32f103x8-stlinkv2-1-boot.ld
+	LDSCRIPT           ?= ./stm32f103/stm32f103x8-stlinkv2-1-boot.ld
 	DEFS               += -DDFU_AVAILABLE=1
 	ARCH                = STM32F1
 endif

@@ -93,6 +93,12 @@ DAP42K6U.bin: | $(BUILD_DIR)
 	$(Q)$(MAKE) TARGET=DAP42K6U -C src/
 	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
 
+DAP103-NUCLEO.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=STLINKV2-1 -C src/ clean
+	$(Q)$(MAKE) TARGET=STLINKV2-1 -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
 DAP103-NUCLEO-STBOOT.bin: | $(BUILD_DIR)
 	@printf "  BUILD $(@)\n"
 	$(Q)$(MAKE) TARGET=STLINKV2-1-STBOOT -C src/ clean
