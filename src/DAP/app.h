@@ -22,6 +22,7 @@
 #include <libopencm3/usb/usbd.h>
 
 bool DAP_app_update(void);
+void DAP_app_set_serial_number(const char* serial);
 
 typedef void (*GenericCallback)(void);
 void DAP_app_setup(usbd_device* usbd_dev, GenericCallback on_dfu_request);

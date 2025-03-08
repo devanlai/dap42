@@ -110,6 +110,7 @@ int main(void) {
         char serial[USB_SERIAL_NUM_LENGTH+1];
         desig_get_unique_id_as_string(serial, USB_SERIAL_NUM_LENGTH+1);
         cmp_set_usb_serial_number(serial);
+        DAP_app_set_serial_number(serial);
     }
 
     usbd_dev = cmp_usb_setup();

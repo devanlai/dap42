@@ -1,6 +1,6 @@
-/* CMSIS-DAP Interface Firmware
- * Copyright (c) 2013-2017 ARM Limited. All rights reserved.
- * Copyright (c) 2015 Devan Lai - modifications for use within the
+/*
+ * Copyright (c) 2013-2022 ARM Limited. All rights reserved.
+ * Copyright (c) 2025 Devan Lai - modifications for use within the
  *                                dap42 project
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -19,8 +19,8 @@
  *
  * ----------------------------------------------------------------------
  *
- * $Date:        1. December 2017
- * $Revision:    V2.0.0
+ * $Date:        5. December 2022
+ * $Revision:    V2.1.2
  *
  * Project:      CMSIS-DAP Source
  * Title:        DAP.c CMSIS-DAP Commands
@@ -64,11 +64,20 @@ volatile uint8_t    DAP_TransferAbort;  // Transfer Abort Flag
 
 static const char DAP_FW_Ver [] = DAP_FW_VER;
 
-#if TARGET_DEVICE_FIXED
+#if TARGET_FIXED
 static const char TargetDeviceVendor [] = TARGET_DEVICE_VENDOR;
 static const char TargetDeviceName   [] = TARGET_DEVICE_NAME;
+static const char TargetBoardVendor  [] = TARGET_BOARD_VENDOR;
+static const char TargetBoardName    [] = TARGET_BOARD_NAME;
 #endif
 
+#ifndef PRODUCT_FW_VER
+#define PRODUCT_FW_VER "2.0.0"
+#endif
+
+static const char Product_FW_Ver [] = PRODUCT_FW_VER;
+
+static char SerialNumber[DAP_SERIAL_NUM_LENGTH+1] = "000000000000000000000000";
 
 // Get DAP Information
 //   id:      info identifier
@@ -85,23 +94,36 @@ static uint8_t DAP_Info(uint8_t id, uint8_t *info) {
       length = DAP_GetProductString((char *)info);
       break;
     case DAP_ID_SER_NUM:
-      length = DAP_GetSerNumString((char *)info);
+      length = DAP_SERIAL_NUM_LENGTH;
+      strncpy((char*)info, SerialNumber, DAP_SERIAL_NUM_LENGTH);
       break;
-    case DAP_ID_FW_VER:
+    case DAP_ID_DAP_FW_VER:
       length = (uint8_t)sizeof(DAP_FW_Ver);
       memcpy(info, DAP_FW_Ver, length);
       break;
-    case DAP_ID_DEVICE_VENDOR:
-#if TARGET_DEVICE_FIXED
+#if TARGET_FIXED
       length = (uint8_t)sizeof(TargetDeviceVendor);
       memcpy(info, TargetDeviceVendor, length);
 #endif
       break;
     case DAP_ID_DEVICE_NAME:
-#if TARGET_DEVICE_FIXED
+#if TARGET_FIXED
       length = (uint8_t)sizeof(TargetDeviceName);
       memcpy(info, TargetDeviceName, length);
 #endif
+    case DAP_ID_BOARD_VENDOR:
+#if TARGET_FIXED
+      length = (uint8_t)sizeof(TargetBoardVendor);
+      memcpy(info, TargetBoardVendor, length);
+#endif
+    case DAP_ID_BOARD_NAME:
+#if TARGET_FIXED
+      length = (uint8_t)sizeof(TargetBoardName);
+      memcpy(info, TargetBoardName, length);
+#endif
+    case DAP_ID_PRODUCT_FW_VER:
+      length = (uint8_t)sizeof(Product_FW_Ver);
+      memcpy(info, Product_FW_Ver, length);
       break;
     case DAP_ID_CAPABILITIES:
       info[0] = ((DAP_SWD  != 0)         ? (1U << 0) : 0U) |
@@ -110,8 +132,11 @@ static uint8_t DAP_Info(uint8_t id, uint8_t *info) {
                 ((SWO_MANCHESTER != 0)   ? (1U << 3) : 0U) |
                 /* Atomic Commands  */     (1U << 4)       |
                 ((TIMESTAMP_CLOCK != 0U) ? (1U << 5) : 0U) |
-                ((SWO_STREAM != 0U)      ? (1U << 6) : 0U);
-      length = 1U;
+                ((SWO_STREAM != 0U)      ? (1U << 6) : 0U) |
+                ((DAP_UART != 0U)        ? (1U << 7) : 0U);
+
+      info[1] = ((DAP_UART_USB_COM_PORT != 0) ? (1U << 0) : 0U);
+      length = 2U;
       break;
     case DAP_ID_TIMESTAMP_CLOCK:
 #if (TIMESTAMP_CLOCK != 0U)
@@ -119,6 +144,24 @@ static uint8_t DAP_Info(uint8_t id, uint8_t *info) {
       info[1] = (uint8_t)(TIMESTAMP_CLOCK >>  8);
       info[2] = (uint8_t)(TIMESTAMP_CLOCK >> 16);
       info[3] = (uint8_t)(TIMESTAMP_CLOCK >> 24);
+      length = 4U;
+#endif
+      break;
+    case DAP_ID_UART_RX_BUFFER_SIZE:
+#if (DAP_UART != 0)
+      info[0] = (uint8_t)(DAP_UART_RX_BUFFER_SIZE >>  0);
+      info[1] = (uint8_t)(DAP_UART_RX_BUFFER_SIZE >>  8);
+      info[2] = (uint8_t)(DAP_UART_RX_BUFFER_SIZE >> 16);
+      info[3] = (uint8_t)(DAP_UART_RX_BUFFER_SIZE >> 24);
+      length = 4U;
+#endif
+      break;
+    case DAP_ID_UART_TX_BUFFER_SIZE:
+#if (DAP_UART != 0)
+      info[0] = (uint8_t)(DAP_UART_TX_BUFFER_SIZE >>  0);
+      info[1] = (uint8_t)(DAP_UART_TX_BUFFER_SIZE >>  8);
+      info[2] = (uint8_t)(DAP_UART_TX_BUFFER_SIZE >> 16);
+      info[3] = (uint8_t)(DAP_UART_TX_BUFFER_SIZE >> 24);
       length = 4U;
 #endif
       break;
@@ -694,7 +737,8 @@ static uint32_t DAP_SWD_Transfer(const uint8_t *request, uint8_t *response) {
 
   request_count = *request++;
 
-  for (; request_count != 0U; request_count--) {
+  while (request_count != 0) {
+    request_count--;
     request_value = *request++;
     if ((request_value & DAP_TRANSFER_RnW) != 0U) {
       // Read register
@@ -875,8 +919,9 @@ static uint32_t DAP_SWD_Transfer(const uint8_t *request, uint8_t *response) {
     }
   }
 
-  for (; request_count != 0U; request_count--) {
+  while (request_count != 0) {
     // Process canceled requests
+    request_count--;
     request_value = *request++;
     if ((request_value & DAP_TRANSFER_RnW) != 0U) {
       // Read register
@@ -968,7 +1013,8 @@ static uint32_t DAP_JTAG_Transfer(const uint8_t *request, uint8_t *response) {
 
   request_count = *request++;
 
-  for (; request_count != 0U; request_count--) {
+  while (request_count != 0) {
+    request_count--;
     request_value = *request++;
     request_ir = (request_value & DAP_TRANSFER_APnDP) ? JTAG_APACC : JTAG_DPACC;
     if ((request_value & DAP_TRANSFER_RnW) != 0U) {
@@ -1145,8 +1191,9 @@ static uint32_t DAP_JTAG_Transfer(const uint8_t *request, uint8_t *response) {
     }
   }
 
-  for (; request_count != 0U; request_count--) {
+  while (request_count != 0) {
     // Process canceled requests
+    request_count--;
     request_value = *request++;
     if ((request_value & DAP_TRANSFER_RnW) != 0U) {
       // Read register
@@ -1717,6 +1764,24 @@ uint32_t DAP_ProcessCommand(const uint8_t *request, uint8_t *response) {
       break;
 #endif
 
+#if (DAP_UART != 0)
+    case ID_DAP_UART_Transport:
+      num = UART_Transport(request, response);
+      break;
+    case ID_DAP_UART_Configure:
+      num = UART_Configure(request, response);
+      break;
+    case ID_DAP_UART_Control:
+      num = UART_Control(request, response);
+      break;
+    case ID_DAP_UART_Status:
+      num = UART_Status(response);
+      break;
+    case ID_DAP_UART_Transfer:
+      num = UART_Transfer(request, response);
+      break;
+#endif
+
     default:
       *(response-1) = ID_DAP_Invalid;
       return ((1U << 16) | 1U);
@@ -1751,6 +1816,14 @@ uint32_t DAP_ExecuteCommand(const uint8_t *request, uint8_t *response) {
   return DAP_ProcessCommand(request, response);
 }
 
+// Set the serial number at runtime
+void DAP_SetSerial(const char* serial) {
+  SerialNumber[0] = '\0';
+  if (serial) {
+    strncpy(SerialNumber, serial, DAP_SERIAL_NUM_LENGTH);
+    SerialNumber[DAP_SERIAL_NUM_LENGTH] = '\0';
+  }
+}
 
 // Setup DAP
 void DAP_Setup(void) {

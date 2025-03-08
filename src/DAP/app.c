@@ -135,6 +135,10 @@ uint32_t DAP_ProcessVendorCommand(const uint8_t* request, uint8_t* response) {
     return ((1U << 16) | 1U);
 }
 
+void DAP_app_set_serial_number(const char* serial) {
+    DAP_SetSerial(serial);
+}
+
 static void DAP_app_reset(void) {
     inbox_tail = 0;
     process_head = 0;
