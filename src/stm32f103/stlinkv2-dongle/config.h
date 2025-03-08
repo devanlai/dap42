@@ -52,10 +52,6 @@
 #define CONSOLE_RX_DMA_CHANNEL DMA_CHANNEL3
 
 #if PREFER_HID
-#define BULK_AVAILABLE 1
-#define HID_AVAILABLE 0
-#define WINUSB_AVAILABLE 1
-#else
 #define BULK_AVAILABLE 0
 #define HID_AVAILABLE 1
 #if DFU_AVAILABLE
@@ -63,6 +59,10 @@
 #else
 #define WINUSB_AVAILABLE 0
 #endif
+#else
+#define BULK_AVAILABLE 1
+#define HID_AVAILABLE 0
+#define WINUSB_AVAILABLE 1
 #endif
 
 /* Word size for usart_recv and usart_send */
