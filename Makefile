@@ -31,7 +31,7 @@ all: DAP42.bin DAP42DC.bin KITCHEN42.bin \
      DAP103-HID-BLUEPILL.bin DAP103-HID-BLUEPILL-DFU.bin \
      DAP103-NUCLEO.bin DAP103-NUCLEO-STBOOT.bin \
      BRAINv3.3.bin \
-     DAP42K6U.bin
+     DAP42K6U.bin TINYDYNE.bin
 clean:
 	$(Q)$(RM) $(BUILD_DIR)/*.bin
 	$(Q)$(MAKE) -C src/ clean
@@ -51,6 +51,12 @@ DAP42DC.bin: | $(BUILD_DIR)
 	@printf "  BUILD $(@)\n"
 	$(Q)$(MAKE) TARGET=DAP42DC -C src/ clean
 	$(Q)$(MAKE) TARGET=DAP42DC -C src/
+	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
+
+TINYDYNE.bin: | $(BUILD_DIR)
+	@printf "  BUILD $(@)\n"
+	$(Q)$(MAKE) TARGET=TINYDYNE -C src/ clean
+	$(Q)$(MAKE) TARGET=TINYDYNE -C src/
 	$(Q)cp src/DAP42.bin $(BUILD_DIR)/$(@)
 
 KITCHEN42.bin: | $(BUILD_DIR)
