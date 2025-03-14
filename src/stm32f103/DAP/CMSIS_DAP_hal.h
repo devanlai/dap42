@@ -248,26 +248,44 @@ static __inline void PIN_nRESET_OUT (uint32_t bit) {
 
 static __inline void LED_CONNECTED_OUT (uint32_t bit) {
     if ((bit & 0x1) ^ LED_OPEN_DRAIN) {
+#ifndef LED_CON_DISABLE
+#ifdef LED_CON_INVERT
+        gpio_clear(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
+    } else {
+        gpio_set(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
+#else
         gpio_set(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
     } else {
         gpio_clear(LED_CON_GPIO_PORT, LED_CON_GPIO_PIN);
+#endif
     }
+#else
+    (void) bit;
+#endif
 }
 
 static __inline void LED_RUNNING_OUT (uint32_t bit) {
+#ifndef LED_RUN_DISABLE
     if ((bit & 0x1) ^ LED_OPEN_DRAIN) {
         gpio_set(LED_RUN_GPIO_PORT, LED_RUN_GPIO_PIN);
     } else {
         gpio_clear(LED_RUN_GPIO_PORT, LED_RUN_GPIO_PIN);
     }
+#else
+    (void) bit;
+#endif
 }
 
 static __inline void LED_ACTIVITY_OUT (uint32_t bit) {
+#ifndef LED_ACT_DISABLE
     if ((bit & 0x1) ^ LED_OPEN_DRAIN) {
         gpio_set(LED_ACT_GPIO_PORT, LED_ACT_GPIO_PIN);
     } else {
         gpio_clear(LED_ACT_GPIO_PORT, LED_ACT_GPIO_PIN);
     }
+#else
+    (void) bit;
+#endif
 }
 
 static __inline void DAP_SETUP (void) {
