@@ -20,6 +20,7 @@
 #define CONFIG_H_INCLUDED
 
 #define PRODUCT_NAME "DAP103-BLUEPILL"
+#define VENDOR_NAME "https://github.com/devanlai/dap42"
 
 #define CAN_RX_AVAILABLE 0
 #define CAN_TX_AVAILABLE 0
