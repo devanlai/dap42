@@ -20,6 +20,7 @@
 #define CONFIG_H_INCLUDED
 
 #define PRODUCT_NAME "DAP42dc"
+#define VENDOR_NAME "https://github.com/devanlai/dap42"
 #define REMAP_USB 1
 #define USB_NVIC_LINE NVIC_USB_IRQ
 #define USB_IRQ_NAME usb_isr

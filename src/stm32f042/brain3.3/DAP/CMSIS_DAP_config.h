@@ -45,6 +45,7 @@ This information includes:
 */
 
 #include "config.h"
+#include <string.h>
 
 // Board configuration options
 
@@ -156,8 +157,10 @@ This information includes:
 \return String length (including terminating NULL character) or 0 (no string).
 */
 static inline uint8_t DAP_GetVendorString (char *str) {
-  (void)str;
-  return (0U);
+  static const char vendor[] = VENDOR_NAME;
+  strncpy(str, vendor, 60);
+  str[59] = '\0';
+  return strlen(str) + 1;
 }
 
 /** Get Product Name string.
@@ -165,8 +168,10 @@ static inline uint8_t DAP_GetVendorString (char *str) {
 \return String length (including terminating NULL character) or 0 (no string).
 */
 static inline uint8_t DAP_GetProductString (char *str) {
-  (void)str;
-  return (0U);
+  static const char product[] = PRODUCT_NAME;
+  strncpy(str, product, 60);
+  str[59] = '\0';
+  return strlen(str) + 1;
 }
 
 ///@}
